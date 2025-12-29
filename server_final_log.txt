@@ -1,0 +1,13 @@
+DEBUG: Cargando .env desde: C:\wamp64\www\inquieta-dulzura\.env
+DEBUG: Archivo .env EXISTE
+DEBUG: .env Cargado correctamente. DB_PORT: 3308
+✅ Cloudinary configurado correctamente
+✅ Cloudinary configurado correctamente
+✅ Conectado a MySQL
+✅ Conexión a MySQL verificada
+🚀 Servidor escuchando en http://localhost:3000
+📁 Archivos estáticos en: C:\wamp64\www\inquieta-dulzura\uploads
+🌍 Entorno: development
+💾 Base de Datos: inquieta_dulzura en puerto 3308
+�Desea terminar el trabajo por lotes (S/N)? 
+^CEl sistema no puede abrir el dispositivo o archivo especificado.

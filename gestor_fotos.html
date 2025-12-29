@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Fotos - Inquieta Dulzura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border: 2px dashed #667eea;
+        }
+        
+        .upload-area {
+            text-align: center;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .photo-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            position: relative;
+        }
+        
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .photo-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .photo-info {
+            padding: 15px;
+        }
+        
+        .photo-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .photo-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn-small {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-small:hover {
+            opacity: 0.8;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Gestor de Fotos</h1>
+        <p class="subtitle">Sistema de almacenamiento local - Inquieta Dulzura</p>
+        
+        <!-- Alertas -->
+        <div id="alert" class="alert"></div>
+        
+        <!-- Estadísticas -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalFotos">0</div>
+                <div class="stat-label">Total de Fotos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="espacioUsado">0 MB</div>
+                <div class="stat-label">Espacio Usado</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="promedioTamano">0 KB</div>
+                <div class="stat-label">Promedio por Foto</div>
+            </div>
+        </div>
+        
+        <!-- Área de subida -->
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📤</div>
+                    <h3>Arrastra archivos aquí o haz clic para seleccionar</h3>
+                    <p>Formatos: JPG, PNG, WEBP, GIF (máx 5MB)</p>
+                    <input type="file" id="fileInput" name="foto" accept="image/*" multiple>
+                </div>
+                
+                <div style="text-align: center;">
+                    <label>
+                        <input type="checkbox" id="esPrincipal" name="es_principal">
+                        Establecer como foto principal
+                    </label>
+                    <br>
+                    <button type="submit" class="btn">Subir Fotos</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Galería de fotos -->
+        <h2>Galería de Fotos</h2>
+        <div class="gallery" id="gallery">
+            <!-- Las fotos se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+    
+    <script>
+        // Configuración
+        const PRODUCTO_ID = 1; // Cambiar según el producto actual
+        const API_URL = 'api_fotos.php'; // Archivo PHP que procesará las peticiones
+        
+        // Cargar fotos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarFotos();
+            cargarEstadisticas();
+        });
+        
+        // Manejar subida de archivos
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            const esPrincipal = document.getElementById('esPrincipal').checked;
+            
+            if (fileInput.files.length === 0) {
+                mostrarAlerta('Por favor selecciona al menos una imagen', 'error');
+                return;
+            }
+            
+            // Subir cada archivo
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const formData = new FormData();
+                formData.append('foto', fileInput.files[i]);
+                formData.append('producto_id', PRODUCTO_ID);
+                formData.append('es_principal', i === 0 && esPrincipal ? '1' : '0');
+                
+                try {
+                    const response = await fetch(API_URL + '?action=upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        mostrarAlerta(`Foto ${i + 1} subida exitosamente`, 'success');
+                    } else {
+                        mostrarAlerta(`Error en foto ${i + 1}: ${result.message}`, 'error');
+                    }
+                } catch (error) {
+                    mostrarAlerta('Error al subir la foto: ' + error.message, 'error');
+                }
+            }
+            
+            // Recargar galería
+            setTimeout(() => {
+                cargarFotos();
+                cargarEstadisticas();
+                fileInput.value = '';
+            }, 1000);
+        });
+        
+        // Cargar fotos del producto
+        async function cargarFotos() {
+            try {
+                const response = await fetch(`${API_URL}?action=list&producto_id=${PRODUCTO_ID}`);
+                const fotos = await response.json();
+                
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = '';
+                
+                if (fotos.length === 0) {
+                    gallery.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;">No hay fotos aún. ¡Sube la primera!</p>';
+                    return;
+                }
+                
+                fotos.forEach(foto => {
+                    const card = crearTarjetaFoto(foto);
+                    gallery.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error al cargar fotos:', error);
+            }
+        }
+        
+        // Crear tarjeta de foto
+        function crearTarjetaFoto(foto) {
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            
+            const tamanoMB = (foto.tamano_bytes / 1024 / 1024).toFixed(2);
+            
+            card.innerHTML = `
+                <img src="${foto.url_publica}" alt="${foto.nombre_archivo}">
+                ${foto.es_principal ? '<div class="photo-badge">PRINCIPAL</div>' : ''}
+                <div class="photo-info">
+                    <strong>${foto.nombre_archivo}</strong>
+                    <p style="color:#666;font-size:0.9em;margin-top:5px;">
+                        ${foto.ancho_px} × ${foto.alto_px} px<br>
+                        ${tamanoMB} MB
+                    </p>
+                    <div class="photo-actions">
+                        ${!foto.es_principal ? `
+                            <button class="btn-small btn-primary" onclick="establecerPrincipal(${foto.id})">
+                                ⭐ Principal
+                            </button>
+                        ` : ''}
+                        <button class="btn-small btn-danger" onclick="eliminarFoto(${foto.id})">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Establecer foto como principal
+        async function establecerPrincipal(fotoId) {
+            if (!confirm('¿Establecer esta foto como principal?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}?action=set_principal&foto_id=${fotoId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlerta('Foto principal actualizada', 'success');
+                    cargarFotos();
+                } else {
+                    mostrarAlerta('Error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Eliminar foto
+        async function eliminarFoto(fotoId) {
+            if (!confirm('¿Estás seguro de eliminar esta foto? Esta acción no se puede deshacer.')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}?action=delete&foto_id=${fotoId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    mostrarAlerta('Foto eliminada exitosamente', 'success');
+                    cargarFotos();
+                    cargarEstadisticas();
+                } else {
+                    mostrarAlerta('Error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Cargar estadísticas
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch(`${API_URL}?action=stats`);
+                const stats = await response.json();
+                
+                document.getElementById('totalFotos').textContent = stats.total_fotos || 0;
+                document.getElementById('espacioUsado').textContent = (stats.tamano_total_mb || 0) + ' MB';
+                document.getElementById('promedioTamano').textContent = (stats.promedio_kb || 0) + ' KB';
+                
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+        
+        // Mostrar alerta
+        function mostrarAlerta(mensaje, tipo) {
+            const alert = document.getElementById('alert');
+            alert.textContent = mensaje;
+            alert.className = `alert ${tipo} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Drag & Drop
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = 'rgba(102, 126, 234, 0.2)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = '';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = '';
+            
+            const files = e.dataTransfer.files;
+            document.getElementById('fileInput').files = files;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+/* Estilos específicos para la vista de Ingredientes */
+/* Basado en variables globales de styles.css */
+
+.inventario-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.inventario-container h2 {
+    color: var(--violet-accent);
+    font-family: var(--font-titles);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+}
+
+/* Table Styles - Matching standard clean look */
+.table-responsive {
+    overflow-x: auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+
+.inventario-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.inventario-table th {
+    background-color: var(--primary-color);
+    /* Soft Rose */
+    color: var(--dark-accent);
+    padding: 1rem;
+    text-align: left;
+    font-family: var(--font-titles);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.inventario-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.inventario-table tr:last-child td {
+    border-bottom: none;
+}
+
+.inventario-table tr:hover td {
+    background-color: #fafbfc;
+}
+
+/* Button Styles - Using specific class names from Ingredientes.tsx */
+.add-button {
+    background-color: var(--violet-accent);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-titles);
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-button:hover {
+    background-color: var(--dark-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.edit-button {
+    background-color: var(--secondary-color);
+    /* Mint */
+    color: var(--dark-accent);
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: filter 0.2s;
+}
+
+.edit-button:hover {
+    filter: brightness(0.95);
+}
+
+.delete-button {
+    background-color: #ff5252;
+    /* Red */
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Modal form Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+.modal-content h3 {
+    color: var(--violet-accent);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-accent);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--violet-accent);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-group input {
+    width: auto;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.save-button {
+    background-color: var(--violet-accent);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.save-button:hover {
+    background-color: var(--dark-accent);
+}
+
+.cancel-button {
+    background-color: #f1f2f6;
+    color: #666;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancel-button:hover {
+    background-color: #e4e6eb;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

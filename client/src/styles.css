@@ -1,0 +1,284 @@
+/* Estilos compartidos para todos los componentes */
+:root {
+    --primary-color: #F6D6DE;
+    /* Soft Rose */
+    --secondary-color: #C8EBE5;
+    /* Pastel Mint */
+    --accent-color: #D5CFE5;
+    /* Light Lavender */
+    --highlight-color: #F5D6C6;
+    /* Soft Apricot */
+    --dark-accent: #1A1A1A;
+    /* Deep Charcoal */
+    --background: #F2E1F5;
+    /* Softer Pastel Violet/Lilac */
+    --violet-accent: #9076B9;
+    /* Darker Violet for UI elements */
+    --card-background: #ffffff;
+    --text-color: #1A1A1A;
+    --border-color: rgba(0, 0, 0, 0.05);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --border-radius-lg: 30px;
+    --border-radius-md: 15px;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --font-titles: 'Montserrat', sans-serif;
+    --font-script: 'Dancing Script', cursive;
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Fallback */
+    background-color: var(--background);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Contenedor principal */
+.container {
+    padding: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Headers */
+h1 {
+    font-family: var(--font-titles);
+    color: var(--violet-accent);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+    text-transform: uppercase;
+}
+
+h2 {
+    font-family: var(--font-titles);
+    color: var(--violet-accent);
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+    text-transform: uppercase;
+}
+
+h3 {
+    font-family: var(--font-titles);
+    color: var(--violet-accent);
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.script-text {
+    font-family: var(--font-script);
+    font-size: 1.5rem;
+}
+
+/* Botones */
+button,
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 8px;
+    /* Mantener algo cuadrado para el contraste negro */
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    font-family: var(--font-titles);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background-color: var(--dark-accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+    background-color: #fed48a;
+    color: #ac9403;
+}
+
+.btn-secondary:hover {
+    filter: brightness(0.95);
+}
+
+.btn-danger {
+    background-color: #ff5252;
+    color: white;
+}
+
+/* Inputs y Forms */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Cards */
+.card {
+    background: var(--card-background);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: var(--spacing-lg);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+th,
+td {
+    padding: var(--spacing-md);
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.badge-danger {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Loading spinner */
+.loading {
+    text-align: center;
+    padding: var(--spacing-lg);
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.loading::after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+
+    0%,
+    20% {
+        content: '.';
+    }
+
+    40% {
+        content: '..';
+    }
+
+    60%,
+    100% {
+        content: '...';
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+
+    th,
+    td {
+        padding: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    button,
+    .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}

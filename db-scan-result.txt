@@ -1,0 +1,5 @@
+Iniciando escaneo de puertos MySQL (3306, 3307, 3308)...
+Puerto 3306: FALLO
+Puerto 3307: FALLO
+Puerto 3308: FALLO
+No se encontro conexion en los puertos habituales.

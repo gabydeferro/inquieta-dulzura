@@ -1,0 +1,122 @@
+/* Auth Styles */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background);
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    padding: 50px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
+    max-width: 500px;
+    width: 100%;
+}
+
+.auth-card h1 {
+    font-family: var(--font-script);
+    text-align: center;
+    margin-bottom: 0px;
+    font-size: 3.5rem;
+    color: var(--dark-accent);
+}
+
+.auth-card h2 {
+    font-family: var(--font-titles);
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--dark-accent);
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #f8ad9d;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #999;
+    font-size: 0.85em;
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f8ad9d 0%, #fbc4ab 100%);
+    color: #4a4e69;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(248, 173, 157, 0.4);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background-color: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.auth-link a {
+    color: #f8ad9d;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-link a:hover {
+    text-decoration: underline;
+}

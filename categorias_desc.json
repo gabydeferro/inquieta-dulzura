@@ -1,0 +1,50 @@
+[
+  {
+    "Field": "id",
+    "Type": "bigint unsigned",
+    "Null": "NO",
+    "Key": "PRI",
+    "Default": null,
+    "Extra": "auto_increment"
+  },
+  {
+    "Field": "nombre",
+    "Type": "varchar(100)",
+    "Null": "NO",
+    "Key": "UNI",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "descripcion",
+    "Type": "text",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  {
+    "Field": "activo",
+    "Type": "tinyint(1)",
+    "Null": "NO",
+    "Key": "MUL",
+    "Default": "1",
+    "Extra": ""
+  },
+  {
+    "Field": "created_at",
+    "Type": "datetime",
+    "Null": "NO",
+    "Key": "",
+    "Default": "CURRENT_TIMESTAMP",
+    "Extra": "DEFAULT_GENERATED"
+  },
+  {
+    "Field": "updated_at",
+    "Type": "datetime",
+    "Null": "NO",
+    "Key": "",
+    "Default": "CURRENT_TIMESTAMP",
+    "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+  }
+]

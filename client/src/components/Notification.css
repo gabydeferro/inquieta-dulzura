@@ -1,0 +1,122 @@
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    animation: slideIn 0.3s ease-out;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.notification-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+}
+
+/* Tipos de notificaciones con colores boutique */
+.notification-item.success {
+    border-left: 6px solid #b7e4c7;
+}
+
+.notification-item.success::before {
+    background-color: #74c69d;
+}
+
+.notification-item.error {
+    border-left: 6px solid #f9dcc4;
+}
+
+.notification-item.error::before {
+    background-color: #f08080;
+}
+
+.notification-item.warning {
+    border-left: 6px solid #fde2e4;
+}
+
+.notification-item.warning::before {
+    background-color: #ffb3c1;
+}
+
+.notification-item.info {
+    border-left: 6px solid #dee2ff;
+}
+
+.notification-item.info::before {
+    background-color: #adc178;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #4a4e69;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 5px;
+    line-height: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+}

@@ -1,0 +1,6 @@
+Probando conexion a la base de datos...
+Configuracion: {"host":"localhost","user":"root","database":"inquieta_dulzura","password":"(vacio)"}
+❌ ERROR: No se pudo conectar a la base de datos.
+Mensaje: 
+Codigo: ECONNREFUSED
+Fatal: undefined
