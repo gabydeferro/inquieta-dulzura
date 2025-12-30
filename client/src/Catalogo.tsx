@@ -74,7 +74,7 @@ const Catalogo: React.FC = () => {
             } else {
                 productosRes = await apiService.getProductosByCategoria<ProductoDTO[]>(id);
             }
-            
+
             // Mapear nombres de categoría a productos
             const categoriasMap = new Map(categorias.map(c => [c.id, c.nombre]));
             const productosConCategoria = productosRes.data.map(p => ({
@@ -91,7 +91,7 @@ const Catalogo: React.FC = () => {
             setLoading(false);
         }
     };
-    
+
     const categoriasFiltro = [{ id: 'todas', nombre: 'Todas' }, ...categorias];
 
     return (
@@ -140,7 +140,7 @@ const Catalogo: React.FC = () => {
                                             <h3>{producto.nombre}</h3>
                                             <p>{producto.descripcion}</p>
                                             <div className="producto-footer">
-                                                <span className="producto-precio">${producto.precio.toFixed(2)}</span>
+                                                <span className="producto-precio">${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}</span>
                                                 <button className="btn-contacto">Consultar</button>
                                             </div>
                                         </div>

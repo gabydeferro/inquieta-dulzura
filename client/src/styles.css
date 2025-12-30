@@ -101,7 +101,6 @@ button,
 
 .btn-primary:hover {
     background-color: #333;
-    transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 

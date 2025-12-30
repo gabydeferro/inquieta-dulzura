@@ -184,7 +184,7 @@
     background: white;
     border-radius: var(--border-radius-lg);
     padding: 3rem;
-    max-width: 650px;
+    max-width: 900px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;

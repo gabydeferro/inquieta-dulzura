@@ -25,7 +25,7 @@ export const ContenidoDigital: React.FC = () => {
         try {
             const response = await fetch('/api/contenido-digital');
             const data = await response.json();
-            setImagenes(data);
+            setImagenes(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error al cargar imágenes:', error);
         } finally {

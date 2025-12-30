@@ -66,9 +66,9 @@ const Ingredientes: React.FC = () => {
         setEditingIngrediente({
             nombre: '',
             descripcion: '',
-            unidad_medida: 'unidades', // Default value
+            unidad_medida: 'unidades',
             costo_unitario: 0,
-            activo: true,
+            activo: true, // Default to active
         });
         setIsModalOpen(true);
     };
@@ -94,17 +94,6 @@ const Ingredientes: React.FC = () => {
         });
     };
 
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-        setEditingIngrediente((prev) => {
-            if (!prev) return null;
-            return {
-                ...prev,
-                [name]: checked,
-            };
-        });
-    };
-
     return (
         <div className="inventario-container">
             <h2>Gestión de Ingredientes</h2>
@@ -116,34 +105,38 @@ const Ingredientes: React.FC = () => {
                 <table className="inventario-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nombre</th>
                             <th>Descripción</th>
                             <th>Unidad de Medida</th>
                             <th>Costo Unitario</th>
-                            <th>Activo</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {ingredientes.map((ingrediente) => (
-                            <tr key={ingrediente.id}>
-                                <td>{ingrediente.id}</td>
-                                <td>{ingrediente.nombre}</td>
-                                <td>{ingrediente.descripcion}</td>
-                                <td>{ingrediente.unidad_medida}</td>
-                                <td>{ingrediente.costo_unitario ? Number(ingrediente.costo_unitario).toFixed(2) : '0.00'}</td>
-                                <td>{ingrediente.activo ? 'Sí' : 'No'}</td>
-                                <td>
-                                    <button className="edit-button" onClick={() => openEditModal(ingrediente)}>
-                                        Editar
-                                    </button>
-                                    <button className="delete-button" onClick={() => handleDelete(ingrediente.id!)}>
-                                        Eliminar
-                                    </button>
+                        {ingredientes.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+                                    No hay ingredientes cargados
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            ingredientes.map((ingrediente) => (
+                                <tr key={ingrediente.id}>
+                                    <td>{ingrediente.nombre}</td>
+                                    <td>{ingrediente.descripcion}</td>
+                                    <td>{ingrediente.unidad_medida}</td>
+                                    <td>{ingrediente.costo_unitario ? `$${Number(ingrediente.costo_unitario).toFixed(2)}` : '$0.00'}</td>
+                                    <td>
+                                        <button className="edit-button" onClick={() => openEditModal(ingrediente)}>
+                                            Editar
+                                        </button>
+                                        <button className="delete-button" onClick={() => handleDelete(ingrediente.id!)}>
+                                            Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
@@ -169,41 +162,35 @@ const Ingredientes: React.FC = () => {
                                     name="descripcion"
                                     value={editingIngrediente.descripcion || ''}
                                     onChange={handleChange}
+                                    rows={3}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Unidad de Medida:</label>
-                                <select
-                                    name="unidad_medida"
-                                    value={editingIngrediente.unidad_medida}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    {unidades.map((unit) => (
-                                        <option key={unit} value={unit}>
-                                            {unit}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Costo Unitario:</label>
-                                <input
-                                    type="number"
-                                    name="costo_unitario"
-                                    value={editingIngrediente.costo_unitario || 0}
-                                    onChange={handleChange}
-                                    step="0.01"
-                                />
-                            </div>
-                            <div className="form-group checkbox-group">
-                                <label>Activo:</label>
-                                <input
-                                    type="checkbox"
-                                    name="activo"
-                                    checked={editingIngrediente.activo || false}
-                                    onChange={handleCheckboxChange}
-                                />
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Unidad de Medida:</label>
+                                    <select
+                                        name="unidad_medida"
+                                        value={editingIngrediente.unidad_medida}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        {unidades.map((unit) => (
+                                            <option key={unit} value={unit}>
+                                                {unit}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Costo Unitario:</label>
+                                    <input
+                                        type="number"
+                                        name="costo_unitario"
+                                        value={editingIngrediente.costo_unitario || 0}
+                                        onChange={handleChange}
+                                        step="0.01"
+                                    />
+                                </div>
                             </div>
                             <div className="form-actions">
                                 <button type="submit" className="save-button">

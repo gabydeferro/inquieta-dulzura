@@ -43,8 +43,13 @@
 
 .inventario-table td {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #eee;
     color: var(--text-color);
+}
+
+.inventario-table th:last-child,
+.inventario-table td:last-child {
+    text-align: center;
 }
 
 .inventario-table tr:last-child td {
@@ -127,24 +132,36 @@
 
 .modal-content {
     background: white;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 20px;
     width: 90%;
-    max-width: 500px;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     animation: slideUp 0.3s ease;
 }
 
 .modal-content h3 {
     color: var(--violet-accent);
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem;
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.form-row .form-group {
+    margin-bottom: 0;
 }
 
 .form-group label {
@@ -186,7 +203,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 .save-button {

@@ -17,6 +17,7 @@ import Ventas from './Ventas';
 import ContenidoDigital from './ContenidoDigital';
 import Categorias from './Categorias';
 import Ingredientes from './Ingredientes';
+import ScrollToTop from './components/ScrollToTop';
 import './styles.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
       <NotificationProvider>
         <ConfirmProvider>
           <BrowserRouter>
+            <ScrollToTop />
             <div className="app">
               <Navbar />
               <Notification />

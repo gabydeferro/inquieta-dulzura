@@ -1,11 +1,11 @@
-const mysql = require('mysql2/promise');
+import { createConnection } from 'mysql2/promise';
 const fs = require('fs');
-require('dotenv').config({ path: './.env' });
+import 'dotenv/config';
 
 async function testPort(port) {
     console.log(`Probando puerto ${port}...`);
     try {
-        const connection = await mysql.createConnection({
+        const connection = await createConnection({
             host: process.env.DB_HOST || 'localhost',
             user: process.env.DB_USER || 'root',
             password: process.env.DB_PASSWORD || '',
