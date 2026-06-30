@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { IngredienteService } from '../services/IngredienteService';
-import { pool } from '../config/database'; // Import real pool to mock it
+import { pool } from '../config/database';
 import { IngredienteDTO } from '../dtos/IngredienteDTO';
 
 // Mock the database pool
@@ -16,7 +16,7 @@ describe('IngredienteService', () => {
 
   beforeEach(() => {
     ingredienteService = new IngredienteService();
-    mockQuery.mockReset(); // Reset mocks before each test
+    mockQuery.mockReset();
   });
 
   // Helper to create a mock Ingrediente
@@ -77,11 +77,20 @@ describe('IngredienteService', () => {
         costo_unitario: 10.0,
         activo: true,
       };
-      mockQuery.mockResolvedValueOnce([{ insertId: 3 }]); // Mock MySQL result
+      // 1st query: SELECT dupe check → empty (no existing)
+      mockQuery.mockResolvedValueOnce([[]]);
+      // 2nd query: INSERT
+      mockQuery.mockResolvedValueOnce([{ insertId: 3 }]);
 
       const result = await ingredienteService.create(newIngrediente);
       expect(result).toEqual({ id: 3, ...newIngrediente });
-      expect(mockQuery).toHaveBeenCalledWith(
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        1,
+        'SELECT * FROM ingredientes WHERE nombre = ?',
+        [newIngrediente.nombre],
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
         'INSERT INTO ingredientes (nombre, descripcion, unidad_medida, costo_unitario, activo) VALUES (?, ?, ?, ?, ?)',
         [
           newIngrediente.nombre,
@@ -100,17 +109,24 @@ describe('IngredienteService', () => {
         unidad_medida: 'ml',
         costo_unitario: 5.0,
       };
+      // 1st query: SELECT dupe check → empty
+      mockQuery.mockResolvedValueOnce([[]]);
+      // 2nd query: INSERT
       mockQuery.mockResolvedValueOnce([{ insertId: 4 }]);
 
       const result = await ingredienteService.create(newIngrediente);
       expect(result.activo).toBe(true);
-      expect(mockQuery).toHaveBeenCalledWith(expect.any(String), [
-        newIngrediente.nombre,
-        newIngrediente.descripcion,
-        newIngrediente.unidad_medida,
-        newIngrediente.costo_unitario,
-        true,
-      ]);
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.any(String),
+        [
+          newIngrediente.nombre,
+          newIngrediente.descripcion,
+          newIngrediente.unidad_medida,
+          newIngrediente.costo_unitario,
+          true,
+        ],
+      );
     });
   });
 
@@ -121,19 +137,22 @@ describe('IngredienteService', () => {
         costo_unitario: 20.0,
       };
       const existingIngrediente = createMockIngrediente(1);
-      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]); // Mock update success
-      mockQuery.mockResolvedValueOnce([[{ ...existingIngrediente, ...updatedData }]]); // Mock getById after update
+      // UPDATE query mock
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // getById after update mock
+      mockQuery.mockResolvedValueOnce([[{ ...existingIngrediente, ...updatedData }]]);
 
       const result = await ingredienteService.update(1, updatedData);
       expect(result).toEqual({ ...existingIngrediente, ...updatedData });
+      // Omitted fields come as undefined, NOT merged old values
       expect(mockQuery).toHaveBeenCalledWith(
         'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
         [
-          updatedData.nombre,
-          existingIngrediente.descripcion, // assuming old values for unchanged fields
-          existingIngrediente.unidad_medida,
-          updatedData.costo_unitario,
-          existingIngrediente.activo,
+          updatedData.nombre,       // 'Ingrediente Actualizado'
+          undefined,                // descripcion not provided → undefined
+          undefined,                // unidad_medida not provided → undefined
+          updatedData.costo_unitario, // 20.0
+          undefined,                // activo not provided → undefined
           1,
         ],
       );

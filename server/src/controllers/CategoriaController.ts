@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { CategoriaService } from '../services/CategoriaService';
+import { CreateCategoriaDTO } from '../dtos/CategoriaDTO';
+import { handleDuplicateError } from '../middleware/duplicateError';
 
 export class CategoriaController {
   private categoriaService: CategoriaService;
@@ -36,15 +38,11 @@ export class CategoriaController {
   public async create(req: Request, res: Response): Promise<void> {
     try {
       const nuevaCategoria = await this.categoriaService.create(
-        req.body as Record<string, unknown>,
+        req.body as CreateCategoriaDTO,
       );
       res.status(201).json(nuevaCategoria);
     } catch (error: unknown) {
-      const err = error as { code?: string };
-      if (err?.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ success: false, error: 'Ya existe una categoría con ese nombre' });
-        return;
-      }
+      if (handleDuplicateError(error, res, 'Ya existe una categoría con ese nombre')) return;
       const message = error instanceof Error ? error.message : 'Error al crear la categoría';
       res.status(500).json({ success: false, error: message });
     }
@@ -55,7 +53,7 @@ export class CategoriaController {
       const id = parseInt(req.params.id, 10);
       const categoriaActualizada = await this.categoriaService.update(
         id,
-        req.body as Record<string, unknown>,
+        req.body as CreateCategoriaDTO,
       );
       if (categoriaActualizada) {
         res.status(200).json(categoriaActualizada);
@@ -63,11 +61,7 @@ export class CategoriaController {
         res.status(404).json({ success: false, error: 'Categoría no encontrada para actualizar' });
       }
     } catch (error: unknown) {
-      const err = error as { code?: string };
-      if (err?.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ success: false, error: 'Ya existe una categoría con ese nombre' });
-        return;
-      }
+      if (handleDuplicateError(error, res, 'Ya existe una categoría con ese nombre')) return;
       const message = error instanceof Error ? error.message : 'Error al actualizar la categoría';
       res.status(500).json({ success: false, error: message });
     }

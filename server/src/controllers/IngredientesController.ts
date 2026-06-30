@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { IngredienteService } from '../services/IngredienteService';
+import { IngredienteDTO } from '../dtos/IngredienteDTO';
+import { handleDuplicateError } from '../middleware/duplicateError';
 
 const ingredienteService = new IngredienteService();
 
@@ -30,9 +32,10 @@ export const getIngredienteById = async (req: Request, res: Response) => {
 
 export const createIngrediente = async (req: Request, res: Response) => {
   try {
-    const newIngrediente = await ingredienteService.create(req.body as Record<string, unknown>);
+    const newIngrediente = await ingredienteService.create(req.body as IngredienteDTO);
     res.status(201).json(newIngrediente);
   } catch (error) {
+    if (handleDuplicateError(error, res, 'Ya existe un ingrediente con ese nombre')) return;
     const message = error instanceof Error ? error.message : 'Error creating ingrediente';
     res.status(500).json({ success: false, error: message });
   }
@@ -43,7 +46,7 @@ export const updateIngrediente = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
     const updatedIngrediente = await ingredienteService.update(
       id,
-      req.body as Record<string, unknown>,
+      req.body as Partial<IngredienteDTO>,
     );
     if (updatedIngrediente) {
       res.json(updatedIngrediente);
@@ -51,6 +54,7 @@ export const updateIngrediente = async (req: Request, res: Response) => {
       res.status(404).json({ success: false, error: 'Ingrediente not found' });
     }
   } catch (error) {
+    if (handleDuplicateError(error, res, 'Ya existe un ingrediente con ese nombre')) return;
     const message = error instanceof Error ? error.message : 'Error updating ingrediente';
     res.status(500).json({ success: false, error: message });
   }

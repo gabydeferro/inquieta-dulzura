@@ -32,7 +32,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   upload.single('foto'),
-  (req, res, next) => void fotoController.subirFoto(req, res, next),
+  (req, res) => void fotoController.subirFoto(req, res),
 );
 
 /**
@@ -42,7 +42,7 @@ router.post(
  */
 router.get(
   '/producto/:producto_id',
-  (req, res, next) => void fotoController.obtenerFotosProducto(req, res, next),
+  (req, res) => void fotoController.obtenerFotosProducto(req, res),
 );
 
 /**
@@ -52,7 +52,7 @@ router.get(
  */
 router.get(
   '/producto/:producto_id/principal',
-  (req, res, next) => void fotoController.obtenerFotoPrincipal(req, res, next),
+  (req, res) => void fotoController.obtenerFotoPrincipal(req, res),
 );
 
 /**
@@ -64,7 +64,7 @@ router.put(
   '/:foto_id/principal',
   authenticateToken,
   requireAdmin,
-  (req, res, next) => void fotoController.establecerPrincipal(req, res, next),
+  (req, res) => void fotoController.establecerPrincipal(req, res),
 );
 
 /**
@@ -76,7 +76,7 @@ router.delete(
   '/:foto_id',
   authenticateToken,
   requireAdmin,
-  (req, res, next) => void fotoController.eliminarFoto(req, res, next),
+  (req, res) => void fotoController.eliminarFoto(req, res),
 );
 
 /**
@@ -88,7 +88,7 @@ router.put(
   '/producto/:producto_id/reordenar',
   authenticateToken,
   requireAdmin,
-  (req, res, next) => void fotoController.reordenarFotos(req, res, next),
+  (req, res) => void fotoController.reordenarFotos(req, res),
 );
 
 /**
@@ -100,7 +100,7 @@ router.get(
   '/estadisticas',
   authenticateToken,
   requireAdmin,
-  (req, res, next) => void fotoController.obtenerEstadisticas(req, res, next),
+  (req, res) => void fotoController.obtenerEstadisticas(req, res),
 );
 
 /**
@@ -112,7 +112,7 @@ router.post(
   '/limpiar-huerfanos',
   authenticateToken,
   requireAdmin,
-  (req, res, next) => void fotoController.limpiarHuerfanos(req, res, next),
+  (req, res) => void fotoController.limpiarHuerfanos(req, res),
 );
 
 export default router;
