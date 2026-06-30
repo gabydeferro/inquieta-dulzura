@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import api from './services/api';
+import { contenidoDigitalCreateSchema } from './schemas/contenido-digital.schema';
 import './ContenidoDigital.css';
 
 interface Imagen {
@@ -16,12 +18,12 @@ export const ContenidoDigital: React.FC = () => {
   const [imagenes, setImagenes] = useState<Imagen[]>([]);
   const [filtroEtiqueta, setFiltroEtiqueta] = useState('');
   const [loading, setLoading] = useState(true);
+  const [, setErrors] = useState<Record<string, string>>({});
 
   const cargarImagenes = async () => {
     try {
-      const response = await fetch('/api/contenido-digital');
-      const data = await response.json();
-      setImagenes(Array.isArray(data) ? data : []);
+      const response = await api.getContenidoDigital<Imagen[]>();
+      setImagenes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error al cargar imágenes:', error);
     } finally {
@@ -43,12 +45,30 @@ export const ContenidoDigital: React.FC = () => {
     if (!confirm('¿Estás seguro de eliminar esta imagen?')) return;
 
     try {
-      await fetch(`/api/contenido-digital/${id}`, { method: 'DELETE' });
+      await api.deleteContenidoDigital(id);
       setImagenes(imagenes.filter((img) => img.id !== id));
     } catch (error) {
       console.error('Error al eliminar imagen:', error);
     }
   };
+
+  const validateForm = (data: Record<string, unknown>): boolean => {
+    const result = contenidoDigitalCreateSchema.safeParse(data);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path.join('.');
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+  void validateForm;
 
   if (loading) {
     return <div className="loading">Cargando contenido digital...</div>;

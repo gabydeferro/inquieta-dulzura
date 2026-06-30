@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { inventarioCreateSchema, inventarioUpdateSchema } from './schemas/inventario.schema';
 import './Inventario.css';
 
 interface Producto {
@@ -36,6 +37,7 @@ const Inventario: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductoConStock | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -98,8 +100,27 @@ const Inventario: React.FC = () => {
     void Promise.all([cargarProductos(), cargarCategorias()]);
   }, []);
 
+  const validateForm = (): boolean => {
+    const schema = editingProduct ? inventarioUpdateSchema : inventarioCreateSchema;
+    const result = schema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path.join('.');
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     try {
       if (editingProduct) {
         await api.put(`/productos/${editingProduct.id}`, formData);
@@ -119,6 +140,7 @@ const Inventario: React.FC = () => {
   };
 
   const handleEdit = (producto: ProductoConStock) => {
+    setErrors({});
     setEditingProduct(producto);
     setFormData({
       nombre: producto.nombre,
@@ -187,7 +209,7 @@ const Inventario: React.FC = () => {
           <h1>📦 Inventario de Productos</h1>
           <p>Gestión de productos y stock</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); setErrors({}); }}>
           ➕ Nuevo Producto
         </button>
       </header>
@@ -246,25 +268,30 @@ const Inventario: React.FC = () => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowModal(false); setErrors({}); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
+              <button className="btn-close" onClick={() => { setShowModal(false); setErrors({}); }}>
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <div className="form-row">
                 <div className="form-group">
                   <label>Nombre *</label>
                   <input
                     type="text"
                     value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, nombre: e.target.value });
+                      if (errors.nombre) setErrors({ ...errors, nombre: '' });
+                    }}
+                    className={errors.nombre ? 'input-error' : ''}
                     required
                   />
+                  {errors.nombre && <span className="field-error">{errors.nombre}</span>}
                 </div>
 
                 <div className="form-group">
@@ -279,7 +306,11 @@ const Inventario: React.FC = () => {
                   <label>Categoría *</label>
                   <select
                     value={formData.categoria_id}
-                    onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, categoria_id: e.target.value });
+                      if (errors.categoria_id) setErrors({ ...errors, categoria_id: '' });
+                    }}
+                    className={errors.categoria_id ? 'input-error' : ''}
                     required
                   >
                     <option value="" disabled>
@@ -291,6 +322,7 @@ const Inventario: React.FC = () => {
                       </option>
                     ))}
                   </select>
+                  {errors.categoria_id && <span className="field-error">{errors.categoria_id}</span>}
                 </div>
               </div>
 
@@ -310,9 +342,14 @@ const Inventario: React.FC = () => {
                     type="number"
                     step="0.01"
                     value={formData.precio}
-                    onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, precio: e.target.value });
+                      if (errors.precio) setErrors({ ...errors, precio: '' });
+                    }}
+                    className={errors.precio ? 'input-error' : ''}
                     required
                   />
+                  {errors.precio && <span className="field-error">{errors.precio}</span>}
                 </div>
 
                 <div className="form-group">
@@ -332,11 +369,14 @@ const Inventario: React.FC = () => {
                   <input
                     type="number"
                     value={formData.cantidad_disponible}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cantidad_disponible: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, cantidad_disponible: e.target.value });
+                      if (errors.cantidad_disponible) setErrors({ ...errors, cantidad_disponible: '' });
+                    }}
+                    className={errors.cantidad_disponible ? 'input-error' : ''}
                     required
                   />
+                  {errors.cantidad_disponible && <span className="field-error">{errors.cantidad_disponible}</span>}
                 </div>
 
                 <div className="form-group">
@@ -344,9 +384,14 @@ const Inventario: React.FC = () => {
                   <input
                     type="number"
                     value={formData.cantidad_minima}
-                    onChange={(e) => setFormData({ ...formData, cantidad_minima: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, cantidad_minima: e.target.value });
+                      if (errors.cantidad_minima) setErrors({ ...errors, cantidad_minima: '' });
+                    }}
+                    className={errors.cantidad_minima ? 'input-error' : ''}
                     required
                   />
+                  {errors.cantidad_minima && <span className="field-error">{errors.cantidad_minima}</span>}
                 </div>
 
                 <div className="form-group">
@@ -367,7 +412,7 @@ const Inventario: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setErrors({}); }}
                 >
                   Cancelar
                 </button>

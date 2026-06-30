@@ -157,6 +157,21 @@ class ApiService {
     return this.delete<void>(`/ingredientes/${id}`);
   }
 
+  // Contenido Digital
+  async getContenidoDigital<T = unknown>(): Promise<AxiosResponse<T>> {
+    return this.get<T>('/contenido-digital');
+  }
+
+  async createContenidoDigital(data: FormData): Promise<AxiosResponse<void>> {
+    return this.post<void>('/contenido-digital', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  async deleteContenidoDigital(id: number): Promise<AxiosResponse<void>> {
+    return this.delete<void>(`/contenido-digital/${id}`);
+  }
+
   // Método especial para subir archivos
   async uploadFile<T = unknown>(url: string, formData: FormData): Promise<AxiosResponse<T>> {
     return this.api.post<T>(url, formData, {
