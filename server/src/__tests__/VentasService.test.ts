@@ -1,83 +1,151 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VentasService } from '../services/VentasService';
+import { pool } from '../config/database';
+
+vi.mock('../config/database', () => ({
+  pool: {
+    query: vi.fn(),
+    getConnection: vi.fn(),
+  },
+}));
 
 describe('VentasService', () => {
-  let service: VentasService;
+  let ventasService: VentasService;
+  const mockQuery = pool.query as vi.Mock;
+  const mockGetConnection = pool.getConnection as vi.Mock;
 
   beforeEach(() => {
-    service = new VentasService();
+    ventasService = new VentasService();
+    mockQuery.mockReset();
+    mockGetConnection.mockReset();
   });
 
-  describe('registrarVenta', () => {
-    test('debe registrar una venta correctamente', async () => {
-      const venta = {
-        productos: [{ id: 1, nombre: 'Torta', cantidad: 2, precio: 500 }],
-        total: 1000,
-        fecha: new Date(),
-      };
+  describe('getVentas', () => {
+    it('should return ventas with productos aggregated from single JOIN', async () => {
+      const mockJoinedRows = [
+        {
+          venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z',
+          subtotal: 100, descuento: 10, impuestos: 0, total: 90,
+          metodo_pago: 'efectivo', estado: 'completada', notas: '',
+          cliente_nombre: null,
+          detalle_id: 1, producto_id: 1, cantidad: 2, precio_unitario: 25,
+          detalle_subtotal: 50, detalle_descuento: 0, detalle_total: 50,
+          producto_nombre: 'Torta de Chocolate',
+        },
+        {
+          venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z',
+          subtotal: 100, descuento: 10, impuestos: 0, total: 90,
+          metodo_pago: 'efectivo', estado: 'completada', notas: '',
+          cliente_nombre: null,
+          detalle_id: 2, producto_id: 3, cantidad: 1, precio_unitario: 50,
+          detalle_subtotal: 50, detalle_descuento: 0, detalle_total: 50,
+          producto_nombre: 'Galletas de Avena',
+        },
+      ];
+      mockQuery.mockResolvedValueOnce([mockJoinedRows]);
 
-      const resultado = await service.registrarVenta(venta);
-      expect(resultado).toHaveProperty('id');
-      expect(resultado.total).toBe(1000);
+      const result = await ventasService.getVentas();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(1);
+      expect(result[0].total).toBe(90);
+      expect(result[0].productos).toHaveLength(2);
+      expect(result[0].productos[0].producto_nombre).toBe('Torta de Chocolate');
+      expect(result[0].productos[1].producto_nombre).toBe('Galletas de Avena');
+      expect(mockQuery).toHaveBeenCalledTimes(1);
     });
 
-    test('debe calcular el total correctamente', async () => {
-      const venta = {
+    it('should return empty array when no ventas exist', async () => {
+      mockQuery.mockResolvedValueOnce([[]]);
+
+      const result = await ventasService.getVentas();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('createVenta', () => {
+    it('should insert venta and detalles in a transaction and return created venta', async () => {
+      const mockConn = {
+        beginTransaction: vi.fn(),
+        commit: vi.fn(),
+        rollback: vi.fn(),
+        release: vi.fn(),
+        query: vi.fn(),
+      };
+      mockGetConnection.mockResolvedValue(mockConn);
+      // INSERT ventas
+      mockConn.query.mockResolvedValueOnce([{ insertId: 1 }]);
+      // INSERT detalle #1
+      mockConn.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // INSERT detalle #2
+      mockConn.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // After commit: fetch query returns the created venta with detalles
+      const mockVentaRows = [
+        {
+          venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z',
+          subtotal: 100, descuento: 5, impuestos: 0, total: 95,
+          metodo_pago: 'tarjeta', estado: 'completada', notas: '',
+          cliente_nombre: null,
+          detalle_id: 1, producto_id: 1, cantidad: 2, precio_unitario: 25,
+          detalle_subtotal: 50, detalle_descuento: 0, detalle_total: 50,
+          producto_nombre: 'Torta de Chocolate',
+        },
+        {
+          venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z',
+          subtotal: 100, descuento: 5, impuestos: 0, total: 95,
+          metodo_pago: 'tarjeta', estado: 'completada', notas: '',
+          cliente_nombre: null,
+          detalle_id: 2, producto_id: 2, cantidad: 1, precio_unitario: 50,
+          detalle_subtotal: 50, detalle_descuento: 0, detalle_total: 50,
+          producto_nombre: 'Pan Integral',
+        },
+      ];
+      mockQuery.mockResolvedValueOnce([mockVentaRows]);
+
+      const result = await ventasService.createVenta({
+        metodo_pago: 'tarjeta',
+        descuento: 5,
         productos: [
-          { id: 1, nombre: 'Torta', cantidad: 2, precio: 500 },
-          { id: 2, nombre: 'Galletas', cantidad: 3, precio: 100 },
+          { producto_id: 1, cantidad: 2, precio_unitario: 25, subtotal: 50 },
+          { producto_id: 2, cantidad: 1, precio_unitario: 50, subtotal: 50 },
         ],
-        total: 0,
-        fecha: new Date(),
+      });
+
+      expect(mockConn.beginTransaction).toHaveBeenCalledOnce();
+      expect(mockConn.commit).toHaveBeenCalledOnce();
+      expect(mockConn.release).toHaveBeenCalledOnce();
+      expect(mockConn.rollback).not.toHaveBeenCalled();
+      expect(result.id).toBe(1);
+      expect(result.total).toBe(95);
+      expect(result.productos).toHaveLength(2);
+    });
+
+    it('should rollback transaction and throw on detalle INSERT failure', async () => {
+      const mockConn = {
+        beginTransaction: vi.fn(),
+        commit: vi.fn(),
+        rollback: vi.fn(),
+        release: vi.fn(),
+        query: vi.fn(),
       };
+      mockGetConnection.mockResolvedValue(mockConn);
+      // INSERT ventas succeeds
+      mockConn.query.mockResolvedValueOnce([{ insertId: 1 }]);
+      // INSERT detalle fails
+      mockConn.query.mockRejectedValueOnce(new Error('FK violation'));
 
-      const resultado = await service.registrarVenta(venta);
-      expect(resultado.total).toBe(1300); // (2*500) + (3*100)
-    });
-  });
+      await expect(ventasService.createVenta({
+        metodo_pago: 'efectivo',
+        productos: [
+          { producto_id: 999, cantidad: 1, precio_unitario: 10, subtotal: 10 },
+        ],
+      })).rejects.toThrow('FK violation');
 
-  describe('obtenerVentasPorFecha', () => {
-    test('debe filtrar ventas por rango de fechas', async () => {
-      const hoy = new Date();
-      const ayer = new Date(hoy);
-      ayer.setDate(ayer.getDate() - 1);
-
-      await service.registrarVenta({
-        productos: [{ id: 1, nombre: 'Test', cantidad: 1, precio: 100 }],
-        total: 100,
-        fecha: hoy,
-      });
-
-      await service.registrarVenta({
-        productos: [{ id: 2, nombre: 'Test2', cantidad: 1, precio: 200 }],
-        total: 200,
-        fecha: ayer,
-      });
-
-      const ventasHoy = await service.obtenerVentasPorFecha(hoy, hoy);
-      expect(ventasHoy).toHaveLength(1);
-      expect(ventasHoy[0].total).toBe(100);
-    });
-  });
-
-  describe('calcularTotalVentas', () => {
-    test('debe calcular el total de ventas en un período', async () => {
-      const fecha = new Date();
-
-      await service.registrarVenta({
-        productos: [{ id: 1, nombre: 'Test', cantidad: 1, precio: 100 }],
-        total: 100,
-        fecha,
-      });
-
-      await service.registrarVenta({
-        productos: [{ id: 2, nombre: 'Test2', cantidad: 1, precio: 200 }],
-        total: 200,
-        fecha,
-      });
-
-      const total = await service.calcularTotalVentas(fecha, fecha);
-      expect(total).toBe(300);
+      expect(mockConn.beginTransaction).toHaveBeenCalledOnce();
+      expect(mockConn.rollback).toHaveBeenCalledOnce();
+      expect(mockConn.release).toHaveBeenCalledOnce();
+      expect(mockConn.commit).not.toHaveBeenCalled();
     });
   });
 });
