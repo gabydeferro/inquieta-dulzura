@@ -31,8 +31,8 @@ CLOUDINARY_FOLDER=inquieta-dulzura/productos
 Ejecuta esta migración para agregar el campo `cloudinary_public_id`:
 
 ```sql
-ALTER TABLE fotos_productos 
-ADD COLUMN cloudinary_public_id VARCHAR(255) NULL 
+ALTER TABLE fotos_productos
+ADD COLUMN cloudinary_public_id VARCHAR(255) NULL
 AFTER url_publica;
 ```
 
@@ -45,11 +45,13 @@ npm run dev:server
 ## ✅ Verificación
 
 Si todo está configurado correctamente, verás en la consola:
+
 ```
 ✅ Cloudinary configurado correctamente
 ```
 
 Si no está configurado, verás:
+
 ```
 ⚠️  Cloudinary no está configurado. Las fotos se guardarán localmente.
 ```
@@ -57,6 +59,7 @@ Si no está configurado, verás:
 ## 🎯 Características implementadas
 
 ### Cloudinary (cuando está configurado):
+
 - ✅ Subida automática a la nube
 - ✅ Optimización automática de imágenes
 - ✅ Conversión a WebP automática
@@ -65,6 +68,7 @@ Si no está configurado, verás:
 - ✅ Eliminación automática al borrar foto
 
 ### Almacenamiento Local (fallback):
+
 - ✅ Guarda en carpeta `uploads/productos/`
 - ✅ Funciona sin configuración adicional
 - ✅ Ideal para desarrollo local
@@ -88,11 +92,13 @@ Cada imagen subida se procesa automáticamente:
 ## 🚀 URLs generadas
 
 Ejemplo de URL de Cloudinary:
+
 ```
 https://res.cloudinary.com/tu-cloud-name/image/upload/v1234567890/inquieta-dulzura/productos/abc123.jpg
 ```
 
 Con transformaciones:
+
 ```
 https://res.cloudinary.com/tu-cloud-name/image/upload/w_400,h_400,c_fill,q_auto,f_auto/inquieta-dulzura/productos/abc123.jpg
 ```
@@ -109,14 +115,17 @@ npm run migrate:cloudinary
 ## 🛠️ Troubleshooting
 
 ### Error: "Invalid API credentials"
+
 - Verifica que las credenciales en `.env` sean correctas
 - Asegúrate de no tener espacios extra
 
 ### Error: "Folder not found"
+
 - El folder se crea automáticamente en la primera subida
 - No necesitas crearlo manualmente en Cloudinary
 
 ### Las fotos no se suben
+
 - Revisa la consola del servidor para ver errores
 - Verifica que el archivo sea JPG, PNG, WebP o GIF
 - Verifica que el tamaño sea menor a 5MB

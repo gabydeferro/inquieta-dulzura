@@ -1,4 +1,3 @@
-
 import { IngredienteDTO } from './IngredienteDTO';
 
 export interface RecetaIngredienteDTO {

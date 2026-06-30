@@ -45,20 +45,10 @@ const Recetas: React.FC = () => {
     instrucciones: '',
     tiempo_preparacion: 0,
     porciones: 0,
-    ingredientes: []
+    ingredientes: [],
   });
   const [selectedIngredienteId, setSelectedIngredienteId] = useState<number | ''>('');
   const [cantidad, setCantidad] = useState<number>(0);
-
-  useEffect(() => {
-    cargarRecetas();
-  }, []);
-
-  useEffect(() => {
-    if (showModal) {
-      cargarIngredientes();
-    }
-  }, [showModal]);
 
   const cargarIngredientes = async () => {
     try {
@@ -69,6 +59,12 @@ const Recetas: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (showModal) {
+      void cargarIngredientes();
+    }
+  }, [showModal]);
+
   const cargarRecetas = async () => {
     try {
       // Datos mock por ahora
@@ -77,7 +73,8 @@ const Recetas: React.FC = () => {
           id: 1,
           nombre: 'Torta de Chocolate',
           descripcion: 'Deliciosa torta de chocolate con cobertura',
-          instrucciones: '1. Precalentar el horno a 180°C\n2. Mezclar ingredientes secos\n3. Agregar ingredientes húmedos\n4. Hornear por 35 minutos',
+          instrucciones:
+            '1. Precalentar el horno a 180°C\n2. Mezclar ingredientes secos\n3. Agregar ingredientes húmedos\n4. Hornear por 35 minutos',
           tiempo_preparacion: 60,
           porciones: 8,
           activo: true,
@@ -86,14 +83,15 @@ const Recetas: React.FC = () => {
             { id: 2, nombre: 'Azúcar', cantidad: 200, unidad_medida: 'gramos' },
             { id: 3, nombre: 'Chocolate', cantidad: 150, unidad_medida: 'gramos' },
             { id: 4, nombre: 'Huevos', cantidad: 3, unidad_medida: 'unidades' },
-            { id: 5, nombre: 'Mantequilla', cantidad: 100, unidad_medida: 'gramos' }
-          ]
+            { id: 5, nombre: 'Mantequilla', cantidad: 100, unidad_medida: 'gramos' },
+          ],
         },
         {
           id: 2,
           nombre: 'Pan Integral',
           descripcion: 'Pan artesanal integral',
-          instrucciones: '1. Mezclar harina con levadura\n2. Agregar agua tibia\n3. Amasar por 10 minutos\n4. Dejar reposar 1 hora\n5. Hornear a 200°C por 30 minutos',
+          instrucciones:
+            '1. Mezclar harina con levadura\n2. Agregar agua tibia\n3. Amasar por 10 minutos\n4. Dejar reposar 1 hora\n5. Hornear a 200°C por 30 minutos',
           tiempo_preparacion: 120,
           porciones: 12,
           activo: true,
@@ -101,9 +99,9 @@ const Recetas: React.FC = () => {
             { id: 6, nombre: 'Harina Integral', cantidad: 500, unidad_medida: 'gramos' },
             { id: 7, nombre: 'Levadura', cantidad: 10, unidad_medida: 'gramos' },
             { id: 8, nombre: 'Agua', cantidad: 300, unidad_medida: 'ml' },
-            { id: 9, nombre: 'Sal', cantidad: 10, unidad_medida: 'gramos' }
-          ]
-        }
+            { id: 9, nombre: 'Sal', cantidad: 10, unidad_medida: 'gramos' },
+          ],
+        },
       ]);
     } catch (error) {
       console.error('Error al cargar recetas:', error);
@@ -111,6 +109,10 @@ const Recetas: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void cargarRecetas();
+  }, []);
 
   const handleViewDetail = (receta: Receta) => {
     setSelectedReceta(receta);
@@ -124,28 +126,28 @@ const Recetas: React.FC = () => {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value
+      [name]: name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value,
     }));
   };
 
   const handleAgregarIngrediente = () => {
     if (!selectedIngredienteId || cantidad <= 0) return;
 
-    const ingrediente = ingredientesDisponibles.find(i => i.id === selectedIngredienteId);
+    const ingrediente = ingredientesDisponibles.find((i) => i.id === selectedIngredienteId);
     if (!ingrediente) return;
 
     const nuevoIngrediente: Ingrediente = {
       id: ingrediente.id,
       nombre: ingrediente.nombre,
       cantidad: cantidad,
-      unidad_medida: ingrediente.unidad_medida
+      unidad_medida: ingrediente.unidad_medida,
     };
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ingredientes: [...(prev.ingredientes || []), nuevoIngrediente]
+      ingredientes: [...(prev.ingredientes || []), nuevoIngrediente],
     }));
 
     setSelectedIngredienteId('');
@@ -153,9 +155,9 @@ const Recetas: React.FC = () => {
   };
 
   const handleEliminarIngrediente = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ingredientes: prev.ingredientes?.filter((_, i) => i !== index)
+      ingredientes: prev.ingredientes?.filter((_, i) => i !== index),
     }));
   };
 
@@ -175,7 +177,7 @@ const Recetas: React.FC = () => {
       tiempo_preparacion: formData.tiempo_preparacion,
       porciones: formData.porciones,
       activo: true,
-      ingredientes: formData.ingredientes
+      ingredientes: formData.ingredientes,
     };
 
     setRecetas([...recetas, nuevaReceta]);
@@ -188,7 +190,7 @@ const Recetas: React.FC = () => {
       instrucciones: '',
       tiempo_preparacion: 0,
       porciones: 0,
-      ingredientes: []
+      ingredientes: [],
     });
   };
 
@@ -196,7 +198,7 @@ const Recetas: React.FC = () => {
     const confirmed = await confirm({ message: '¿Estás seguro de eliminar esta receta?' });
     if (!confirmed) return;
 
-    setRecetas(recetas.filter(r => r.id !== id));
+    setRecetas(recetas.filter((r) => r.id !== id));
   };
 
   if (loading) {
@@ -216,20 +218,16 @@ const Recetas: React.FC = () => {
       </header>
 
       <div className="recetas-grid">
-        {recetas.map(receta => (
+        {recetas.map((receta) => (
           <div key={receta.id} className="receta-card">
             <div className="receta-header">
               <h3>{receta.nombre}</h3>
               <div className="receta-meta">
                 {receta.tiempo_preparacion && (
-                  <span className="meta-item">
-                    ⏱️ {receta.tiempo_preparacion} min
-                  </span>
+                  <span className="meta-item">⏱️ {receta.tiempo_preparacion} min</span>
                 )}
                 {receta.porciones && (
-                  <span className="meta-item">
-                    🍰 {receta.porciones} porciones
-                  </span>
+                  <span className="meta-item">🍰 {receta.porciones} porciones</span>
                 )}
               </div>
             </div>
@@ -239,7 +237,7 @@ const Recetas: React.FC = () => {
             <div className="ingredientes-preview">
               <h4>Ingredientes ({receta.ingredientes?.length || 0})</h4>
               <ul>
-                {receta.ingredientes?.slice(0, 3).map(ing => (
+                {receta.ingredientes?.slice(0, 3).map((ing) => (
                   <li key={ing.id}>
                     {ing.nombre} - {ing.cantidad} {ing.unidad_medida}
                   </li>
@@ -276,7 +274,9 @@ const Recetas: React.FC = () => {
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{selectedReceta.nombre}</h2>
-              <button className="btn-close" onClick={() => setShowDetailModal(false)}>✕</button>
+              <button className="btn-close" onClick={() => setShowDetailModal(false)}>
+                ✕
+              </button>
             </div>
 
             <div className="receta-detail">
@@ -305,7 +305,7 @@ const Recetas: React.FC = () => {
               <div className="detail-section">
                 <h3>🥘 Ingredientes</h3>
                 <div className="ingredientes-list">
-                  {selectedReceta.ingredientes?.map(ing => (
+                  {selectedReceta.ingredientes?.map((ing) => (
                     <div key={ing.id} className="ingrediente-item">
                       <span className="ingrediente-nombre">{ing.nombre}</span>
                       <span className="ingrediente-cantidad">
@@ -347,7 +347,9 @@ const Recetas: React.FC = () => {
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Nueva Receta</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>✕</button>
+              <button className="btn-close" onClick={() => setShowModal(false)}>
+                ✕
+              </button>
             </div>
 
             <div className="receta-form">
@@ -400,10 +402,12 @@ const Recetas: React.FC = () => {
                 <div className="ingrediente-selector">
                   <select
                     value={selectedIngredienteId}
-                    onChange={(e) => setSelectedIngredienteId(e.target.value ? parseInt(e.target.value) : '')}
+                    onChange={(e) =>
+                      setSelectedIngredienteId(e.target.value ? parseInt(e.target.value) : '')
+                    }
                   >
                     <option value="">Seleccionar ingrediente...</option>
-                    {ingredientesDisponibles.map(ing => (
+                    {ingredientesDisponibles.map((ing) => (
                       <option key={ing.id} value={ing.id}>
                         {ing.nombre} ({ing.unidad_medida})
                       </option>
@@ -416,7 +420,11 @@ const Recetas: React.FC = () => {
                     onChange={(e) => setCantidad(parseFloat(e.target.value) || 0)}
                     style={{ width: '120px' }}
                   />
-                  <button type="button" className="btn btn-secondary" onClick={handleAgregarIngrediente}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleAgregarIngrediente}
+                  >
                     + Agregar
                   </button>
                 </div>
@@ -425,7 +433,9 @@ const Recetas: React.FC = () => {
                   {formData.ingredientes?.map((ing, index) => (
                     <div key={index} className="ingrediente-item">
                       <span className="ingrediente-nombre">{ing.nombre}</span>
-                      <span className="ingrediente-cantidad">{ing.cantidad} {ing.unidad_medida}</span>
+                      <span className="ingrediente-cantidad">
+                        {ing.cantidad} {ing.unidad_medida}
+                      </span>
                       <button
                         type="button"
                         className="btn-icon"

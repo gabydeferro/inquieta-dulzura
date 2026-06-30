@@ -31,10 +31,7 @@ describe('IngredienteService', () => {
 
   describe('getAll', () => {
     it('should return all active ingredients', async () => {
-      const mockIngredientes = [
-        createMockIngrediente(1),
-        createMockIngrediente(2),
-      ];
+      const mockIngredientes = [createMockIngrediente(1), createMockIngrediente(2)];
       mockQuery.mockResolvedValueOnce([mockIngredientes]);
 
       const result = await ingredienteService.getAll();
@@ -57,7 +54,10 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.getById(1);
       expect(result).toEqual(mockIngrediente);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM ingredientes WHERE id = ? AND activo = TRUE', [1]);
+      expect(mockQuery).toHaveBeenCalledWith(
+        'SELECT * FROM ingredientes WHERE id = ? AND activo = TRUE',
+        [1],
+      );
     });
 
     it('should return null if ingredient not found or not active', async () => {
@@ -83,7 +83,13 @@ describe('IngredienteService', () => {
       expect(result).toEqual({ id: 3, ...newIngrediente });
       expect(mockQuery).toHaveBeenCalledWith(
         'INSERT INTO ingredientes (nombre, descripcion, unidad_medida, costo_unitario, activo) VALUES (?, ?, ?, ?, ?)',
-        [newIngrediente.nombre, newIngrediente.descripcion, newIngrediente.unidad_medida, newIngrediente.costo_unitario, true]
+        [
+          newIngrediente.nombre,
+          newIngrediente.descripcion,
+          newIngrediente.unidad_medida,
+          newIngrediente.costo_unitario,
+          true,
+        ],
       );
     });
 
@@ -98,10 +104,13 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.create(newIngrediente);
       expect(result.activo).toBe(true);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.any(String),
-        [newIngrediente.nombre, newIngrediente.descripcion, newIngrediente.unidad_medida, newIngrediente.costo_unitario, true]
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.any(String), [
+        newIngrediente.nombre,
+        newIngrediente.descripcion,
+        newIngrediente.unidad_medida,
+        newIngrediente.costo_unitario,
+        true,
+      ]);
     });
   });
 
@@ -120,13 +129,13 @@ describe('IngredienteService', () => {
       expect(mockQuery).toHaveBeenCalledWith(
         'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
         [
-            updatedData.nombre,
-            existingIngrediente.descripcion, // assuming old values for unchanged fields
-            existingIngrediente.unidad_medida,
-            updatedData.costo_unitario,
-            existingIngrediente.activo,
-            1
-        ]
+          updatedData.nombre,
+          existingIngrediente.descripcion, // assuming old values for unchanged fields
+          existingIngrediente.unidad_medida,
+          updatedData.costo_unitario,
+          existingIngrediente.activo,
+          1,
+        ],
       );
     });
 
@@ -144,7 +153,10 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.delete(1);
       expect(result).toBe(true);
-      expect(mockQuery).toHaveBeenCalledWith('UPDATE ingredientes SET activo = FALSE WHERE id = ?', [1]);
+      expect(mockQuery).toHaveBeenCalledWith(
+        'UPDATE ingredientes SET activo = FALSE WHERE id = ?',
+        [1],
+      );
     });
 
     it('should return false if ingredient to delete is not found', async () => {

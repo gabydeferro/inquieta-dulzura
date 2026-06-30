@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import api from './services/api';
 import './Ventas.css';
 
 interface ProductoVenta {
@@ -31,12 +30,8 @@ const Ventas: React.FC = () => {
   const [formData, setFormData] = useState({
     cliente: '',
     metodo_pago: 'efectivo',
-    descuento: '0'
+    descuento: '0',
   });
-
-  useEffect(() => {
-    cargarVentas();
-  }, []);
 
   const cargarVentas = async () => {
     try {
@@ -46,10 +41,10 @@ const Ventas: React.FC = () => {
           id: 1,
           fecha_venta: new Date().toISOString(),
           cliente: 'Juan Pérez',
-          subtotal: 50.00,
+          subtotal: 50.0,
           descuento: 0,
           impuestos: 0,
-          total: 50.00,
+          total: 50.0,
           metodo_pago: 'efectivo',
           estado: 'completada',
           productos: [
@@ -57,11 +52,11 @@ const Ventas: React.FC = () => {
               producto_id: 1,
               nombre: 'Torta de Chocolate',
               cantidad: 2,
-              precio_unitario: 25.00,
-              subtotal: 50.00
-            }
-          ]
-        }
+              precio_unitario: 25.0,
+              subtotal: 50.0,
+            },
+          ],
+        },
       ]);
     } catch (error) {
       console.error('Error al cargar ventas:', error);
@@ -70,22 +65,26 @@ const Ventas: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    void cargarVentas();
+  }, []);
+
   const agregarProducto = () => {
     const nuevoProducto: ProductoVenta = {
       producto_id: 1,
       nombre: 'Producto',
       cantidad: 1,
       precio_unitario: 0,
-      subtotal: 0
+      subtotal: 0,
     };
     setCarrito([...carrito, nuevoProducto]);
   };
 
-  const actualizarProducto = (index: number, campo: string, valor: any) => {
+  const actualizarProducto = (index: number, campo: string, valor: string | number) => {
     const nuevoCarrito = [...carrito];
     nuevoCarrito[index] = {
       ...nuevoCarrito[index],
-      [campo]: valor
+      [campo]: valor,
     };
 
     // Recalcular subtotal
@@ -122,7 +121,7 @@ const Ventas: React.FC = () => {
     console.log('Nueva venta:', {
       ...formData,
       productos: carrito,
-      ...totales
+      ...totales,
     });
 
     // Resetear formulario
@@ -130,7 +129,7 @@ const Ventas: React.FC = () => {
     setFormData({
       cliente: '',
       metodo_pago: 'efectivo',
-      descuento: '0'
+      descuento: '0',
     });
     setShowModal(false);
     cargarVentas();
@@ -142,7 +141,7 @@ const Ventas: React.FC = () => {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -187,10 +186,10 @@ const Ventas: React.FC = () => {
           <div>
             <div className="stat-label">Promedio</div>
             <div className="stat-value">
-              ${ventas.length > 0
+              $
+              {ventas.length > 0
                 ? (ventas.reduce((sum, v) => sum + v.total, 0) / ventas.length).toFixed(2)
-                : '0.00'
-              }
+                : '0.00'}
             </div>
           </div>
         </div>
@@ -200,7 +199,7 @@ const Ventas: React.FC = () => {
       <div className="ventas-historial">
         <h2>Historial de Ventas</h2>
         <div className="ventas-list">
-          {ventas.map(venta => (
+          {ventas.map((venta) => (
             <div key={venta.id} className="venta-card">
               <div className="venta-header">
                 <div>
@@ -223,9 +222,7 @@ const Ventas: React.FC = () => {
                 </div>
                 <div className="info-item">
                   <span className="label">Estado:</span>
-                  <span className={`estado estado-${venta.estado}`}>
-                    {venta.estado}
-                  </span>
+                  <span className={`estado estado-${venta.estado}`}>{venta.estado}</span>
                 </div>
               </div>
 
@@ -250,7 +247,9 @@ const Ventas: React.FC = () => {
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Nueva Venta</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>✕</button>
+              <button className="btn-close" onClick={() => setShowModal(false)}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -309,7 +308,9 @@ const Ventas: React.FC = () => {
                               <input
                                 type="text"
                                 value={producto.nombre}
-                                onChange={(e) => actualizarProducto(index, 'nombre', e.target.value)}
+                                onChange={(e) =>
+                                  actualizarProducto(index, 'nombre', e.target.value)
+                                }
                                 placeholder="Nombre del producto"
                                 required
                               />
@@ -318,7 +319,9 @@ const Ventas: React.FC = () => {
                               <input
                                 type="number"
                                 value={producto.cantidad}
-                                onChange={(e) => actualizarProducto(index, 'cantidad', parseFloat(e.target.value))}
+                                onChange={(e) =>
+                                  actualizarProducto(index, 'cantidad', parseFloat(e.target.value))
+                                }
                                 min="0.01"
                                 step="0.01"
                                 required
@@ -328,7 +331,13 @@ const Ventas: React.FC = () => {
                               <input
                                 type="number"
                                 value={producto.precio_unitario}
-                                onChange={(e) => actualizarProducto(index, 'precio_unitario', parseFloat(e.target.value))}
+                                onChange={(e) =>
+                                  actualizarProducto(
+                                    index,
+                                    'precio_unitario',
+                                    parseFloat(e.target.value),
+                                  )
+                                }
                                 min="0"
                                 step="0.01"
                                 required
@@ -376,7 +385,11 @@ const Ventas: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-primary">

@@ -1,14 +1,20 @@
+import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { pool } from '../config/database';
 import { IngredienteDTO } from '../dtos/IngredienteDTO';
 
 export class IngredienteService {
   async getAll(): Promise<IngredienteDTO[]> {
-    const [rows] = await pool.query('SELECT * FROM ingredientes WHERE activo = TRUE');
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM ingredientes WHERE activo = TRUE',
+    );
     return rows as IngredienteDTO[];
   }
 
   async getById(id: number): Promise<IngredienteDTO | null> {
-    const [rows] = await pool.query('SELECT * FROM ingredientes WHERE id = ? AND activo = TRUE', [id]);
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM ingredientes WHERE id = ? AND activo = TRUE',
+      [id],
+    );
     const ingredientes = rows as IngredienteDTO[];
     return ingredientes.length > 0 ? ingredientes[0] : null;
   }
@@ -17,9 +23,9 @@ export class IngredienteService {
     const { nombre, descripcion, unidad_medida, costo_unitario, activo } = ingrediente;
 
     // Check if an ingredient with the same name already exists (even if inactive)
-    const [existing] = await pool.query(
+    const [existing] = await pool.query<RowDataPacket[]>(
       'SELECT * FROM ingredientes WHERE nombre = ?',
-      [nombre]
+      [nombre],
     );
     const existingIngredientes = existing as IngredienteDTO[];
 
@@ -28,27 +34,34 @@ export class IngredienteService {
       const existingId = existingIngredientes[0].id!;
       await pool.query(
         'UPDATE ingredientes SET descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
-        [descripcion, unidad_medida, costo_unitario, activo ?? true, existingId]
+        [descripcion, unidad_medida, costo_unitario, activo ?? true, existingId],
       );
-      return { id: existingId, nombre, descripcion, unidad_medida, costo_unitario, activo: activo ?? true };
+      return {
+        id: existingId,
+        nombre,
+        descripcion,
+        unidad_medida,
+        costo_unitario,
+        activo: activo ?? true,
+      };
     }
 
     // If doesn't exist, create new
-    const [result] = await pool.query(
+    const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO ingredientes (nombre, descripcion, unidad_medida, costo_unitario, activo) VALUES (?, ?, ?, ?, ?)',
-      [nombre, descripcion, unidad_medida, costo_unitario, activo ?? true]
+      [nombre, descripcion, unidad_medida, costo_unitario, activo ?? true],
     );
-    const insertedId = (result as any).insertId;
+    const insertedId = result.insertId;
     return { id: insertedId, ...ingrediente, activo: activo ?? true };
   }
 
   async update(id: number, ingrediente: Partial<IngredienteDTO>): Promise<IngredienteDTO | null> {
     const { nombre, descripcion, unidad_medida, costo_unitario, activo } = ingrediente;
-    const [result] = await pool.query(
+    const [result] = await pool.query<ResultSetHeader>(
       'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
-      [nombre, descripcion, unidad_medida, costo_unitario, activo, id]
+      [nombre, descripcion, unidad_medida, costo_unitario, activo, id],
     );
-    if ((result as any).affectedRows === 0) {
+    if (result.affectedRows === 0) {
       return null; // Ingrediente not found or no changes made
     }
     return this.getById(id);
@@ -56,7 +69,10 @@ export class IngredienteService {
 
   async delete(id: number): Promise<boolean> {
     // Soft delete
-    const [result] = await pool.query('UPDATE ingredientes SET activo = FALSE WHERE id = ?', [id]);
-    return (result as any).affectedRows > 0;
+    const [result] = await pool.query<ResultSetHeader>(
+      'UPDATE ingredientes SET activo = FALSE WHERE id = ?',
+      [id],
+    );
+    return result.affectedRows > 0;
   }
 }

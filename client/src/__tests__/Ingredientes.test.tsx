@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import Ingredientes from '../Ingredientes';
 import { NotificationProvider } from '../contexts/NotificationContext';
@@ -20,13 +21,15 @@ vi.mock('../services/api', () => ({
 
 // Mock Notification and Confirm contexts
 const mockShowNotification = vi.fn();
-vi.mock('../components/Notification', () => ({
+vi.mock('../contexts/NotificationContext', () => ({
   useNotification: () => ({ showNotification: mockShowNotification }),
+  NotificationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const mockConfirm = vi.fn();
-vi.mock('../components/ConfirmModal', () => ({
-  useConfirm: () => ({ confirm: mockConfirm }),
+vi.mock('../contexts/ConfirmContext', () => ({
+  useConfirm: () => mockConfirm,
+  ConfirmProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 describe('Ingredientes Component', () => {
@@ -38,13 +41,27 @@ describe('Ingredientes Component', () => {
             <Ingredientes />
           </ConfirmProvider>
         </NotificationProvider>
-      </BrowserRouter>
+      </BrowserRouter>,
     );
   };
 
   const mockIngredientes: Ingrediente[] = [
-    { id: 1, nombre: 'Harina', descripcion: 'Harina de trigo', unidad_medida: 'kg', costo_unitario: 1.2, activo: true },
-    { id: 2, nombre: 'Azucar', descripcion: 'Azucar refinada', unidad_medida: 'kg', costo_unitario: 0.8, activo: true },
+    {
+      id: 1,
+      nombre: 'Harina',
+      descripcion: 'Harina de trigo',
+      unidad_medida: 'kg',
+      costo_unitario: 1.2,
+      activo: true,
+    },
+    {
+      id: 2,
+      nombre: 'Azucar',
+      descripcion: 'Azucar refinada',
+      unidad_medida: 'kg',
+      costo_unitario: 0.8,
+      activo: true,
+    },
   ];
 
   beforeEach(() => {
@@ -61,8 +78,8 @@ describe('Ingredientes Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
       expect(screen.getByText('Azucar')).toBeInTheDocument();
-      expect(screen.getByText('1.20')).toBeInTheDocument();
-      expect(screen.getByText('0.80')).toBeInTheDocument();
+      expect(screen.getByText('$1.20')).toBeInTheDocument();
+      expect(screen.getByText('$0.80')).toBeInTheDocument();
     });
   });
 
@@ -82,25 +99,45 @@ describe('Ingredientes Component', () => {
   });
 
   it('should create a new ingredient', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
-    fireEvent.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Harina')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+    });
 
     const nombreInput = screen.getByLabelText(/Nombre:/i);
     const unidadMedidaSelect = screen.getByLabelText(/Unidad de Medida:/i);
     const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
 
-    fireEvent.change(nombreInput, { target: { value: 'Leche' } });
-    fireEvent.change(unidadMedidaSelect, { target: { value: 'litros' } });
-    fireEvent.change(costoUnitarioInput, { target: { value: '1.5' } });
+    await user.clear(nombreInput);
+    await user.type(nombreInput, 'Leche');
+    await user.selectOptions(unidadMedidaSelect, 'litros');
+    await user.clear(costoUnitarioInput);
+    await user.type(costoUnitarioInput, '1.5');
 
-    (api.createIngrediente as vi.Mock).mockResolvedValueOnce({ data: { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true } });
-    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({ data: [...mockIngredientes, { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true }] });
+    (api.createIngrediente as vi.Mock).mockResolvedValueOnce({
+      data: { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
+    });
+    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({
+      data: [
+        ...mockIngredientes,
+        { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
+      ],
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
     await waitFor(() => {
-      expect(api.createIngrediente).toHaveBeenCalledWith(expect.objectContaining({ nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5 }));
+      expect(api.createIngrediente).toHaveBeenCalledWith(
+        expect.objectContaining({ nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5 }),
+      );
       expect(mockShowNotification).toHaveBeenCalledWith('Ingrediente creado con éxito', 'success');
       expect(screen.getByText('Leche')).toBeInTheDocument();
     });
@@ -126,30 +163,47 @@ describe('Ingredientes Component', () => {
   });
 
   it('should update an existing ingredient', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
     await waitFor(() => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Editar/i })[0]);
-
-    const nombreInput = screen.getByDisplayValue('Harina');
-    fireEvent.change(nombreInput, { target: { value: 'Harina Integral' } });
-
-    (api.updateIngrediente as vi.Mock).mockResolvedValueOnce({ data: { ...mockIngredientes[0], nombre: 'Harina Integral' } });
-    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({ data: [{ ...mockIngredientes[0], nombre: 'Harina Integral' }, mockIngredientes[1]] });
-
-    fireEvent.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getAllByRole('button', { name: /Editar/i })[0]);
 
     await waitFor(() => {
-      expect(api.updateIngrediente).toHaveBeenCalledWith(1, expect.objectContaining({ nombre: 'Harina Integral' }));
-      expect(mockShowNotification).toHaveBeenCalledWith('Ingrediente actualizado con éxito', 'success');
+      expect(screen.getByText(/Editar Ingrediente/i)).toBeInTheDocument();
+    });
+
+    const nombreInput = screen.getByDisplayValue('Harina');
+    await user.clear(nombreInput);
+    await user.type(nombreInput, 'Harina Integral');
+
+    (api.updateIngrediente as vi.Mock).mockResolvedValueOnce({
+      data: { ...mockIngredientes[0], nombre: 'Harina Integral' },
+    });
+    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({
+      data: [{ ...mockIngredientes[0], nombre: 'Harina Integral' }, mockIngredientes[1]],
+    });
+
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+
+    await waitFor(() => {
+      expect(api.updateIngrediente).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ nombre: 'Harina Integral' }),
+      );
+      expect(mockShowNotification).toHaveBeenCalledWith(
+        'Ingrediente actualizado con éxito',
+        'success',
+      );
       expect(screen.getByText('Harina Integral')).toBeInTheDocument();
     });
   });
 
   it('should delete an ingredient', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
     await waitFor(() => {
@@ -160,12 +214,15 @@ describe('Ingredientes Component', () => {
     (api.deleteIngrediente as vi.Mock).mockResolvedValueOnce({});
     (api.getIngredientes as vi.Mock).mockResolvedValueOnce({ data: [mockIngredientes[1]] });
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
 
     await waitFor(() => {
       expect(mockConfirm).toHaveBeenCalled();
       expect(api.deleteIngrediente).toHaveBeenCalledWith(1);
-      expect(mockShowNotification).toHaveBeenCalledWith('Ingrediente eliminado con éxito', 'success');
+      expect(mockShowNotification).toHaveBeenCalledWith(
+        'Ingrediente eliminado con éxito',
+        'success',
+      );
       expect(screen.queryByText('Harina')).not.toBeInTheDocument();
     });
   });
@@ -180,15 +237,24 @@ describe('Ingredientes Component', () => {
   });
 
   it('should show error notification on API failure during create', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
-    fireEvent.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+    });
 
     const nombreInput = screen.getByLabelText(/Nombre:/i);
-    fireEvent.change(nombreInput, { target: { value: 'Leche' } });
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    await user.clear(nombreInput);
+    await user.type(nombreInput, 'Leche');
+    await user.clear(costoUnitarioInput);
+    await user.type(costoUnitarioInput, '1.5');
     (api.createIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Creation failed'));
 
-    fireEvent.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
     await waitFor(() => {
       expect(mockShowNotification).toHaveBeenCalledWith('Error al guardar ingrediente', 'error');
@@ -196,19 +262,25 @@ describe('Ingredientes Component', () => {
   });
 
   it('should show error notification on API failure during update', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
     await waitFor(() => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Editar/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /Editar/i })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Editar Ingrediente/i)).toBeInTheDocument();
+    });
 
     const nombreInput = screen.getByDisplayValue('Harina');
-    fireEvent.change(nombreInput, { target: { value: 'Harina Edit Failed' } });
+    await user.clear(nombreInput);
+    await user.type(nombreInput, 'Harina Edit Failed');
     (api.updateIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Update failed'));
 
-    fireEvent.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
     await waitFor(() => {
       expect(mockShowNotification).toHaveBeenCalledWith('Error al guardar ingrediente', 'error');
@@ -216,6 +288,7 @@ describe('Ingredientes Component', () => {
   });
 
   it('should show error notification on API failure during delete', async () => {
+    const user = userEvent.setup();
     renderIngredientes();
 
     await waitFor(() => {
@@ -225,10 +298,100 @@ describe('Ingredientes Component', () => {
     (mockConfirm as vi.Mock).mockResolvedValueOnce(true);
     (api.deleteIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Delete failed'));
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
 
     await waitFor(() => {
       expect(mockShowNotification).toHaveBeenCalledWith('Error al eliminar ingrediente', 'error');
     });
+  });
+
+  // ── Client Validation Tests (RED) ──────────────────────────────────
+
+  it('should show validation error when nombre is empty on create', async () => {
+    const user = userEvent.setup();
+    renderIngredientes();
+
+    await waitFor(() => {
+      expect(screen.getByText('Harina')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+    });
+
+    // Leave nombre empty, fill only other fields
+    const unidadMedidaSelect = screen.getByLabelText(/Unidad de Medida:/i);
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    await user.selectOptions(unidadMedidaSelect, 'litros');
+    await user.clear(costoUnitarioInput);
+    await user.type(costoUnitarioInput, '1.5');
+
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+
+    // Expect validation error, NOT API call
+    await waitFor(() => {
+      expect(screen.getByText('Nombre is required')).toBeInTheDocument();
+    });
+    expect(api.createIngrediente).not.toHaveBeenCalled();
+  });
+
+  it('should show validation error when costo_unitario is negative', async () => {
+    const user = userEvent.setup();
+    renderIngredientes();
+
+    await waitFor(() => {
+      expect(screen.getByText('Harina')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+    });
+
+    const nombreInput = screen.getByLabelText(/Nombre:/i);
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    await user.clear(nombreInput);
+    await user.type(nombreInput, 'Leche');
+
+    // Use fireEvent.change for number input to avoid React-controlled input issues
+    await user.clear(costoUnitarioInput);
+    fireEvent.change(costoUnitarioInput, { target: { name: 'costo_unitario', value: '-5' } });
+
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+
+    // Expect validation error, NOT API call
+    await waitFor(() => {
+      expect(screen.getByText('Costo unitario must be positive')).toBeInTheDocument();
+    });
+    expect(api.createIngrediente).not.toHaveBeenCalled();
+  });
+
+  it('should show validation error when nombre is empty on edit', async () => {
+    const user = userEvent.setup();
+    renderIngredientes();
+
+    await waitFor(() => {
+      expect(screen.getByText('Harina')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getAllByRole('button', { name: /Editar/i })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Editar Ingrediente/i)).toBeInTheDocument();
+    });
+
+    const nombreInput = screen.getByDisplayValue('Harina');
+    await user.clear(nombreInput);
+
+    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+
+    // Expect validation error, NOT API call
+    await waitFor(() => {
+      expect(screen.getByText('Nombre is required')).toBeInTheDocument();
+    });
+    expect(api.updateIngrediente).not.toHaveBeenCalled();
   });
 });

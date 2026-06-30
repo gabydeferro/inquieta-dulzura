@@ -56,11 +56,13 @@
 }
 
 .imagen-card {
-  background: white;
+  background: var(--card-background);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
 }
 
 .imagen-card:hover {

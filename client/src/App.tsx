@@ -44,27 +44,62 @@ function App() {
                   <Route path="/register" element={<Register />} />
 
                   {/* Rutas protegidas */}
-                  <Route path="/dashboard" element={
-                    <PrivateRoute><Dashboard /></PrivateRoute>
-                  } />
-                  <Route path="/inventario" element={
-                    <PrivateRoute><Inventario /></PrivateRoute>
-                  } />
-                  <Route path="/recetas" element={
-                    <PrivateRoute><Recetas /></PrivateRoute>
-                  } />
-                  <Route path="/ventas" element={
-                    <PrivateRoute><Ventas /></PrivateRoute>
-                  } />
-                  <Route path="/contenido-digital" element={
-                    <PrivateRoute><ContenidoDigital /></PrivateRoute>
-                  } />
-                  <Route path="/categorias" element={
-                    <PrivateRoute><Categorias /></PrivateRoute>
-                  } />
-                  <Route path="/ingredientes" element={
-                    <PrivateRoute><Ingredientes /></PrivateRoute>
-                  } />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <PrivateRoute>
+                        <Dashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventario"
+                    element={
+                      <PrivateRoute>
+                        <Inventario />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/recetas"
+                    element={
+                      <PrivateRoute>
+                        <Recetas />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/ventas"
+                    element={
+                      <PrivateRoute>
+                        <Ventas />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/contenido-digital"
+                    element={
+                      <PrivateRoute>
+                        <ContenidoDigital />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/categorias"
+                    element={
+                      <PrivateRoute>
+                        <Categorias />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/ingredientes"
+                    element={
+                      <PrivateRoute>
+                        <Ingredientes />
+                      </PrivateRoute>
+                    }
+                  />
 
                   {/* Redirección para rutas no encontradas */}
                   <Route path="*" element={<Navigate to="/" replace />} />

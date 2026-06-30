@@ -32,7 +32,7 @@ const Inventario: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
   const [productos, setProductos] = useState<ProductoConStock[]>([]);
-  const [categorias, setCategorias] = useState<{ id: number, nombre: string }[]>([]);
+  const [categorias, setCategorias] = useState<{ id: number; nombre: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductoConStock | null>(null);
@@ -45,19 +45,15 @@ const Inventario: React.FC = () => {
     categoria_id: '',
     cantidad_disponible: '',
     cantidad_minima: '',
-    unidad_medida: 'unidades'
+    unidad_medida: 'unidades',
   });
-
-  useEffect(() => {
-    Promise.all([cargarProductos(), cargarCategorias()]);
-  }, []);
 
   const cargarCategorias = async () => {
     try {
       const response = await api.get('/categorias');
       setCategorias(response.data);
       if (response.data.length > 0 && !formData.categoria_id) {
-        setFormData(prev => ({ ...prev, categoria_id: response.data[0].id.toString() }));
+        setFormData((prev) => ({ ...prev, categoria_id: response.data[0].id.toString() }));
       }
     } catch (error) {
       console.error('Error al cargar categorías:', error);
@@ -88,15 +84,19 @@ const Inventario: React.FC = () => {
               producto_id: 1,
               cantidad_disponible: 0,
               cantidad_minima: 0,
-              unidad_medida: 'unidades'
-            }
-          }
+              unidad_medida: 'unidades',
+            },
+          },
         ]);
       }
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void Promise.all([cargarProductos(), cargarCategorias()]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,8 +111,9 @@ const Inventario: React.FC = () => {
       setShowModal(false);
       resetForm();
       cargarProductos();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'Error al guardar el producto.';
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      const errorMsg = err.response?.data?.message || 'Error al guardar el producto.';
       showNotification(errorMsg, 'error');
     }
   };
@@ -128,7 +129,7 @@ const Inventario: React.FC = () => {
       categoria_id: producto.categoria_id.toString(),
       cantidad_disponible: producto.stock?.cantidad_disponible.toString() || '',
       cantidad_minima: producto.stock?.cantidad_minima.toString() || '',
-      unidad_medida: producto.stock?.unidad_medida || 'unidades'
+      unidad_medida: producto.stock?.unidad_medida || 'unidades',
     });
     setShowModal(true);
   };
@@ -139,7 +140,7 @@ const Inventario: React.FC = () => {
       message: '¿Estás seguro de eliminar este producto?',
       confirmText: 'Eliminar',
       cancelText: 'Cancelar',
-      type: 'danger'
+      type: 'danger',
     });
 
     if (!isConfirmed) return;
@@ -148,7 +149,7 @@ const Inventario: React.FC = () => {
       await api.delete(`/productos/${id}`);
       showNotification('Producto eliminado', 'info');
       cargarProductos();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al eliminar producto:', error);
       showNotification('Error al eliminar el producto', 'error');
     }
@@ -164,7 +165,7 @@ const Inventario: React.FC = () => {
       categoria_id: '1',
       cantidad_disponible: '',
       cantidad_minima: '',
-      unidad_medida: 'unidades'
+      unidad_medida: 'unidades',
     });
     setEditingProduct(null);
   };
@@ -192,7 +193,7 @@ const Inventario: React.FC = () => {
       </header>
 
       <div className="productos-grid">
-        {productos.map(producto => (
+        {productos.map((producto) => (
           <div key={producto.id} className={`producto-card ${getStockStatus(producto)}`}>
             <div className="producto-header">
               <h3>{producto.nombre}</h3>
@@ -220,9 +221,7 @@ const Inventario: React.FC = () => {
                   <span className="stock-cantidad">
                     {producto.stock.cantidad_disponible} {producto.stock.unidad_medida}
                   </span>
-                  <span className="stock-minimo">
-                    Mín: {producto.stock.cantidad_minima}
-                  </span>
+                  <span className="stock-minimo">Mín: {producto.stock.cantidad_minima}</span>
                 </div>
                 {producto.stock.cantidad_disponible <= producto.stock.cantidad_minima && (
                   <div className="stock-alerta">⚠️ Stock bajo</div>
@@ -234,7 +233,11 @@ const Inventario: React.FC = () => {
               <button className="btn-icon" onClick={() => handleEdit(producto)} title="Editar">
                 ✏️
               </button>
-              <button className="btn-icon btn-danger" onClick={() => handleDelete(producto.id)} title="Eliminar">
+              <button
+                className="btn-icon btn-danger"
+                onClick={() => handleDelete(producto.id)}
+                title="Eliminar"
+              >
                 🗑️
               </button>
             </div>
@@ -247,7 +250,9 @@ const Inventario: React.FC = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>✕</button>
+              <button className="btn-close" onClick={() => setShowModal(false)}>
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -277,9 +282,13 @@ const Inventario: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
                     required
                   >
-                    <option value="" disabled>Seleccionar...</option>
-                    {categorias.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                    <option value="" disabled>
+                      Seleccionar...
+                    </option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nombre}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -323,7 +332,9 @@ const Inventario: React.FC = () => {
                   <input
                     type="number"
                     value={formData.cantidad_disponible}
-                    onChange={(e) => setFormData({ ...formData, cantidad_disponible: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cantidad_disponible: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -353,7 +364,11 @@ const Inventario: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-primary">
