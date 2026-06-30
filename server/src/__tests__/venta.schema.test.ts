@@ -5,9 +5,7 @@ describe('ventaCreateSchema', () => {
   it('should accept valid input with efectivo and one producto', () => {
     const result = ventaCreateSchema.safeParse({
       metodo_pago: 'efectivo',
-      productos: [
-        { producto_id: 1, cantidad: 2, precio_unitario: 25, subtotal: 50 },
-      ],
+      productos: [{ producto_id: 1, cantidad: 2, precio_unitario: 25, subtotal: 50 }],
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -31,9 +29,7 @@ describe('ventaCreateSchema', () => {
   it('should reject invalid metodo_pago', () => {
     const result = ventaCreateSchema.safeParse({
       metodo_pago: 'bitcoin',
-      productos: [
-        { producto_id: 1, cantidad: 1, precio_unitario: 10, subtotal: 10 },
-      ],
+      productos: [{ producto_id: 1, cantidad: 1, precio_unitario: 10, subtotal: 10 }],
     });
     expect(result.success).toBe(false);
   });
@@ -41,9 +37,7 @@ describe('ventaCreateSchema', () => {
   it('should default descuento to 0 when omitted', () => {
     const result = ventaCreateSchema.safeParse({
       metodo_pago: 'transferencia',
-      productos: [
-        { producto_id: 1, cantidad: 1, precio_unitario: 5, subtotal: 5 },
-      ],
+      productos: [{ producto_id: 1, cantidad: 1, precio_unitario: 5, subtotal: 5 }],
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -56,9 +50,7 @@ describe('ventaCreateSchema', () => {
       cliente_id: 3,
       metodo_pago: 'tarjeta',
       descuento: 10,
-      productos: [
-        { producto_id: 2, cantidad: 3, precio_unitario: 15, subtotal: 45 },
-      ],
+      productos: [{ producto_id: 2, cantidad: 3, precio_unitario: 15, subtotal: 45 }],
     });
     expect(result.success).toBe(true);
     if (result.success) {

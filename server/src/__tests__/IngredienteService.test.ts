@@ -84,11 +84,9 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.create(newIngrediente);
       expect(result).toEqual({ id: 3, ...newIngrediente });
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        1,
-        'SELECT * FROM ingredientes WHERE nombre = ?',
-        [newIngrediente.nombre],
-      );
+      expect(mockQuery).toHaveBeenNthCalledWith(1, 'SELECT * FROM ingredientes WHERE nombre = ?', [
+        newIngrediente.nombre,
+      ]);
       expect(mockQuery).toHaveBeenNthCalledWith(
         2,
         'INSERT INTO ingredientes (nombre, descripcion, unidad_medida, costo_unitario, activo) VALUES (?, ?, ?, ?, ?)',
@@ -116,17 +114,13 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.create(newIngrediente);
       expect(result.activo).toBe(true);
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        2,
-        expect.any(String),
-        [
-          newIngrediente.nombre,
-          newIngrediente.descripcion,
-          newIngrediente.unidad_medida,
-          newIngrediente.costo_unitario,
-          true,
-        ],
-      );
+      expect(mockQuery).toHaveBeenNthCalledWith(2, expect.any(String), [
+        newIngrediente.nombre,
+        newIngrediente.descripcion,
+        newIngrediente.unidad_medida,
+        newIngrediente.costo_unitario,
+        true,
+      ]);
     });
   });
 
@@ -148,11 +142,11 @@ describe('IngredienteService', () => {
       expect(mockQuery).toHaveBeenCalledWith(
         'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
         [
-          updatedData.nombre,       // 'Ingrediente Actualizado'
-          undefined,                // descripcion not provided → undefined
-          undefined,                // unidad_medida not provided → undefined
+          updatedData.nombre, // 'Ingrediente Actualizado'
+          undefined, // descripcion not provided → undefined
+          undefined, // unidad_medida not provided → undefined
           updatedData.costo_unitario, // 20.0
-          undefined,                // activo not provided → undefined
+          undefined, // activo not provided → undefined
           1,
         ],
       );

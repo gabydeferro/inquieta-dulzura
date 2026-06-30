@@ -34,9 +34,9 @@ describe('InventarioController', () => {
     it('should handle DB errors', async () => {
       mockExecute.mockRejectedValueOnce(new Error('DB error'));
 
-      await expect(
-        getInventario(mockRequest as Request, mockResponse as Response),
-      ).rejects.toThrow('DB error');
+      await expect(getInventario(mockRequest as Request, mockResponse as Response)).rejects.toThrow(
+        'DB error',
+      );
     });
   });
 });

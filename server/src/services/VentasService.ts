@@ -1,10 +1,6 @@
 import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { pool } from '../config/database';
-import {
-  CreateVentaDTO,
-  VentaResponse,
-  VentaDetalleResponse,
-} from '../dtos/VentasDTO';
+import { CreateVentaDTO, VentaResponse, VentaDetalleResponse } from '../dtos/VentasDTO';
 
 interface VentaJoinedRow {
   venta_id: number;
@@ -83,7 +79,14 @@ export class VentasService {
         await conn.query(
           `INSERT INTO venta_detalle (venta_id, producto_id, cantidad, precio_unitario, subtotal, descuento, total)
            VALUES (?, ?, ?, ?, ?, 0, ?)`,
-          [ventaId, prod.producto_id, prod.cantidad, prod.precio_unitario, prod.subtotal, prod.subtotal],
+          [
+            ventaId,
+            prod.producto_id,
+            prod.cantidad,
+            prod.precio_unitario,
+            prod.subtotal,
+            prod.subtotal,
+          ],
         );
       }
 

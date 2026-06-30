@@ -59,7 +59,10 @@ describe('VentasController', () => {
   describe('createVenta', () => {
     it('should create venta and return status 201', async () => {
       const createdVenta = { id: 1, total: 50, productos: [] };
-      mockRequest.body = { metodo_pago: 'efectivo', productos: [{ producto_id: 1, cantidad: 2, precio_unitario: 25, subtotal: 50 }] };
+      mockRequest.body = {
+        metodo_pago: 'efectivo',
+        productos: [{ producto_id: 1, cantidad: 2, precio_unitario: 25, subtotal: 50 }],
+      };
       mockCreateVenta.mockResolvedValue(createdVenta);
 
       await createVenta(mockRequest as Request, mockResponse as Response);

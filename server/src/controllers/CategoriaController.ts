@@ -37,9 +37,7 @@ export class CategoriaController {
 
   public async create(req: Request, res: Response): Promise<void> {
     try {
-      const nuevaCategoria = await this.categoriaService.create(
-        req.body as CreateCategoriaDTO,
-      );
+      const nuevaCategoria = await this.categoriaService.create(req.body as CreateCategoriaDTO);
       res.status(201).json(nuevaCategoria);
     } catch (error: unknown) {
       if (handleDuplicateError(error, res, 'Ya existe una categoría con ese nombre')) return;

@@ -67,9 +67,13 @@ describe('AuthService', () => {
       (bcrypt.hash as vi.Mock).mockResolvedValueOnce('hashed_pass');
       mockExecute.mockResolvedValueOnce([{ insertId: 1 }, []]); // INSERT
       const mockUser = {
-        id: 1, email: userData.email, nombre: userData.nombre,
-        rol: 'usuario' as const, activo: true,
-        created_at: new Date(), updated_at: new Date(),
+        id: 1,
+        email: userData.email,
+        nombre: userData.nombre,
+        rol: 'usuario' as const,
+        activo: true,
+        created_at: new Date(),
+        updated_at: new Date(),
       };
       mockExecute.mockResolvedValueOnce([[mockUser], []]); // SELECT user
       mockExecute.mockResolvedValueOnce([{}, []]); // INSERT refresh_token
@@ -98,9 +102,13 @@ describe('AuthService', () => {
       (bcrypt.hash as vi.Mock).mockResolvedValueOnce('hashed_pass');
       mockExecute.mockResolvedValueOnce([{ insertId: 1 }, []]); // INSERT
       const mockUser = {
-        id: 1, email: credentials.email, nombre: 'Login User',
-        rol: 'usuario' as const, activo: true,
-        created_at: new Date(), updated_at: new Date(),
+        id: 1,
+        email: credentials.email,
+        nombre: 'Login User',
+        rol: 'usuario' as const,
+        activo: true,
+        created_at: new Date(),
+        updated_at: new Date(),
       };
       mockExecute.mockResolvedValueOnce([[mockUser], []]); // SELECT user
       mockExecute.mockResolvedValueOnce([{}, []]); // INSERT refresh_token
@@ -154,9 +162,13 @@ describe('AuthService', () => {
       (bcrypt.hash as vi.Mock).mockResolvedValueOnce('hashed_pass');
       mockExecute.mockResolvedValueOnce([{ insertId: 1 }, []]); // INSERT
       const mockUser = {
-        id: 1, email: userData.email, nombre: userData.nombre,
-        rol: 'usuario' as const, activo: true,
-        created_at: new Date(), updated_at: new Date(),
+        id: 1,
+        email: userData.email,
+        nombre: userData.nombre,
+        rol: 'usuario' as const,
+        activo: true,
+        created_at: new Date(),
+        updated_at: new Date(),
       };
       mockExecute.mockResolvedValueOnce([[mockUser], []]); // SELECT user
       mockExecute.mockResolvedValueOnce([{}, []]); // INSERT refresh_token

@@ -9,11 +9,16 @@ export const inventarioCreateSchema = z.object({
   costo: z.coerce.number().positive('El costo debe ser mayor a 0').optional(),
   sku: z.string().optional(),
   categoria_id: z.coerce.number().int().positive('Selecciona una categoría'),
-  cantidad_disponible: z.coerce.number().int().min(0, 'La cantidad disponible no puede ser negativa'),
+  cantidad_disponible: z.coerce
+    .number()
+    .int()
+    .min(0, 'La cantidad disponible no puede ser negativa'),
   cantidad_minima: z.coerce.number().int().min(0, 'La cantidad mínima no puede ser negativa'),
-  unidad_medida: z.enum(unidadMedidaValues, {
-    error: 'Selecciona una unidad de medida válida',
-  }).optional(),
+  unidad_medida: z
+    .enum(unidadMedidaValues, {
+      error: 'Selecciona una unidad de medida válida',
+    })
+    .optional(),
 });
 
 export const inventarioUpdateSchema = inventarioCreateSchema.partial();

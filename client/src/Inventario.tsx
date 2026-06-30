@@ -209,7 +209,14 @@ const Inventario: React.FC = () => {
           <h1>📦 Inventario de Productos</h1>
           <p>Gestión de productos y stock</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); setErrors({}); }}>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            resetForm();
+            setShowModal(true);
+            setErrors({});
+          }}
+        >
           ➕ Nuevo Producto
         </button>
       </header>
@@ -268,11 +275,23 @@ const Inventario: React.FC = () => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => { setShowModal(false); setErrors({}); }}>
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            setShowModal(false);
+            setErrors({});
+          }}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-              <button className="btn-close" onClick={() => { setShowModal(false); setErrors({}); }}>
+              <button
+                className="btn-close"
+                onClick={() => {
+                  setShowModal(false);
+                  setErrors({});
+                }}
+              >
                 ✕
               </button>
             </div>
@@ -322,7 +341,9 @@ const Inventario: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  {errors.categoria_id && <span className="field-error">{errors.categoria_id}</span>}
+                  {errors.categoria_id && (
+                    <span className="field-error">{errors.categoria_id}</span>
+                  )}
                 </div>
               </div>
 
@@ -371,12 +392,15 @@ const Inventario: React.FC = () => {
                     value={formData.cantidad_disponible}
                     onChange={(e) => {
                       setFormData({ ...formData, cantidad_disponible: e.target.value });
-                      if (errors.cantidad_disponible) setErrors({ ...errors, cantidad_disponible: '' });
+                      if (errors.cantidad_disponible)
+                        setErrors({ ...errors, cantidad_disponible: '' });
                     }}
                     className={errors.cantidad_disponible ? 'input-error' : ''}
                     required
                   />
-                  {errors.cantidad_disponible && <span className="field-error">{errors.cantidad_disponible}</span>}
+                  {errors.cantidad_disponible && (
+                    <span className="field-error">{errors.cantidad_disponible}</span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -391,7 +415,9 @@ const Inventario: React.FC = () => {
                     className={errors.cantidad_minima ? 'input-error' : ''}
                     required
                   />
-                  {errors.cantidad_minima && <span className="field-error">{errors.cantidad_minima}</span>}
+                  {errors.cantidad_minima && (
+                    <span className="field-error">{errors.cantidad_minima}</span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -412,7 +438,10 @@ const Inventario: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => { setShowModal(false); setErrors({}); }}
+                  onClick={() => {
+                    setShowModal(false);
+                    setErrors({});
+                  }}
                 >
                   Cancelar
                 </button>

@@ -11,7 +11,10 @@ const mockExecute = connection.execute as vi.Mock;
 describe('InventarioService', () => {
   describe('getInventario', () => {
     test('debe retornar el inventario', async () => {
-      const mockRows = [{ id: 1, nombre: 'Categoria 1' }, { id: 2, nombre: 'Categoria 2' }];
+      const mockRows = [
+        { id: 1, nombre: 'Categoria 1' },
+        { id: 2, nombre: 'Categoria 2' },
+      ];
       mockExecute.mockResolvedValueOnce([mockRows, []]);
 
       const result = await getInventario();
