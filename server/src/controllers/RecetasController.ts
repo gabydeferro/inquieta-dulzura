@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { RecetaService } from '../services/RecetaService';
+import type { CreateRecetaDTO, UpdateRecetaDTO } from '../dtos/RecetasDTO';
 
 const recetaService = new RecetaService();
 
@@ -30,7 +31,7 @@ export const getRecetaById = async (req: Request, res: Response) => {
 
 export const createReceta = async (req: Request, res: Response) => {
   try {
-    const newReceta = await recetaService.create(req.body);
+    const newReceta = await recetaService.create(req.body as CreateRecetaDTO);
     res.status(201).json(newReceta);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error creating receta';
@@ -41,7 +42,7 @@ export const createReceta = async (req: Request, res: Response) => {
 export const updateReceta = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const updatedReceta = await recetaService.update(id, req.body);
+    const updatedReceta = await recetaService.update(id, req.body as UpdateRecetaDTO);
     if (updatedReceta) {
       res.json(updatedReceta);
     } else {
