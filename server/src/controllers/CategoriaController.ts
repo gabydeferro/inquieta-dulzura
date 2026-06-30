@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { CategoriaService } from '../services/CategoriaService';
-import { CreateCategoriaDTO, UpdateCategoriaDTO } from '../dtos/CategoriaDTO';
 
 export class CategoriaController {
   private categoriaService: CategoriaService;
@@ -14,7 +13,8 @@ export class CategoriaController {
       const categorias = await this.categoriaService.getAll();
       res.status(200).json(categorias);
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener las categorías', error });
+      const message = error instanceof Error ? error.message : 'Error al obtener las categorías';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
@@ -25,48 +25,51 @@ export class CategoriaController {
       if (categoria) {
         res.status(200).json(categoria);
       } else {
-        res.status(404).json({ message: 'Categoría no encontrada' });
+        res.status(404).json({ success: false, error: 'Categoría no encontrada' });
       }
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener la categoría', error });
+      const message = error instanceof Error ? error.message : 'Error al obtener la categoría';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
   public async create(req: Request, res: Response): Promise<void> {
     try {
-      const createCategoriaDTO: CreateCategoriaDTO = req.body;
-      // Basic validation
-      if (!createCategoriaDTO.nombre) {
-        res.status(400).json({ message: 'El campo nombre es obligatorio' });
-        return;
-      }
-      const nuevaCategoria = await this.categoriaService.create(createCategoriaDTO);
+      const nuevaCategoria = await this.categoriaService.create(
+        req.body as Record<string, unknown>,
+      );
       res.status(201).json(nuevaCategoria);
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ message: 'Ya existe una categoría con ese nombre' });
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err?.code === 'ER_DUP_ENTRY') {
+        res.status(400).json({ success: false, error: 'Ya existe una categoría con ese nombre' });
         return;
       }
-      res.status(500).json({ message: 'Error al crear la categoría', error });
+      const message = error instanceof Error ? error.message : 'Error al crear la categoría';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
   public async update(req: Request, res: Response): Promise<void> {
     try {
       const id = parseInt(req.params.id, 10);
-      const updateCategoriaDTO: UpdateCategoriaDTO = req.body;
-      const categoriaActualizada = await this.categoriaService.update(id, updateCategoriaDTO);
+      const categoriaActualizada = await this.categoriaService.update(
+        id,
+        req.body as Record<string, unknown>,
+      );
       if (categoriaActualizada) {
         res.status(200).json(categoriaActualizada);
       } else {
-        res.status(404).json({ message: 'Categoría no encontrada para actualizar' });
+        res.status(404).json({ success: false, error: 'Categoría no encontrada para actualizar' });
       }
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ message: 'Ya existe una categoría con ese nombre' });
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err?.code === 'ER_DUP_ENTRY') {
+        res.status(400).json({ success: false, error: 'Ya existe una categoría con ese nombre' });
         return;
       }
-      res.status(500).json({ message: 'Error al actualizar la categoría', error });
+      const message = error instanceof Error ? error.message : 'Error al actualizar la categoría';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
@@ -75,12 +78,13 @@ export class CategoriaController {
       const id = parseInt(req.params.id, 10);
       const success = await this.categoriaService.delete(id);
       if (success) {
-        res.status(204).send(); // No content
+        res.status(204).send();
       } else {
-        res.status(404).json({ message: 'Categoría no encontrada para eliminar' });
+        res.status(404).json({ success: false, error: 'Categoría no encontrada para eliminar' });
       }
     } catch (error) {
-      res.status(500).json({ message: 'Error al eliminar la categoría', error });
+      const message = error instanceof Error ? error.message : 'Error al eliminar la categoría';
+      res.status(500).json({ success: false, error: message });
     }
   }
 }

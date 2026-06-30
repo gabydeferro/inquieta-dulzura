@@ -8,7 +8,8 @@ export const getAllIngredientes = async (req: Request, res: Response) => {
     const ingredientes = await ingredienteService.getAll();
     res.json(ingredientes);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching ingredientes' });
+    const message = error instanceof Error ? error.message : 'Error fetching ingredientes';
+    res.status(500).json({ success: false, error: message });
   }
 };
 
@@ -19,33 +20,39 @@ export const getIngredienteById = async (req: Request, res: Response) => {
     if (ingrediente) {
       res.json(ingrediente);
     } else {
-      res.status(404).json({ message: 'Ingrediente not found' });
+      res.status(404).json({ success: false, error: 'Ingrediente not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching ingrediente' });
+    const message = error instanceof Error ? error.message : 'Error fetching ingrediente';
+    res.status(500).json({ success: false, error: message });
   }
 };
 
 export const createIngrediente = async (req: Request, res: Response) => {
   try {
-    const newIngrediente = await ingredienteService.create(req.body);
+    const newIngrediente = await ingredienteService.create(req.body as Record<string, unknown>);
     res.status(201).json(newIngrediente);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating ingrediente' });
+    const message = error instanceof Error ? error.message : 'Error creating ingrediente';
+    res.status(500).json({ success: false, error: message });
   }
 };
 
 export const updateIngrediente = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const updatedIngrediente = await ingredienteService.update(id, req.body);
+    const updatedIngrediente = await ingredienteService.update(
+      id,
+      req.body as Record<string, unknown>,
+    );
     if (updatedIngrediente) {
       res.json(updatedIngrediente);
     } else {
-      res.status(404).json({ message: 'Ingrediente not found' });
+      res.status(404).json({ success: false, error: 'Ingrediente not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Error updating ingrediente' });
+    const message = error instanceof Error ? error.message : 'Error updating ingrediente';
+    res.status(500).json({ success: false, error: message });
   }
 };
 
@@ -56,9 +63,10 @@ export const deleteIngrediente = async (req: Request, res: Response) => {
     if (success) {
       res.status(204).send();
     } else {
-      res.status(404).json({ message: 'Ingrediente not found' });
+      res.status(404).json({ success: false, error: 'Ingrediente not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting ingrediente' });
+    const message = error instanceof Error ? error.message : 'Error deleting ingrediente';
+    res.status(500).json({ success: false, error: message });
   }
 };

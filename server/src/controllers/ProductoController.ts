@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { ProductoService } from '../services/ProductoService';
-import { CreateProductoDTO, UpdateProductoDTO } from '../dtos/ProductoDTO';
 
 export class ProductoController {
   private productoService: ProductoService;
@@ -11,15 +10,14 @@ export class ProductoController {
 
   public async getAll(req: Request, res: Response): Promise<void> {
     try {
-      // Check if the user is authenticated and has admin role, for example
-      // For now, we differentiate based on a query param for simplicity
       const isAdmin = req.query.admin === 'true';
       const productos = isAdmin
         ? await this.productoService.getAllAdmin()
         : await this.productoService.getAll();
       res.status(200).json(productos);
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener los productos', error });
+      const message = error instanceof Error ? error.message : 'Error al obtener los productos';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
@@ -30,10 +28,11 @@ export class ProductoController {
       if (producto) {
         res.status(200).json(producto);
       } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
+        res.status(404).json({ success: false, error: 'Producto no encontrado' });
       }
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener el producto', error });
+      const message = error instanceof Error ? error.message : 'Error al obtener el producto';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
@@ -43,44 +42,51 @@ export class ProductoController {
       const productos = await this.productoService.getByCategoriaId(categoriaId);
       res.status(200).json(productos);
     } catch (error) {
-      res.status(500).json({ message: 'Error al obtener productos por categoría', error });
+      const message =
+        error instanceof Error ? error.message : 'Error al obtener productos por categoría';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
   public async create(req: Request, res: Response): Promise<void> {
     try {
-      const createProductoDTO: CreateProductoDTO = req.body;
-      if (!createProductoDTO.nombre || !createProductoDTO.categoria_id || !createProductoDTO.precio) {
-        res.status(400).json({ message: 'Los campos nombre, categoria_id y precio son obligatorios' });
-        return;
-      }
-      const nuevoProducto = await this.productoService.create(createProductoDTO);
+      const nuevoProducto = await this.productoService.create(req.body as Record<string, unknown>);
       res.status(201).json(nuevoProducto);
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
-        res.status(409).json({ message: 'Ya existe un producto con este nombre o SKU.' });
+    } catch (error: unknown) {
+      const err = error as { code?: string; errno?: number };
+      if (err?.code === 'ER_DUP_ENTRY' || err?.errno === 1062) {
+        res
+          .status(409)
+          .json({ success: false, error: 'Ya existe un producto con este nombre o SKU.' });
         return;
       }
-      res.status(500).json({ message: 'Error al crear el producto', error });
+      const message = error instanceof Error ? error.message : 'Error al crear el producto';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
   public async update(req: Request, res: Response): Promise<void> {
     try {
       const id = parseInt(req.params.id, 10);
-      const updateProductoDTO: UpdateProductoDTO = req.body;
-      const productoActualizado = await this.productoService.update(id, updateProductoDTO);
+      const productoActualizado = await this.productoService.update(
+        id,
+        req.body as Record<string, unknown>,
+      );
       if (productoActualizado) {
         res.status(200).json(productoActualizado);
       } else {
-        res.status(404).json({ message: 'Producto no encontrado para actualizar' });
+        res.status(404).json({ success: false, error: 'Producto no encontrado para actualizar' });
       }
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
-        res.status(409).json({ message: 'Ya existe un producto con este nombre o SKU.' });
+    } catch (error: unknown) {
+      const err = error as { code?: string; errno?: number };
+      if (err?.code === 'ER_DUP_ENTRY' || err?.errno === 1062) {
+        res
+          .status(409)
+          .json({ success: false, error: 'Ya existe un producto con este nombre o SKU.' });
         return;
       }
-      res.status(500).json({ message: 'Error al actualizar el producto', error });
+      const message = error instanceof Error ? error.message : 'Error al actualizar el producto';
+      res.status(500).json({ success: false, error: message });
     }
   }
 
@@ -91,10 +97,11 @@ export class ProductoController {
       if (success) {
         res.status(204).send();
       } else {
-        res.status(404).json({ message: 'Producto no encontrado para eliminar' });
+        res.status(404).json({ success: false, error: 'Producto no encontrado para eliminar' });
       }
     } catch (error) {
-      res.status(500).json({ message: 'Error al eliminar el producto', error });
+      const message = error instanceof Error ? error.message : 'Error al eliminar el producto';
+      res.status(500).json({ success: false, error: message });
     }
   }
 }

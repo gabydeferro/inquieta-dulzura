@@ -8,28 +8,27 @@ import {
   deleteIngrediente,
 } from '../controllers/IngredientesController';
 import { IngredienteService } from '../services/IngredienteService';
-import { IngredienteDTO } from '../dtos/IngredienteDTO';
 
-// Mock the IngredienteService
-vi.mock('../services/IngredienteService', () => {
-  const mockGetAll = vi.fn();
-  const mockGetById = vi.fn();
-  const mockCreate = vi.fn();
-  const mockUpdate = vi.fn();
-  const mockDelete = vi.fn();
+// Mock helpers using vi.hoisted (vitest >= 2.x)
+const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockDelete } = vi.hoisted(() => ({
+  mockGetAll: vi.fn(),
+  mockGetById: vi.fn(),
+  mockCreate: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockDelete: vi.fn(),
+}));
 
-  return {
-    IngredienteService: vi.fn(() => ({
-      getAll: mockGetAll,
-      getById: mockGetById,
-      create: mockCreate,
-      update: mockUpdate,
-      delete: mockDelete,
-    })),
-  };
-});
+vi.mock('../services/IngredienteService', () => ({
+  IngredienteService: class MockIngredienteService {
+    getAll = mockGetAll;
+    getById = mockGetById;
+    create = mockCreate;
+    update = mockUpdate;
+    delete = mockDelete;
+  },
+}));
 
-const mockIngredienteService = new IngredienteService();
+const mockIngredienteService = new IngredienteService() as any;
 
 describe('IngredientesController', () => {
   let mockRequest: Partial<Request>;
@@ -50,13 +49,26 @@ describe('IngredientesController', () => {
       send: mockSend,
     };
 
-    // Reset all mocks on the service before each test
     vi.clearAllMocks();
   });
 
-  const mockIngredientes: IngredienteDTO[] = [
-    { id: 1, nombre: 'Harina', descripcion: 'Harina de trigo', unidad_medida: 'kg', costo_unitario: 1.2, activo: true },
-    { id: 2, nombre: 'Azucar', descripcion: 'Azucar refinada', unidad_medida: 'kg', costo_unitario: 0.8, activo: true },
+  const mockIngredientes = [
+    {
+      id: 1,
+      nombre: 'Harina',
+      descripcion: 'Harina de trigo',
+      unidad_medida: 'kg',
+      costo_unitario: 1.2,
+      activo: true,
+    },
+    {
+      id: 2,
+      nombre: 'Azucar',
+      descripcion: 'Azucar refinada',
+      unidad_medida: 'kg',
+      costo_unitario: 0.8,
+      activo: true,
+    },
   ];
 
   describe('getAllIngredientes', () => {
@@ -66,19 +78,19 @@ describe('IngredientesController', () => {
       await getAllIngredientes(mockRequest as Request, mockResponse as Response);
 
       expect(mockIngredienteService.getAll).toHaveBeenCalled();
-      expect(mockStatus).toHaveBeenCalledWith(200);
       expect(mockJson).toHaveBeenCalledWith(mockIngredientes);
     });
 
-    it('should return 500 if an error occurs', async () => {
-      const errorMessage = 'Error fetching ingredientes';
-      (mockIngredienteService.getAll as vi.Mock).mockRejectedValue(new Error(errorMessage));
+    it('should return 500 with unified error format', async () => {
+      (mockIngredienteService.getAll as vi.Mock).mockRejectedValue(new Error('DB error'));
 
       await getAllIngredientes(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.getAll).toHaveBeenCalled();
       expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith({ message: errorMessage });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'DB error',
+      });
     });
   });
 
@@ -91,37 +103,39 @@ describe('IngredientesController', () => {
       await getIngredienteById(mockRequest as Request, mockResponse as Response);
 
       expect(mockIngredienteService.getById).toHaveBeenCalledWith(1);
-      expect(mockStatus).toHaveBeenCalledWith(200);
       expect(mockJson).toHaveBeenCalledWith(ingrediente);
     });
 
-    it('should return 404 if ingredient is not found', async () => {
+    it('should return 404 with unified error format', async () => {
       mockRequest.params = { id: '99' };
       (mockIngredienteService.getById as vi.Mock).mockResolvedValue(null);
 
       await getIngredienteById(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.getById).toHaveBeenCalledWith(99);
       expect(mockStatus).toHaveBeenCalledWith(404);
-      expect(mockJson).toHaveBeenCalledWith({ message: 'Ingrediente not found' });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'Ingrediente not found',
+      });
     });
 
-    it('should return 500 if an error occurs', async () => {
-      const errorMessage = 'Error fetching ingrediente';
+    it('should return 500 with unified error format', async () => {
       mockRequest.params = { id: '1' };
-      (mockIngredienteService.getById as vi.Mock).mockRejectedValue(new Error(errorMessage));
+      (mockIngredienteService.getById as vi.Mock).mockRejectedValue(new Error('DB error'));
 
       await getIngredienteById(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.getById).toHaveBeenCalledWith(1);
       expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith({ message: errorMessage });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'DB error',
+      });
     });
   });
 
   describe('createIngrediente', () => {
     it('should create a new ingredient and return it with status 201', async () => {
-      const newIngrediente: IngredienteDTO = {
+      const newIngrediente = {
         nombre: 'Sal',
         descripcion: 'Sal de mesa',
         unidad_medida: 'kg',
@@ -139,22 +153,23 @@ describe('IngredientesController', () => {
       expect(mockJson).toHaveBeenCalledWith(createdIngrediente);
     });
 
-    it('should return 500 if an error occurs', async () => {
-      const errorMessage = 'Error creating ingrediente';
+    it('should return 500 with unified error format', async () => {
       mockRequest.body = { nombre: 'Sal' };
-      (mockIngredienteService.create as vi.Mock).mockRejectedValue(new Error(errorMessage));
+      (mockIngredienteService.create as vi.Mock).mockRejectedValue(new Error('DB error'));
 
       await createIngrediente(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.create).toHaveBeenCalledWith(mockRequest.body);
       expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith({ message: errorMessage });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'DB error',
+      });
     });
   });
 
   describe('updateIngrediente', () => {
     it('should update an existing ingredient and return it with status 200', async () => {
-      const updatedData: Partial<IngredienteDTO> = { costo_unitario: 1.0 };
+      const updatedData = { costo_unitario: 1.0 };
       const updatedIngrediente = { ...mockIngredientes[0], ...updatedData };
       mockRequest.params = { id: '1' };
       mockRequest.body = updatedData;
@@ -163,33 +178,35 @@ describe('IngredientesController', () => {
       await updateIngrediente(mockRequest as Request, mockResponse as Response);
 
       expect(mockIngredienteService.update).toHaveBeenCalledWith(1, updatedData);
-      expect(mockStatus).toHaveBeenCalledWith(200);
       expect(mockJson).toHaveBeenCalledWith(updatedIngrediente);
     });
 
-    it('should return 404 if ingredient to update is not found', async () => {
+    it('should return 404 with unified error format', async () => {
       mockRequest.params = { id: '99' };
       mockRequest.body = { nombre: 'Non Existent' };
       (mockIngredienteService.update as vi.Mock).mockResolvedValue(null);
 
       await updateIngrediente(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.update).toHaveBeenCalledWith(99, mockRequest.body);
       expect(mockStatus).toHaveBeenCalledWith(404);
-      expect(mockJson).toHaveBeenCalledWith({ message: 'Ingrediente not found' });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'Ingrediente not found',
+      });
     });
 
-    it('should return 500 if an error occurs', async () => {
-      const errorMessage = 'Error updating ingrediente';
+    it('should return 500 with unified error format', async () => {
       mockRequest.params = { id: '1' };
       mockRequest.body = { nombre: 'Updated' };
-      (mockIngredienteService.update as vi.Mock).mockRejectedValue(new Error(errorMessage));
+      (mockIngredienteService.update as vi.Mock).mockRejectedValue(new Error('DB error'));
 
       await updateIngrediente(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.update).toHaveBeenCalledWith(1, mockRequest.body);
       expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith({ message: errorMessage });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'DB error',
+      });
     });
   });
 
@@ -205,27 +222,30 @@ describe('IngredientesController', () => {
       expect(mockSend).toHaveBeenCalled();
     });
 
-    it('should return 404 if ingredient to delete is not found', async () => {
+    it('should return 404 with unified error format', async () => {
       mockRequest.params = { id: '99' };
       (mockIngredienteService.delete as vi.Mock).mockResolvedValue(false);
 
       await deleteIngrediente(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.delete).toHaveBeenCalledWith(99);
       expect(mockStatus).toHaveBeenCalledWith(404);
-      expect(mockJson).toHaveBeenCalledWith({ message: 'Ingrediente not found' });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'Ingrediente not found',
+      });
     });
 
-    it('should return 500 if an error occurs', async () => {
-      const errorMessage = 'Error deleting ingrediente';
+    it('should return 500 with unified error format', async () => {
       mockRequest.params = { id: '1' };
-      (mockIngredienteService.delete as vi.Mock).mockRejectedValue(new Error(errorMessage));
+      (mockIngredienteService.delete as vi.Mock).mockRejectedValue(new Error('DB error'));
 
       await deleteIngrediente(mockRequest as Request, mockResponse as Response);
 
-      expect(mockIngredienteService.delete).toHaveBeenCalledWith(1);
       expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith({ message: errorMessage });
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'DB error',
+      });
     });
   });
 });

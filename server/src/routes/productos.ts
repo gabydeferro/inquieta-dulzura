@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { ProductoController } from '../controllers/ProductoController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { validate } from '../middleware/validate';
+import { productoSchema, productoUpdateSchema, productoIdSchema } from '../schemas/producto.schema';
 
 const router = Router();
 const productoController = new ProductoController();
@@ -11,8 +13,27 @@ router.get('/categoria/:categoriaId', productoController.getByCategoriaId.bind(p
 router.get('/:id', productoController.getById.bind(productoController));
 
 // Rutas protegidas (requieren rol admin)
-router.post('/', authenticateToken, requireAdmin, productoController.create.bind(productoController));
-router.put('/:id', authenticateToken, requireAdmin, productoController.update.bind(productoController));
-router.delete('/:id', authenticateToken, requireAdmin, productoController.delete.bind(productoController));
+router.post(
+  '/',
+  authenticateToken,
+  requireAdmin,
+  validate(productoSchema, 'body'),
+  productoController.create.bind(productoController),
+);
+router.put(
+  '/:id',
+  authenticateToken,
+  requireAdmin,
+  validate(productoIdSchema, 'params'),
+  validate(productoUpdateSchema, 'body'),
+  productoController.update.bind(productoController),
+);
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireAdmin,
+  validate(productoIdSchema, 'params'),
+  productoController.delete.bind(productoController),
+);
 
 export default router;
