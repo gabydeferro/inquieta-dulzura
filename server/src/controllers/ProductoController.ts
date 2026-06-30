@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { ProductoService } from '../services/ProductoService';
+import { CreateProductoDTO } from '../dtos/ProductoDTO';
+import { handleDuplicateError } from '../middleware/duplicateError';
 
 export class ProductoController {
   private productoService: ProductoService;
@@ -50,16 +52,10 @@ export class ProductoController {
 
   public async create(req: Request, res: Response): Promise<void> {
     try {
-      const nuevoProducto = await this.productoService.create(req.body as Record<string, unknown>);
+      const nuevoProducto = await this.productoService.create(req.body as CreateProductoDTO);
       res.status(201).json(nuevoProducto);
     } catch (error: unknown) {
-      const err = error as { code?: string; errno?: number };
-      if (err?.code === 'ER_DUP_ENTRY' || err?.errno === 1062) {
-        res
-          .status(409)
-          .json({ success: false, error: 'Ya existe un producto con este nombre o SKU.' });
-        return;
-      }
+      if (handleDuplicateError(error, res, 'Ya existe un producto con este nombre o SKU.')) return;
       const message = error instanceof Error ? error.message : 'Error al crear el producto';
       res.status(500).json({ success: false, error: message });
     }
@@ -70,7 +66,7 @@ export class ProductoController {
       const id = parseInt(req.params.id, 10);
       const productoActualizado = await this.productoService.update(
         id,
-        req.body as Record<string, unknown>,
+        req.body as CreateProductoDTO,
       );
       if (productoActualizado) {
         res.status(200).json(productoActualizado);
@@ -78,13 +74,7 @@ export class ProductoController {
         res.status(404).json({ success: false, error: 'Producto no encontrado para actualizar' });
       }
     } catch (error: unknown) {
-      const err = error as { code?: string; errno?: number };
-      if (err?.code === 'ER_DUP_ENTRY' || err?.errno === 1062) {
-        res
-          .status(409)
-          .json({ success: false, error: 'Ya existe un producto con este nombre o SKU.' });
-        return;
-      }
+      if (handleDuplicateError(error, res, 'Ya existe un producto con este nombre o SKU.')) return;
       const message = error instanceof Error ? error.message : 'Error al actualizar el producto';
       res.status(500).json({ success: false, error: message });
     }
