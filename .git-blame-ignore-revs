@@ -1,0 +1,14 @@
+# .git-blame-ignore-revs
+#
+# Commits in this file are ignored by `git blame`.
+# Use this for mass reformatting commits that would pollute blame.
+#
+# Usage:
+#   git blame --ignore-revs-file .git-blame-ignore-revs <file>
+#
+# Or set it globally:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Prettier full-project formatting pass
+# TODO: Replace with actual commit hash after committing
+# <commit-hash>
