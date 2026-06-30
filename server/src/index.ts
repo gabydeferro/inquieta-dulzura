@@ -10,6 +10,7 @@ import productoRoutes from './routes/productos';
 import ingredientesRoutes from './routes/ingredientes';
 import recetasRoutes from './routes/recetas';
 import contenidoDigitalRouter from './controllers/ContenidoDigitalController';
+import ventasRoutes from './routes/ventas';
 import { authenticateToken } from './middleware/auth';
 
 // Inicializar Express
@@ -58,6 +59,7 @@ app.use('/api/productos', productoRoutes);
 app.use('/api/ingredientes', ingredientesRoutes);
 app.use('/api/recetas', recetasRoutes);
 app.use('/api/contenido-digital', contenidoDigitalRouter);
+app.use('/api/ventas', ventasRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
 
 app.use((req: Request, res: Response) => {
