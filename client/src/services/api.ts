@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
+import { CreateVentaInput } from '../schemas/venta.schema';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -155,6 +156,20 @@ class ApiService {
 
   async deleteIngrediente(id: number): Promise<AxiosResponse<void>> {
     return this.delete<void>(`/ingredientes/${id}`);
+  }
+
+  // Ventas
+  async getVentas<T = unknown>(): Promise<AxiosResponse<T>> {
+    return this.get<T>('/ventas');
+  }
+
+  async createVenta(data: CreateVentaInput): Promise<AxiosResponse<void>> {
+    return this.post<void>('/ventas', data);
+  }
+
+  // Clientes
+  async getClientes<T = unknown>(): Promise<AxiosResponse<T>> {
+    return this.get<T>('/clientes');
   }
 
   // Contenido Digital
