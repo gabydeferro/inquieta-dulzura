@@ -10,5 +10,4 @@
 #   git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 # Prettier full-project formatting pass
-# TODO: Replace with actual commit hash after committing
-# <commit-hash>
+2001371
