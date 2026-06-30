@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import api from './services/api';
+import { useNotification } from './contexts/NotificationContext';
+import { ventaCreateSchema } from './schemas/venta.schema';
 import './Ventas.css';
 
 interface ProductoVenta {
@@ -12,7 +15,7 @@ interface ProductoVenta {
 interface Venta {
   id: number;
   fecha_venta: string;
-  cliente?: string;
+  cliente_nombre?: string;
   subtotal: number;
   descuento: number;
   impuestos: number;
@@ -27,39 +30,28 @@ const Ventas: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [carrito, setCarrito] = useState<ProductoVenta[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [clientes, setClientes] = useState<{ id: number; nombre: string }[]>([]);
+  const [productos, setProductos] = useState<{ id: number; nombre: string; precio: number }[]>([]);
   const [formData, setFormData] = useState({
-    cliente: '',
+    cliente_id: '',
     metodo_pago: 'efectivo',
     descuento: '0',
   });
+  const { showNotification } = useNotification();
 
   const cargarVentas = async () => {
     try {
-      // Datos mock
-      setVentas([
-        {
-          id: 1,
-          fecha_venta: new Date().toISOString(),
-          cliente: 'Juan Pérez',
-          subtotal: 50.0,
-          descuento: 0,
-          impuestos: 0,
-          total: 50.0,
-          metodo_pago: 'efectivo',
-          estado: 'completada',
-          productos: [
-            {
-              producto_id: 1,
-              nombre: 'Torta de Chocolate',
-              cantidad: 2,
-              precio_unitario: 25.0,
-              subtotal: 50.0,
-            },
-          ],
-        },
+      const [ventasRes, clientesRes, productosRes] = await Promise.all([
+        api.getVentas<Venta[]>(),
+        api.getClientes<{ id: number; nombre: string }[]>(),
+        api.get<{ id: number; nombre: string; precio: number }[]>('/productos'),
       ]);
+      setVentas(ventasRes.data);
+      setClientes(clientesRes.data);
+      setProductos(productosRes.data);
     } catch (error) {
-      console.error('Error al cargar ventas:', error);
+      console.error('Error al cargar datos:', error);
     } finally {
       setLoading(false);
     }
@@ -71,8 +63,8 @@ const Ventas: React.FC = () => {
 
   const agregarProducto = () => {
     const nuevoProducto: ProductoVenta = {
-      producto_id: 1,
-      nombre: 'Producto',
+      producto_id: 0,
+      nombre: '',
       cantidad: 1,
       precio_unitario: 0,
       subtotal: 0,
@@ -87,8 +79,17 @@ const Ventas: React.FC = () => {
       [campo]: valor,
     };
 
+    // Auto-fill precio_unitario when product is selected
+    if (campo === 'producto_id') {
+      const producto = productos.find((p) => p.id === Number(valor));
+      if (producto) {
+        nuevoCarrito[index].nombre = producto.nombre;
+        nuevoCarrito[index].precio_unitario = producto.precio;
+      }
+    }
+
     // Recalcular subtotal
-    if (campo === 'cantidad' || campo === 'precio_unitario') {
+    if (campo === 'cantidad' || campo === 'precio_unitario' || campo === 'producto_id') {
       nuevoCarrito[index].subtotal =
         nuevoCarrito[index].cantidad * nuevoCarrito[index].precio_unitario;
     }
@@ -107,32 +108,65 @@ const Ventas: React.FC = () => {
     return { subtotal, descuento, total };
   };
 
+  const validateForm = (): boolean => {
+    const data = {
+      cliente_id: formData.cliente_id ? parseInt(formData.cliente_id) : undefined,
+      metodo_pago: formData.metodo_pago,
+      descuento: formData.descuento ? parseFloat(formData.descuento) : 0,
+      productos: carrito.map((p) => ({
+        producto_id: p.producto_id,
+        cantidad: p.cantidad,
+        precio_unitario: p.precio_unitario,
+        subtotal: p.subtotal,
+      })),
+    };
+
+    const result = ventaCreateSchema.safeParse(data);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path.join('.');
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (carrito.length === 0) {
-      alert('Agrega al menos un producto');
-      return;
+    try {
+      await api.createVenta({
+        cliente_id: formData.cliente_id ? parseInt(formData.cliente_id) : undefined,
+        metodo_pago: formData.metodo_pago as 'efectivo' | 'tarjeta' | 'transferencia' | 'otro',
+        descuento: parseFloat(formData.descuento) || 0,
+        productos: carrito.map((p) => ({
+          producto_id: p.producto_id,
+          cantidad: p.cantidad,
+          precio_unitario: p.precio_unitario,
+          subtotal: p.subtotal,
+        })),
+      });
+
+      showNotification('Venta registrada con éxito', 'success');
+      setCarrito([]);
+      setFormData({
+        cliente_id: '',
+        metodo_pago: 'efectivo',
+        descuento: '0',
+      });
+      setErrors({});
+      setShowModal(false);
+      cargarVentas();
+    } catch {
+      showNotification('Error al registrar la venta', 'error');
     }
-
-    const totales = calcularTotales();
-
-    // Implementar creación de venta
-    console.log('Nueva venta:', {
-      ...formData,
-      productos: carrito,
-      ...totales,
-    });
-
-    // Resetear formulario
-    setCarrito([]);
-    setFormData({
-      cliente: '',
-      metodo_pago: 'efectivo',
-      descuento: '0',
-    });
-    setShowModal(false);
-    cargarVentas();
   };
 
   const formatearFecha = (fecha: string) => {
@@ -155,10 +189,10 @@ const Ventas: React.FC = () => {
     <div className="ventas-container">
       <header className="ventas-header">
         <div>
-          <h1>💰 Ventas</h1>
+          <h1>💵 Ventas</h1>
           <p>Registro y gestión de ventas</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" onClick={() => { setErrors({}); setShowModal(true); }}>
           ➕ Nueva Venta
         </button>
       </header>
@@ -210,10 +244,10 @@ const Ventas: React.FC = () => {
               </div>
 
               <div className="venta-info">
-                {venta.cliente && (
+                {venta.cliente_nombre && (
                   <div className="info-item">
                     <span className="label">Cliente:</span>
-                    <span>{venta.cliente}</span>
+                    <span>{venta.cliente_nombre}</span>
                   </div>
                 )}
                 <div className="info-item">
@@ -243,38 +277,55 @@ const Ventas: React.FC = () => {
 
       {/* Modal Nueva Venta */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowModal(false); setErrors({}); }}>
           <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Nueva Venta</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
+              <button className="btn-close" onClick={() => { setShowModal(false); setErrors({}); }}>
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <div className="form-row">
                 <div className="form-group">
                   <label>Cliente (opcional)</label>
-                  <input
-                    type="text"
-                    value={formData.cliente}
-                    onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                    placeholder="Nombre del cliente"
-                  />
+                  <select
+                    value={formData.cliente_id}
+                    onChange={(e) => {
+                      setFormData({ ...formData, cliente_id: e.target.value });
+                      if (errors.cliente_id) setErrors({ ...errors, cliente_id: '' });
+                    }}
+                    className={errors.cliente_id ? 'input-error' : ''}
+                  >
+                    <option value="">Sin cliente</option>
+                    {clientes.map((cliente) => (
+                      <option key={cliente.id} value={cliente.id}>
+                        {cliente.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.cliente_id && <span className="field-error">{errors.cliente_id}</span>}
                 </div>
 
                 <div className="form-group">
                   <label>Método de Pago</label>
                   <select
                     value={formData.metodo_pago}
-                    onChange={(e) => setFormData({ ...formData, metodo_pago: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, metodo_pago: e.target.value });
+                      if (errors.metodo_pago) setErrors({ ...errors, metodo_pago: '' });
+                    }}
+                    className={errors.metodo_pago ? 'input-error' : ''}
                   >
                     <option value="efectivo">Efectivo</option>
                     <option value="tarjeta">Tarjeta</option>
                     <option value="transferencia">Transferencia</option>
                     <option value="otro">Otro</option>
                   </select>
+                  {errors.metodo_pago && (
+                    <span className="field-error">{errors.metodo_pago}</span>
+                  )}
                 </div>
               </div>
 
@@ -305,15 +356,20 @@ const Ventas: React.FC = () => {
                         {carrito.map((producto, index) => (
                           <tr key={index}>
                             <td>
-                              <input
-                                type="text"
-                                value={producto.nombre}
+                              <select
+                                value={producto.producto_id || ''}
                                 onChange={(e) =>
-                                  actualizarProducto(index, 'nombre', e.target.value)
+                                  actualizarProducto(index, 'producto_id', parseInt(e.target.value))
                                 }
-                                placeholder="Nombre del producto"
                                 required
-                              />
+                              >
+                                <option value="">Seleccionar...</option>
+                                {productos.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.nombre} - ${p.precio.toFixed(2)}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                             <td>
                               <input
@@ -358,6 +414,9 @@ const Ventas: React.FC = () => {
                       </tbody>
                     </table>
                   )}
+                  {errors.productos && (
+                    <span className="field-error">{errors.productos}</span>
+                  )}
                 </div>
               </div>
 
@@ -372,12 +431,16 @@ const Ventas: React.FC = () => {
                   <input
                     type="number"
                     value={formData.descuento}
-                    onChange={(e) => setFormData({ ...formData, descuento: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, descuento: e.target.value });
+                      if (errors.descuento) setErrors({ ...errors, descuento: '' });
+                    }}
                     min="0"
                     step="0.01"
-                    className="descuento-input"
+                    className={`descuento-input${errors.descuento ? ' input-error' : ''}`}
                   />
                 </div>
+                {errors.descuento && <span className="field-error">{errors.descuento}</span>}
                 <div className="totales-row total">
                   <span>Total:</span>
                   <span>${totales.total.toFixed(2)}</span>
@@ -388,7 +451,7 @@ const Ventas: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setErrors({}); }}
                 >
                   Cancelar
                 </button>
