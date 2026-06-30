@@ -1,77 +1,28 @@
-import { describe, test, expect, beforeEach } from 'vitest';
-import { InventarioService } from '../services/InventarioService';
+import { describe, test, expect, vi } from 'vitest';
+import { connection } from '../db';
+import { getInventario } from '../services/InventarioService';
+
+vi.mock('../db', () => ({
+  connection: { execute: vi.fn() },
+}));
+
+const mockExecute = connection.execute as vi.Mock;
 
 describe('InventarioService', () => {
-  let service: InventarioService;
+  describe('getInventario', () => {
+    test('debe retornar el inventario', async () => {
+      const mockRows = [{ id: 1, nombre: 'Categoria 1' }, { id: 2, nombre: 'Categoria 2' }];
+      mockExecute.mockResolvedValueOnce([mockRows, []]);
 
-  beforeEach(() => {
-    service = new InventarioService();
-  });
-
-  describe('agregarProducto', () => {
-    test('debe agregar un producto correctamente', async () => {
-      const producto = {
-        nombre: 'Harina',
-        cantidad: 100,
-        unidad: 'kg',
-        precioUnitario: 50,
-      };
-
-      const resultado = await service.agregarProducto(producto);
-      expect(resultado).toHaveProperty('id');
-      expect(resultado.nombre).toBe('Harina');
+      const result = await getInventario();
+      expect(result).toEqual(mockRows);
+      expect(mockExecute).toHaveBeenCalledWith('SELECT * FROM categorias');
     });
 
-    test('debe generar alerta cuando stock es bajo', async () => {
-      const producto = {
-        nombre: 'Azúcar',
-        cantidad: 5,
-        unidad: 'kg',
-        precioUnitario: 30,
-        stockMinimo: 10,
-      };
+    test('debe propagar errores de la base de datos', async () => {
+      mockExecute.mockRejectedValueOnce(new Error('DB error'));
 
-      const resultado = await service.agregarProducto(producto);
-      expect(resultado.alertaStockBajo).toBe(true);
-    });
-  });
-
-  describe('actualizarStock', () => {
-    test('debe actualizar el stock correctamente', async () => {
-      const producto = await service.agregarProducto({
-        nombre: 'Mantequilla',
-        cantidad: 50,
-        unidad: 'kg',
-        precioUnitario: 80,
-      });
-
-      await service.actualizarStock(producto.id, 30);
-      const actualizado = await service.obtenerProductoPorId(producto.id);
-      expect(actualizado?.cantidad).toBe(30);
-    });
-  });
-
-  describe('obtenerProductosBajoStock', () => {
-    test('debe retornar productos con stock bajo', async () => {
-      await service.agregarProducto({
-        nombre: 'Producto 1',
-        cantidad: 5,
-        unidad: 'kg',
-        precioUnitario: 10,
-        stockMinimo: 10,
-      });
-
-      await service.agregarProducto({
-        nombre: 'Producto 2',
-        cantidad: 50,
-        unidad: 'kg',
-        precioUnitario: 10,
-        stockMinimo: 10,
-      });
-
-      const bajoStock = await service.obtenerProductosBajoStock();
-      expect(bajoStock).toHaveLength(1);
-      expect(bajoStock[0].nombre).toBe('Producto 1');
+      await expect(getInventario()).rejects.toThrow('DB error');
     });
   });
 });
