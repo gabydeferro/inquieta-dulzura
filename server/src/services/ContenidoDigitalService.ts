@@ -22,17 +22,26 @@ export class ContenidoDigitalService {
     );
   }
 
-  crearImagen(data: Omit<ContenidoDigitalDTO, 'id'>): ContenidoDigitalDTO {
+  crearImagen(
+    data: Omit<ContenidoDigitalDTO, 'id' | 'url' | 'fechaSubida'>,
+    _file?: Express.Multer.File,
+  ): ContenidoDigitalDTO {
+    const id = this.nextId++;
     const nuevaImagen: ContenidoDigitalDTO = {
-      id: this.nextId++,
+      id,
       ...data,
+      url: `mock://placeholder-${id}`,
       fechaSubida: new Date(),
     };
     this.imagenes.push(nuevaImagen);
     return nuevaImagen;
   }
 
-  actualizarImagen(id: number, data: Partial<ContenidoDigitalDTO>): ContenidoDigitalDTO {
+  actualizarImagen(
+    id: number,
+    data: Partial<ContenidoDigitalDTO>,
+    _file?: Express.Multer.File,
+  ): ContenidoDigitalDTO {
     const index = this.imagenes.findIndex((img) => img.id === id);
     if (index === -1) {
       throw new Error('Imagen no encontrada');
@@ -41,12 +50,13 @@ export class ContenidoDigitalService {
     return this.imagenes[index];
   }
 
-  eliminarImagen(id: number): void {
+  eliminarImagen(id: number): boolean {
     const index = this.imagenes.findIndex((img) => img.id === id);
     if (index === -1) {
-      throw new Error('Imagen no encontrada');
+      return false;
     }
     this.imagenes.splice(index, 1);
+    return true;
   }
 
   agregarEtiqueta(id: number, etiqueta: string): Promise<ContenidoDigitalDTO> {

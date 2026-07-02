@@ -70,7 +70,7 @@ router.post(
           titulo,
           descripcion,
           tipo,
-          etiquetas: etiquetas ? JSON.parse(etiquetas) as string[] : undefined,
+          etiquetas: etiquetas ? JSON.parse(etiquetas) as string[] : [],
         },
         req.file,
       );
