@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import './Auth.css';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Mail, Lock } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,50 +32,74 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <img src="/logo.svg" alt="Inquieta Dulzura" className="auth-logo" />
-        <h2>Iniciar Sesión</h2>
+    <div className="flex min-h-screen items-center justify-center bg-background p-5">
+      <Card className="w-full max-w-md">
+        <div className="flex flex-col items-center px-6 pt-8">
+          <img src="/logo.svg" alt="Inquieta Dulzura" className="mx-auto mb-2 h-28 w-auto" />
+          <CardTitle className="text-center font-[var(--font-titles)] text-sm uppercase tracking-wider text-foreground">
+            Iniciar Sesión
+          </CardTitle>
+        </div>
+        <CardContent className="px-6 pb-8">
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+              {error}
+            </div>
+          )}
 
-        {error && <div className="alert alert-error">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-foreground">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="tu@email.com"
+                  className="pl-9"
+                />
+              </div>
+            </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="tu@email.com"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-foreground">
+                Contraseña
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="pl-9"
+                />
+              </div>
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder="••••••••"
-              minLength={6}
-            />
-          </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
+          </form>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </button>
-        </form>
-
-        <p className="auth-link">
-          ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
-        </p>
-      </div>
+          <p className="mt-5 text-center text-sm text-muted-foreground">
+            ¿No tienes cuenta?{' '}
+            <Link to="/register" className="font-semibold text-brand-violet hover:underline">
+              Regístrate aquí
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

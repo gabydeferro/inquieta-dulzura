@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './Catalogo.css';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Cake, PackageOpen } from 'lucide-react';
 import apiService from './services/api';
 
 // Interfaces que coinciden con los DTOs del backend
@@ -93,25 +96,38 @@ const Catalogo: React.FC = () => {
   const categoriasFiltro = [{ id: 'todas', nombre: 'Todas' }, ...categorias];
 
   return (
-    <div className="catalogo-page">
-      <header className="catalogo-header">
-        <div className="container">
-          <Link to="/" className="back-link">
-            ← Volver al inicio
+    <div className="bg-background">
+      <header className="bg-background px-4 py-16 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <Link
+            to="/"
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/80 no-underline transition-opacity hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            Volver al inicio
           </Link>
-          <h1>🍰 Nuestro Catálogo</h1>
-          <p>Descubre todos nuestros productos artesanales</p>
+          <h1 className="mb-2 mt-4 text-3xl font-bold text-foreground sm:text-4xl">
+            <Cake className="mr-2 inline-block size-8 align-middle text-brand-violet" />
+            Nuestro Catálogo
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Descubre todos nuestros productos artesanales
+          </p>
         </div>
       </header>
 
-      <section className="filtros-section">
-        <div className="container">
-          <div className="filtros">
+      <section className="sticky top-0 z-30 border-b bg-card px-4 py-4 shadow-sm sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-wrap justify-center gap-2">
             {categoriasFiltro.map((cat) => (
               <button
                 key={cat.id}
-                className={`filtro-btn ${categoriaSeleccionada === cat.id ? 'active' : ''}`}
                 onClick={() => handleFiltroClick(Number(cat.id))}
+                className={`rounded-full border-2 px-4 py-1.5 text-sm font-semibold transition-all ${
+                  categoriaSeleccionada === cat.id
+                    ? 'border-transparent bg-brand-violet text-white'
+                    : 'border-border text-muted-foreground hover:border-brand-violet hover:text-brand-violet dark:text-foreground/70 dark:hover:text-brand-violet'
+                }`}
               >
                 {cat.nombre.charAt(0).toUpperCase() + cat.nombre.slice(1)}
               </button>
@@ -120,38 +136,54 @@ const Catalogo: React.FC = () => {
         </div>
       </section>
 
-      <section className="productos-section">
-        <div className="container">
+      <section className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
           {loading ? (
-            <div className="loading">Cargando catálogo...</div>
+            <div className="py-16 text-center text-muted-foreground">
+              Cargando catálogo...
+            </div>
           ) : error ? (
-            <div className="error-productos">{error}</div>
+            <div className="py-16 text-center text-destructive">{error}</div>
           ) : (
             <>
-              <div className="productos-grid">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {productos.map((producto) => (
-                  <div key={producto.id} className="producto-card">
-                    <div className="producto-imagen">
-                      {/* Placeholder para la imagen */}
-                      {'🎂'}
+                  <Card
+                    key={producto.id}
+                    className="overflow-hidden transition-transform duration-500 hover:-translate-y-3 hover:shadow-xl"
+                  >
+                    <div className="flex h-48 items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30">
+                      <Cake className="size-16 text-foreground/20" />
                     </div>
-                    <div className="producto-info">
-                      <span className="producto-categoria">{producto.categoriaNombre}</span>
-                      <h3>{producto.nombre}</h3>
-                      <p>{producto.descripcion}</p>
-                      <div className="producto-footer">
-                        <span className="producto-precio">
+                    <CardContent className="p-4">
+                      <Badge
+                        variant="secondary"
+                        className="mb-2 bg-brand-accent text-xs font-semibold uppercase text-foreground dark:bg-brand-accent/40"
+                      >
+                        {producto.categoriaNombre}
+                      </Badge>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {producto.nombre}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        {producto.descripcion}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between border-t pt-4 dark:border-border">
+                        <span className="font-[var(--font-titles)] text-xl font-bold text-foreground">
                           ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
                         </span>
-                        <button className="btn-contacto">Consultar</button>
+                        <Button size="sm" className="bg-brand-violet text-white hover:bg-brand-violet/90">
+                          Consultar
+                        </Button>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
               {productos.length === 0 && (
-                <div className="no-productos">
-                  <p>No hay productos en esta categoría</p>
+                <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+                  <PackageOpen className="size-12" />
+                  <p className="text-lg">No hay productos en esta categoría</p>
                 </div>
               )}
             </>
@@ -159,16 +191,28 @@ const Catalogo: React.FC = () => {
         </div>
       </section>
 
-      <section className="cta-catalogo">
-        <div className="container">
-          <h2>¿Quieres gestionar tu propia pastelería?</h2>
-          <p>Únete a nuestra plataforma y administra tu negocio de forma profesional</p>
-          <div className="cta-buttons">
-            <Link to="/register" className="btn btn-primary btn-large">
-              Registrarse Gratis
+      <section className="bg-gradient-to-br from-brand-violet to-purple-900 px-4 py-16 text-center text-white sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
+            ¿Quieres gestionar tu propia pastelería?
+          </h2>
+          <p className="mb-8 text-lg text-white/90">
+            Únete a nuestra plataforma y administra tu negocio de forma profesional
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/register">
+              <Button size="lg" className="bg-white text-brand-violet hover:bg-white/90">
+                Registrarse Gratis
+              </Button>
             </Link>
-            <Link to="/login" className="btn btn-outline btn-large">
-              Iniciar Sesión
+            <Link to="/login">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-brand-violet"
+              >
+                Iniciar Sesión
+              </Button>
             </Link>
           </div>
         </div>

@@ -1,43 +1,38 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+import { toast } from 'sonner';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
-interface Notification {
-  id: string;
-  message: string;
-  type: NotificationType;
-}
-
 interface NotificationContextType {
-  notifications: Notification[];
   showNotification: (message: string, type?: NotificationType) => void;
-  hideNotification: (id: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  const hideNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
   const showNotification = useCallback(
     (message: string, type: NotificationType = 'info') => {
-      const id = Math.random().toString(36).substring(2, 9);
-      setNotifications((prev) => [...prev, { id, message, type }]);
-
-      // Auto-remove after 5 seconds
-      setTimeout(() => {
-        hideNotification(id);
-      }, 5000);
+      switch (type) {
+        case 'success':
+          toast.success(message);
+          break;
+        case 'error':
+          toast.error(message);
+          break;
+        case 'warning':
+          toast.warning(message);
+          break;
+        case 'info':
+        default:
+          toast(message);
+          break;
+      }
     },
-    [hideNotification],
+    [],
   );
 
   return (
-    <NotificationContext.Provider value={{ notifications, showNotification, hideNotification }}>
+    <NotificationContext.Provider value={{ showNotification }}>
       {children}
     </NotificationContext.Provider>
   );
