@@ -1,7 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import api from './services/api';
 import { useConfirm } from './contexts/ConfirmContext';
-import './Recetas.css';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  BookOpen,
+  Plus,
+  Clock,
+  Cake,
+  Eye,
+  Printer,
+  Trash2,
+  ChefHat,
+  CookingPot,
+  X,
+} from 'lucide-react';
 
 interface IngredienteDB {
   id: number;
@@ -67,7 +95,6 @@ const Recetas: React.FC = () => {
 
   const cargarRecetas = async () => {
     try {
-      // Datos mock por ahora
       setRecetas([
         {
           id: 1,
@@ -120,7 +147,6 @@ const Recetas: React.FC = () => {
   };
 
   const handlePrint = (receta: Receta) => {
-    // Implementar impresión de receta
     console.log('Imprimir receta:', receta.nombre);
   };
 
@@ -162,13 +188,11 @@ const Recetas: React.FC = () => {
   };
 
   const handleGuardarReceta = () => {
-    // Validación básica
     if (!formData.nombre) {
       alert('El nombre de la receta es requerido');
       return;
     }
 
-    // Por ahora solo agregamos a la lista local
     const nuevaReceta: Receta = {
       id: recetas.length + 1,
       nombre: formData.nombre,
@@ -183,7 +207,6 @@ const Recetas: React.FC = () => {
     setRecetas([...recetas, nuevaReceta]);
     setShowModal(false);
 
-    // Reset form
     setFormData({
       nombre: '',
       descripcion: '',
@@ -202,113 +225,171 @@ const Recetas: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Cargando recetas...</div>;
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
+        Cargando recetas...
+      </div>
+    );
   }
 
   return (
-    <div className="recetas-container">
-      <header className="recetas-header">
+    <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
+      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1>📖 Recetas</h1>
-          <p>Recetas de productos de la pastelería</p>
+          <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
+            <BookOpen className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
+            Recetas
+          </h1>
+          <p className="text-muted-foreground">Recetas de productos de la pastelería</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          ➕ Nueva Receta
-        </button>
+        <Button onClick={() => setShowModal(true)}>
+          <Plus className="size-4" />
+          Nueva Receta
+        </Button>
       </header>
 
-      <div className="recetas-grid">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
         {recetas.map((receta) => (
-          <div key={receta.id} className="receta-card">
-            <div className="receta-header">
-              <h3>{receta.nombre}</h3>
-              <div className="receta-meta">
+          <Card
+            key={receta.id}
+            className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
+              <div className="mt-1 flex flex-wrap gap-2">
                 {receta.tiempo_preparacion && (
-                  <span className="meta-item">⏱️ {receta.tiempo_preparacion} min</span>
+                  <Badge variant="secondary" className="gap-1">
+                    <Clock className="size-3" />
+                    {receta.tiempo_preparacion} min
+                  </Badge>
                 )}
                 {receta.porciones && (
-                  <span className="meta-item">🍰 {receta.porciones} porciones</span>
+                  <Badge variant="secondary" className="gap-1">
+                    <Cake className="size-3" />
+                    {receta.porciones} porciones
+                  </Badge>
                 )}
               </div>
-            </div>
+            </CardHeader>
 
-            <p className="receta-descripcion">{receta.descripcion}</p>
+            <CardContent>
+              <p className="mb-3 text-sm text-muted-foreground">{receta.descripcion}</p>
 
-            <div className="ingredientes-preview">
-              <h4>Ingredientes ({receta.ingredientes?.length || 0})</h4>
-              <ul>
-                {receta.ingredientes?.slice(0, 3).map((ing) => (
-                  <li key={ing.id}>
-                    {ing.nombre} - {ing.cantidad} {ing.unidad_medida}
-                  </li>
-                ))}
-                {(receta.ingredientes?.length || 0) > 3 && (
-                  <li className="more">+ {(receta.ingredientes?.length || 0) - 3} más...</li>
-                )}
-              </ul>
-            </div>
+              <div className="mb-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
+                <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                  <ChefHat className="mr-1 inline size-3" />
+                  Ingredientes ({receta.ingredientes?.length || 0})
+                </h4>
+                <ul className="space-y-1">
+                  {receta.ingredientes?.slice(0, 3).map((ing) => (
+                    <li key={ing.id} className="text-xs text-amber-900 dark:text-amber-200">
+                      {ing.nombre} — {ing.cantidad} {ing.unidad_medida}
+                    </li>
+                  ))}
+                  {(receta.ingredientes?.length || 0) > 3 && (
+                    <li className="text-xs italic text-amber-700 dark:text-amber-400">
+                      + {(receta.ingredientes?.length || 0) - 3} más...
+                    </li>
+                  )}
+                </ul>
+              </div>
 
-            <div className="receta-actions">
-              <button className="btn-secondary" onClick={() => handleViewDetail(receta)}>
-                👁️ Ver Detalle
-              </button>
-              <button className="btn-icon" onClick={() => handlePrint(receta)} title="Imprimir">
-                🖨️
-              </button>
-              <button
-                className="btn-icon btn-danger"
-                onClick={() => handleEliminarReceta(receta.id)}
-                title="Eliminar"
-                style={{ color: '#ff5252' }}
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleViewDetail(receta)}
+                >
+                  <Eye className="size-3.5" />
+                  Ver Detalle
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handlePrint(receta)}
+                  title="Imprimir"
+                >
+                  <Printer className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handleEliminarReceta(receta.id)}
+                  title="Eliminar"
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Modal de Detalle */}
-      {showDetailModal && selectedReceta && (
-        <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{selectedReceta.nombre}</h2>
-              <button className="btn-close" onClick={() => setShowDetailModal(false)}>
-                ✕
-              </button>
-            </div>
+      {/* Detail Dialog */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <BookOpen className="size-5 text-brand-violet" />
+              {selectedReceta?.nombre}
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="receta-detail">
-              <div className="detail-section">
-                <h3>📝 Descripción</h3>
-                <p>{selectedReceta.descripcion}</p>
+          {selectedReceta && (
+            <div className="max-h-[65vh] overflow-y-auto space-y-6">
+              {/* Description */}
+              <div>
+                <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+                  <BookOpen className="size-4" />
+                  Descripción
+                </h3>
+                <p className="text-sm text-muted-foreground">{selectedReceta.descripcion}</p>
               </div>
 
-              <div className="detail-meta">
-                <div className="meta-card">
-                  <span className="meta-icon">⏱️</span>
+              {/* Meta cards */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="flex items-center gap-3 rounded-lg bg-muted p-4">
+                  <Clock className="size-8 text-muted-foreground" />
                   <div>
-                    <div className="meta-label">Tiempo</div>
-                    <div className="meta-value">{selectedReceta.tiempo_preparacion} min</div>
+                    <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                      Tiempo
+                    </p>
+                    <p className="text-lg font-bold text-foreground">
+                      {selectedReceta.tiempo_preparacion} min
+                    </p>
                   </div>
                 </div>
-                <div className="meta-card">
-                  <span className="meta-icon">🍰</span>
+                <div className="flex items-center gap-3 rounded-lg bg-muted p-4">
+                  <Cake className="size-8 text-muted-foreground" />
                   <div>
-                    <div className="meta-label">Porciones</div>
-                    <div className="meta-value">{selectedReceta.porciones}</div>
+                    <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                      Porciones
+                    </p>
+                    <p className="text-lg font-bold text-foreground">
+                      {selectedReceta.porciones}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="detail-section">
-                <h3>🥘 Ingredientes</h3>
-                <div className="ingredientes-list">
+              {/* Ingredients */}
+              <div>
+                <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+                  <CookingPot className="size-4" />
+                  Ingredientes
+                </h3>
+                <div className="space-y-1 rounded-lg bg-amber-50 p-4 dark:bg-amber-950/30">
                   {selectedReceta.ingredientes?.map((ing) => (
-                    <div key={ing.id} className="ingrediente-item">
-                      <span className="ingrediente-nombre">{ing.nombre}</span>
-                      <span className="ingrediente-cantidad">
+                    <div
+                      key={ing.id}
+                      className="flex items-center justify-between border-b border-amber-200/50 py-2 last:border-0 dark:border-amber-800/30"
+                    >
+                      <span className="font-medium text-amber-900 dark:text-amber-200">
+                        {ing.nombre}
+                      </span>
+                      <span className="font-semibold text-amber-800 dark:text-amber-300">
                         {ing.cantidad} {ing.unidad_medida}
                       </span>
                     </div>
@@ -316,162 +397,196 @@ const Recetas: React.FC = () => {
                 </div>
               </div>
 
-              <div className="detail-section">
-                <h3>👨‍🍳 Instrucciones</h3>
-                <div className="instrucciones">
+              {/* Instructions */}
+              <div>
+                <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+                  <ChefHat className="size-4" />
+                  Instrucciones
+                </h3>
+                <div className="space-y-2 rounded-lg bg-emerald-50 p-4 dark:bg-emerald-950/30">
                   {selectedReceta.instrucciones?.split('\n').map((paso, index) => (
-                    <div key={index} className="paso-item">
-                      <span className="paso-numero">{index + 1}</span>
-                      <span className="paso-texto">{paso}</span>
+                    <div key={index} className="flex gap-3 border-b border-emerald-200/50 py-3 last:border-0 dark:border-emerald-800/30">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 pt-1 text-sm leading-relaxed text-emerald-800 dark:text-emerald-200">
+                        {paso}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="detail-actions">
-                <button className="btn btn-secondary" onClick={() => handlePrint(selectedReceta)}>
-                  🖨️ Imprimir Receta
-                </button>
-                <button className="btn btn-primary" onClick={() => setShowDetailModal(false)}>
+              <DialogFooter className="!mt-6">
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePrint(selectedReceta)}
+                >
+                  <Printer className="size-4" />
+                  Imprimir Receta
+                </Button>
+                <Button onClick={() => setShowDetailModal(false)}>
                   Cerrar
-                </button>
-              </div>
+                </Button>
+              </DialogFooter>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* Modal de Crear/Editar Receta */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Nueva Receta</h2>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
-                ✕
-              </button>
-            </div>
+      {/* Create/Edit Dialog */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="size-5 text-brand-violet" />
+              Nueva Receta
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="receta-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Nombre *</label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={formData.nombre || ''}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Tiempo de Preparación (min)</label>
-                  <input
-                    type="number"
-                    name="tiempo_preparacion"
-                    value={formData.tiempo_preparacion || 0}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Porciones</label>
-                  <input
-                    type="number"
-                    name="porciones"
-                    value={formData.porciones || 0}
-                    onChange={handleFormChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Descripción</label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion || ''}
+          <div className="max-h-[65vh] overflow-y-auto space-y-4 py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="nombre">Nombre *</Label>
+                <Input
+                  id="nombre"
+                  name="nombre"
+                  value={formData.nombre || ''}
                   onChange={handleFormChange}
-                  rows={3}
+                  required
                 />
               </div>
+            </div>
 
-              <div className="form-group">
-                <label>Ingredientes</label>
-                <div className="ingrediente-selector">
-                  <select
-                    value={selectedIngredienteId}
-                    onChange={(e) =>
-                      setSelectedIngredienteId(e.target.value ? parseInt(e.target.value) : '')
-                    }
-                  >
-                    <option value="">Seleccionar ingrediente...</option>
-                    {ingredientesDisponibles.map((ing) => (
-                      <option key={ing.id} value={ing.id}>
-                        {ing.nombre} ({ing.unidad_medida})
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Cantidad"
-                    value={cantidad || ''}
-                    onChange={(e) => setCantidad(parseFloat(e.target.value) || 0)}
-                    style={{ width: '120px' }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleAgregarIngrediente}
-                  >
-                    + Agregar
-                  </button>
-                </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="tiempo_preparacion">Tiempo de Preparación (min)</Label>
+                <Input
+                  id="tiempo_preparacion"
+                  type="number"
+                  name="tiempo_preparacion"
+                  value={formData.tiempo_preparacion || 0}
+                  onChange={handleFormChange}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="porciones">Porciones</Label>
+                <Input
+                  id="porciones"
+                  type="number"
+                  name="porciones"
+                  value={formData.porciones || 0}
+                  onChange={handleFormChange}
+                />
+              </div>
+            </div>
 
-                <div className="ingredientes-list" style={{ marginTop: '1rem' }}>
-                  {formData.ingredientes?.map((ing, index) => (
-                    <div key={index} className="ingrediente-item">
-                      <span className="ingrediente-nombre">{ing.nombre}</span>
-                      <span className="ingrediente-cantidad">
+            <div className="grid gap-2">
+              <Label htmlFor="descripcion">Descripción</Label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                value={formData.descripcion || ''}
+                onChange={handleFormChange}
+                rows={3}
+                className="h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Ingredientes</Label>
+              <div className="flex flex-wrap items-end gap-2">
+                <select
+                  value={selectedIngredienteId}
+                  onChange={(e) =>
+                    setSelectedIngredienteId(e.target.value ? parseInt(e.target.value) : '')
+                  }
+                  className="flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <option value="">Seleccionar ingrediente...</option>
+                  {ingredientesDisponibles.map((ing) => (
+                    <option key={ing.id} value={ing.id}>
+                      {ing.nombre} ({ing.unidad_medida})
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  type="number"
+                  placeholder="Cantidad"
+                  value={cantidad || ''}
+                  onChange={(e) => setCantidad(parseFloat(e.target.value) || 0)}
+                  className="w-28"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleAgregarIngrediente}
+                >
+                  <Plus className="size-4" />
+                  Agregar
+                </Button>
+              </div>
+
+              <div className="mt-2 space-y-1 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
+                {formData.ingredientes?.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No hay ingredientes agregados</p>
+                )}
+                {formData.ingredientes?.map((ing, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between border-b border-amber-200/50 py-1.5 last:border-0 dark:border-amber-800/30"
+                  >
+                    <span className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                      {ing.nombre}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                         {ing.cantidad} {ing.unidad_medida}
                       </span>
-                      <button
+                      <Button
                         type="button"
-                        className="btn-icon"
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => handleEliminarIngrediente(index)}
-                        style={{ color: '#ff5252' }}
+                        className="text-destructive hover:text-destructive"
                       >
-                        ✕
-                      </button>
+                        <X className="size-3" />
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Instrucciones</label>
-                <textarea
-                  name="instrucciones"
-                  value={formData.instrucciones || ''}
-                  onChange={handleFormChange}
-                  rows={6}
-                  placeholder="Escribe las instrucciones paso a paso..."
-                />
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="detail-actions">
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                Cancelar
-              </button>
-              <button className="btn btn-primary" onClick={handleGuardarReceta}>
-                Guardar Receta
-              </button>
+            <div className="grid gap-2">
+              <Label htmlFor="instrucciones">Instrucciones</Label>
+              <textarea
+                id="instrucciones"
+                name="instrucciones"
+                value={formData.instrucciones || ''}
+                onChange={handleFormChange}
+                rows={6}
+                placeholder="Escribe las instrucciones paso a paso..."
+                className="h-32 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleGuardarReceta}>
+              <BookOpen className="size-4" />
+              Guardar Receta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -59,7 +59,7 @@ describe('Ventas Component', () => {
   it('renders the ventas list from API', async () => {
     renderVentas();
     await waitFor(() => {
-      expect(screen.getByText('💰 Ventas')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^Ventas$/ })).toBeInTheDocument();
     });
     expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     const dollars = screen.getAllByText('$50.00');
@@ -311,7 +311,7 @@ describe('Ventas Component', () => {
 
     // Wait for the button to show loading state
     await waitFor(() => {
-      const submitBtn = screen.getByRole('button', { name: /Registrar Venta/i });
+      const submitBtn = screen.getByRole('button', { name: /registr/i });
       expect(submitBtn).toBeDisabled();
     });
 

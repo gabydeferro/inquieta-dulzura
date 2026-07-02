@@ -3,6 +3,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import ContenidoDigital from '../ContenidoDigital';
+import { ConfirmProvider } from '../contexts/ConfirmContext';
 import api from '../services/api';
 
 vi.mock('../services/api', () => ({
@@ -14,6 +15,12 @@ vi.mock('../services/api', () => ({
     createContenidoDigital: vi.fn(),
     deleteContenidoDigital: vi.fn(),
   },
+}));
+
+const mockConfirm = vi.fn();
+vi.mock('../contexts/ConfirmContext', () => ({
+  useConfirm: () => mockConfirm,
+  ConfirmProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 globalThis.URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
@@ -50,7 +57,9 @@ describe('ContenidoDigital Component', () => {
   const renderComponent = () => {
     return render(
       <BrowserRouter>
-        <ContenidoDigital />
+        <ConfirmProvider>
+          <ContenidoDigital />
+        </ConfirmProvider>
       </BrowserRouter>,
     );
   };
@@ -144,7 +153,7 @@ describe('ContenidoDigital Component', () => {
 
   it('submits form with valid data and file', async () => {
     const user = userEvent.setup();
-    const { container } = renderComponent();
+    renderComponent();
 
     await waitFor(() => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
@@ -156,8 +165,8 @@ describe('ContenidoDigital Component', () => {
       expect(screen.getByRole('heading', { name: /Subir Contenido/i })).toBeInTheDocument();
     });
 
-    // Select file via hidden input
-    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    // Select file via hidden input — document.querySelector works across Portals
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['test'], 'test-image.jpg', { type: 'image/jpeg' });
     await user.upload(fileInput, file);
 
@@ -192,15 +201,12 @@ describe('ContenidoDigital Component', () => {
 
   it('deletes an image from gallery', async () => {
     const user = userEvent.setup();
+    mockConfirm.mockResolvedValue(true);
     renderComponent();
 
     await waitFor(() => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
-
-    // Mock window.confirm to return true (jsdom doesn't implement confirm)
-    const originalConfirm = window.confirm;
-    window.confirm = vi.fn(() => true);
 
     const deleteButtons = screen.getAllByRole('button', { name: /Eliminar/i });
     expect(deleteButtons).toHaveLength(2);
@@ -210,7 +216,5 @@ describe('ContenidoDigital Component', () => {
     await waitFor(() => {
       expect(api.deleteContenidoDigital).toHaveBeenCalledWith(1);
     });
-
-    window.confirm = originalConfirm;
   });
 });
