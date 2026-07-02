@@ -27,8 +27,6 @@
   --font-titles: 'Montserrat', sans-serif;
   --font-script: 'Dancing Script', cursive;
 
-  /* Legacy variable tokens for backward compat (will remove in Phase 5) */
-  --color-surface: var(--color-brand-cream);
 }
 
 /* ========== CSS Custom Properties for Light/Dark ========== */
@@ -36,7 +34,6 @@
   --color-bg: #e8d5f0;
   --color-card: #fff8f0;
   --color-text: #2d2a32;
-  --color-surface: #fff8f0;
   --color-border: rgba(45, 42, 50, 0.08);
   --color-primary: #d4bee4;
   --color-secondary: #a8e6cf;
@@ -87,7 +84,6 @@
   --color-bg: #1a1820;
   --color-card: #2d2a32;
   --color-text: #f0e6f6;
-  --color-surface: #2d2a32;
   --color-border: rgba(240, 230, 246, 0.1);
   --color-primary: #c9b8e8;
   --color-secondary: #7c9a8e;
@@ -131,39 +127,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-}
-
-/* ========== Base styles ========== */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.6;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* Script text */
-.script-text {
-  font-family: var(--font-script);
-  font-size: 1.5rem;
-}
-
-/* ========== Loading animation ========== */
-@keyframes dots {
-  0%, 20%   { content: '.'; }
-  40%       { content: '..'; }
-  60%, 100% { content: '...'; }
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-  color: var(--color-primary);
-}
-.loading::after {
-  content: '...';
-  animation: dots 1.5s steps(4, end) infinite;
 }
 
 @theme inline {
