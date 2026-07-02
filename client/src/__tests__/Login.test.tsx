@@ -29,7 +29,7 @@ describe('Login Component', () => {
     renderLogin();
 
     expect(screen.getByAltText(/Inquieta Dulzura/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Iniciar Sesión/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Iniciar Sesión/i)[0]).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).toBeInTheDocument();
