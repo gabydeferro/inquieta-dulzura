@@ -3,7 +3,37 @@ import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { inventarioCreateSchema, inventarioUpdateSchema } from './schemas/inventario.schema';
-import './Inventario.css';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Package,
+  Plus,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+} from 'lucide-react';
 
 interface Producto {
   id: number;
@@ -199,167 +229,212 @@ const Inventario: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Cargando inventario...</div>;
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
+        Cargando inventario...
+      </div>
+    );
   }
 
   return (
-    <div className="inventario-container">
-      <header className="inventario-header">
+    <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
+      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1>📦 Inventario de Productos</h1>
-          <p>Gestión de productos y stock</p>
+          <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
+            <Package className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
+            Inventario de Productos
+          </h1>
+          <p className="text-muted-foreground">Gestión de productos y stock</p>
         </div>
-        <button
-          className="btn btn-primary"
+        <Button
           onClick={() => {
             resetForm();
             setShowModal(true);
             setErrors({});
           }}
         >
-          ➕ Nuevo Producto
-        </button>
+          <Plus className="size-4" />
+          + Nuevo Producto
+        </Button>
       </header>
 
-      <div className="productos-grid">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
         {productos.map((producto) => (
-          <div key={producto.id} className={`producto-card ${getStockStatus(producto)}`}>
-            <div className="producto-header">
-              <h3>{producto.nombre}</h3>
-              {producto.sku && <span className="sku">{producto.sku}</span>}
-            </div>
-
-            <p className="producto-descripcion">{producto.descripcion}</p>
-
-            <div className="producto-precios">
-              <div className="precio-item">
-                <span className="label">Precio:</span>
-                <span className="valor">${Number(producto.precio).toFixed(2)}</span>
-              </div>
-              {producto.costo && (
-                <div className="precio-item">
-                  <span className="label">Costo:</span>
-                  <span className="valor">${Number(producto.costo).toFixed(2)}</span>
-                </div>
+          <Card
+            key={producto.id}
+            className={`transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
+              getStockStatus(producto) === 'stock-bajo'
+                ? 'border-l-4 border-l-amber-500'
+                : getStockStatus(producto) === 'sin-stock'
+                  ? 'border-l-4 border-l-destructive'
+                  : ''
+            }`}
+          >
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <CardTitle className="text-base sm:text-lg">{producto.nombre}</CardTitle>
+              {producto.sku && (
+                <Badge variant="outline" className="shrink-0 font-mono text-[0.7rem]">
+                  {producto.sku}
+                </Badge>
               )}
-            </div>
+            </CardHeader>
 
-            {producto.stock && (
-              <div className="producto-stock">
-                <div className="stock-info">
-                  <span className="stock-cantidad">
-                    {producto.stock.cantidad_disponible} {producto.stock.unidad_medida}
-                  </span>
-                  <span className="stock-minimo">Mín: {producto.stock.cantidad_minima}</span>
+            <CardContent>
+              {producto.descripcion && (
+                <p className="mb-3 text-sm text-muted-foreground">{producto.descripcion}</p>
+              )}
+
+              <div className="mb-3 flex gap-4 rounded-lg bg-muted/50 p-3">
+                <div>
+                  <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                    Precio
+                  </p>
+                  <p className="text-lg font-bold text-foreground">
+                    ${Number(producto.precio).toFixed(2)}
+                  </p>
                 </div>
-                {producto.stock.cantidad_disponible <= producto.stock.cantidad_minima && (
-                  <div className="stock-alerta">⚠️ Stock bajo</div>
+                {producto.costo && (
+                  <div>
+                    <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                      Costo
+                    </p>
+                    <p className="text-lg font-bold text-foreground">
+                      ${Number(producto.costo).toFixed(2)}
+                    </p>
+                  </div>
                 )}
               </div>
-            )}
 
-            <div className="producto-actions">
-              <button className="btn-icon" onClick={() => handleEdit(producto)} title="Editar">
-                ✏️
-              </button>
-              <button
-                className="btn-icon btn-danger"
-                onClick={() => handleDelete(producto.id)}
-                title="Eliminar"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
+              {producto.stock && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between rounded-lg bg-muted/30 p-2">
+                    <span className="font-semibold text-foreground">
+                      {producto.stock.cantidad_disponible} {producto.stock.unidad_medida}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Mín: {producto.stock.cantidad_minima}
+                    </span>
+                  </div>
+                  {producto.stock.cantidad_disponible <= producto.stock.cantidad_minima && (
+                    <Badge variant="destructive" className="mt-2 w-full justify-center gap-1">
+                      <AlertTriangle className="size-3" />
+                      Stock bajo
+                    </Badge>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-1 border-t pt-3">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handleEdit(producto)}
+                  title="Editar"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handleDelete(producto.id)}
+                  title="Eliminar"
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {showModal && (
-        <div
-          className="modal-overlay"
-          onClick={() => {
+      <Dialog
+        open={showModal}
+        onOpenChange={(open) => {
+          if (!open) {
             setShowModal(false);
             setErrors({});
-          }}
-        >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-              <button
-                className="btn-close"
-                onClick={() => {
-                  setShowModal(false);
-                  setErrors({});
-                }}
-              >
-                ✕
-              </button>
-            </div>
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[550px]">
+          <form onSubmit={handleSubmit} noValidate>
+            <DialogHeader>
+              <DialogTitle>
+                {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
+              </DialogTitle>
+            </DialogHeader>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Nombre *</label>
-                  <input
-                    type="text"
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="nombre">Nombre *</Label>
+                  <Input
+                    id="nombre"
                     value={formData.nombre}
                     onChange={(e) => {
                       setFormData({ ...formData, nombre: e.target.value });
                       if (errors.nombre) setErrors({ ...errors, nombre: '' });
                     }}
-                    className={errors.nombre ? 'input-error' : ''}
+                    className={errors.nombre ? 'border-destructive' : ''}
                     required
                   />
-                  {errors.nombre && <span className="field-error">{errors.nombre}</span>}
+                  {errors.nombre && (
+                    <p className="text-xs text-destructive">{errors.nombre}</p>
+                  )}
                 </div>
 
-                <div className="form-group">
-                  <label>SKU</label>
-                  <input
-                    type="text"
+                <div className="grid gap-2">
+                  <Label htmlFor="sku">SKU</Label>
+                  <Input
+                    id="sku"
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                   />
                 </div>
-                <div className="form-group">
-                  <label>Categoría *</label>
-                  <select
-                    value={formData.categoria_id}
-                    onChange={(e) => {
-                      setFormData({ ...formData, categoria_id: e.target.value });
-                      if (errors.categoria_id) setErrors({ ...errors, categoria_id: '' });
-                    }}
-                    className={errors.categoria_id ? 'input-error' : ''}
-                    required
-                  >
-                    <option value="" disabled>
-                      Seleccionar...
-                    </option>
-                    {categorias.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.categoria_id && (
-                    <span className="field-error">{errors.categoria_id}</span>
-                  )}
-                </div>
               </div>
 
-              <div className="form-group">
-                <label>Descripción</label>
+              <div className="grid gap-2">
+                <Label htmlFor="categoria_id">Categoría *</Label>
+                <Select
+                  value={formData.categoria_id}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, categoria_id: value });
+                    if (errors.categoria_id) setErrors({ ...errors, categoria_id: '' });
+                  }}
+                >
+                  <SelectTrigger className={errors.categoria_id ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Seleccionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categorias.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {cat.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoria_id && (
+                  <p className="text-xs text-destructive">{errors.categoria_id}</p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="descripcion">Descripción</Label>
                 <textarea
+                  id="descripcion"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   rows={3}
+                  className="h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Precio *</label>
-                  <input
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="precio">Precio *</Label>
+                  <Input
+                    id="precio"
                     type="number"
                     step="0.01"
                     value={formData.precio}
@@ -367,15 +442,18 @@ const Inventario: React.FC = () => {
                       setFormData({ ...formData, precio: e.target.value });
                       if (errors.precio) setErrors({ ...errors, precio: '' });
                     }}
-                    className={errors.precio ? 'input-error' : ''}
+                    className={errors.precio ? 'border-destructive' : ''}
                     required
                   />
-                  {errors.precio && <span className="field-error">{errors.precio}</span>}
+                  {errors.precio && (
+                    <p className="text-xs text-destructive">{errors.precio}</p>
+                  )}
                 </div>
 
-                <div className="form-group">
-                  <label>Costo</label>
-                  <input
+                <div className="grid gap-2">
+                  <Label htmlFor="costo">Costo</Label>
+                  <Input
+                    id="costo"
                     type="number"
                     step="0.01"
                     value={formData.costo}
@@ -384,10 +462,11 @@ const Inventario: React.FC = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Cantidad Disponible *</label>
-                  <input
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="cantidad_disponible">Cantidad Disponible *</Label>
+                  <Input
+                    id="cantidad_disponible"
                     type="number"
                     value={formData.cantidad_disponible}
                     onChange={(e) => {
@@ -395,64 +474,70 @@ const Inventario: React.FC = () => {
                       if (errors.cantidad_disponible)
                         setErrors({ ...errors, cantidad_disponible: '' });
                     }}
-                    className={errors.cantidad_disponible ? 'input-error' : ''}
+                    className={errors.cantidad_disponible ? 'border-destructive' : ''}
                     required
                   />
                   {errors.cantidad_disponible && (
-                    <span className="field-error">{errors.cantidad_disponible}</span>
+                    <p className="text-xs text-destructive">{errors.cantidad_disponible}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label>Cantidad Mínima *</label>
-                  <input
+                <div className="grid gap-2">
+                  <Label htmlFor="cantidad_minima">Cantidad Mínima *</Label>
+                  <Input
+                    id="cantidad_minima"
                     type="number"
                     value={formData.cantidad_minima}
                     onChange={(e) => {
                       setFormData({ ...formData, cantidad_minima: e.target.value });
                       if (errors.cantidad_minima) setErrors({ ...errors, cantidad_minima: '' });
                     }}
-                    className={errors.cantidad_minima ? 'input-error' : ''}
+                    className={errors.cantidad_minima ? 'border-destructive' : ''}
                     required
                   />
                   {errors.cantidad_minima && (
-                    <span className="field-error">{errors.cantidad_minima}</span>
+                    <p className="text-xs text-destructive">{errors.cantidad_minima}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label>Unidad</label>
-                  <select
+                <div className="grid gap-2">
+                  <Label htmlFor="unidad_medida">Unidad</Label>
+                  <Select
                     value={formData.unidad_medida}
-                    onChange={(e) => setFormData({ ...formData, unidad_medida: e.target.value })}
+                    onValueChange={(value) => setFormData({ ...formData, unidad_medida: value })}
                   >
-                    <option value="unidades">Unidades</option>
-                    <option value="kg">Kilogramos</option>
-                    <option value="litros">Litros</option>
-                    <option value="docenas">Docenas</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unidades">Unidades</SelectItem>
+                      <SelectItem value="kg">Kilogramos</SelectItem>
+                      <SelectItem value="litros">Litros</SelectItem>
+                      <SelectItem value="docenas">Docenas</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
+            </div>
 
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setShowModal(false);
-                    setErrors({});
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingProduct ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowModal(false);
+                  setErrors({});
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {editingProduct ? 'Actualizar' : 'Crear'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

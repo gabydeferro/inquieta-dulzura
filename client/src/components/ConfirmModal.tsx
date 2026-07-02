@@ -1,57 +1,51 @@
-import React, { useEffect, useRef } from 'react';
-import { useConfirmModal } from '../contexts/ConfirmContext';
-import './ConfirmModal.css';
+import { useConfirmModal } from "../contexts/ConfirmContext";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { AlertTriangle, Trash2, Info } from "lucide-react";
 
-const ConfirmModal: React.FC = () => {
+function ConfirmModal() {
   const { state, onConfirm, onCancel } = useConfirmModal();
   const { isOpen, options } = state;
-  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onCancel();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onCancel]);
-
-  // Focus management could be added here
-
-  if (!isOpen) return null;
+  const iconMap = {
+    danger: <Trash2 className="size-6 text-destructive" />,
+    warning: <AlertTriangle className="size-6 text-warning" />,
+    info: <Info className="size-6 text-info" />,
+  };
 
   return (
-    <div className="confirm-overlay" onClick={onCancel}>
-      <div
-        className="confirm-content"
-        onClick={(e) => e.stopPropagation()}
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="confirm-icon-container">
-          {options.type === 'danger' && <span className="confirm-icon danger">🗑️</span>}
-          {options.type === 'warning' && <span className="confirm-icon warning">⚠️</span>}
-          {options.type === 'info' && <span className="confirm-icon info">ℹ️</span>}
-        </div>
-
-        <h3 className="confirm-title">{options.title}</h3>
-        <p className="confirm-message">{options.message}</p>
-
-        <div className="confirm-actions">
-          <button className="btn-cancel" onClick={onCancel}>
-            {options.cancelText}
-          </button>
-          <button className={`btn-confirm ${options.type}`} onClick={onConfirm} autoFocus>
-            {options.confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogMedia>
+            {options.type ? iconMap[options.type] : iconMap.info}
+          </AlertDialogMedia>
+          <AlertDialogTitle>{options.title || "Confirmar"}</AlertDialogTitle>
+          <AlertDialogDescription>{options.message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel}>
+            {options.cancelText || "Cancelar"}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant={options.type === "danger" ? "destructive" : "default"}
+            onClick={onConfirm}
+          >
+            {options.confirmText || "Aceptar"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
-};
+}
 
 export default ConfirmModal;
