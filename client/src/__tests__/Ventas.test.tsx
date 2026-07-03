@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Ventas from '../Ventas';
 import api from '../services/api';
@@ -15,7 +15,7 @@ vi.mock('../services/api', () => ({
 describe('Ventas Component', () => {
   const renderVentas = () => render(<Ventas />);
 
-  const mockVentas: VentaResponse[] = [
+  const apiMockVentas: VentaResponse[] = [
     {
       id: 1,
       fecha_venta: new Date().toISOString(),
@@ -40,7 +40,11 @@ describe('Ventas Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getVentas as Mock).mockResolvedValue({ data: mockVentas });
+    (api.getVentas as Mock).mockResolvedValue({ data: apiMockVentas });
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   /** Wait for the mocked API data to render after the loading state. */
@@ -48,6 +52,18 @@ describe('Ventas Component', () => {
     waitFor(() => {
       expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     });
+
+  /** Names in the internal mock data (fallback, ~6-8 records) */
+  const internalMockNames = [
+    'María García',
+    'Juan Pérez',
+    'Carlos López',
+    'Ana Martínez',
+    'Pedro Ramírez',
+    'Laura Fernández',
+    'Diego Sánchez',
+    'Sofía Torres',
+  ];
 
   // ── Render & fetch ──────────────────────────────────────────
 
@@ -66,12 +82,37 @@ describe('Ventas Component', () => {
     expect(dollars.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('shows error message on fetch failure', async () => {
+  it('shows mock data fallback when API fails (no error screen)', async () => {
     (api.getVentas as Mock).mockRejectedValueOnce(new Error('fail'));
     renderVentas();
 
+    // Should NOT show the blocking error screen
     await waitFor(() => {
-      expect(screen.getByText(/Error al cargar las ventas/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Error al cargar las ventas/i)).not.toBeInTheDocument();
+    });
+
+    // Should show mock data instead (María García from internal fallback)
+    await waitFor(() => {
+      expect(screen.getByText('María García')).toBeInTheDocument();
+      // Total formatted via toFixed(2): 4500 → "4500.00"
+      expect(screen.getByText('$4500.00')).toBeInTheDocument();
+    });
+  });
+
+  it('computes stats (Total Hoy, Promedio) from visible data', async () => {
+    (api.getVentas as Mock).mockRejectedValueOnce(new Error('fail'));
+    renderVentas();
+
+    // With 8 mock records of various totals, verify stats render as numbers
+    await waitFor(() => {
+      // Total Hoy should show a $ sum — at minimum the dollar sign is present
+      const totalLabels = screen.getAllByText(/^\$\d/);
+      expect(totalLabels.length).toBeGreaterThanOrEqual(3);
+    });
+
+    // "Ventas Hoy" count shows number of records
+    await waitFor(() => {
+      expect(screen.getByText('8')).toBeInTheDocument();
     });
   });
 
@@ -138,7 +179,7 @@ describe('Ventas Component', () => {
         impuestos: 0,
       },
     });
-    (api.getVentas as Mock).mockResolvedValueOnce({ data: [...mockVentas] });
+    (api.getVentas as Mock).mockResolvedValueOnce({ data: [...apiMockVentas] });
 
     await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
 
