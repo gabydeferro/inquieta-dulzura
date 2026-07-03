@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ import {
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleLogout = async () => {
@@ -64,17 +66,27 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Nav */}
         <ul className="ml-auto hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <li key={link.to}>
-              <Link
-                to={link.to}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-brand-violet no-underline transition-colors hover:bg-brand-violet hover:text-white"
-              >
-                <link.icon className="size-4" />
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = link.to === "/"
+              ? pathname === "/"
+              : pathname.startsWith(link.to);
+            return (
+              <li key={link.to}>
+                <Link
+                  to={link.to}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide no-underline transition-colors",
+                    isActive
+                      ? "bg-brand-violet text-white"
+                      : "text-brand-violet hover:bg-brand-violet hover:text-white"
+                  )}
+                >
+                  <link.icon className="size-4" />
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
         {/* Auth & Theme (Desktop) */}
@@ -132,17 +144,27 @@ const Navbar: React.FC = () => {
                 <SheetTitle className="text-left">Inquieta Dulzura</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 px-4 pt-4">
-                {navLinks.map((link) => (
-                  <SheetClose key={link.to} asChild>
-                    <Link
-                      to={link.to}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground no-underline transition-colors hover:bg-muted"
-                    >
-                      <link.icon className="size-5 text-brand-violet" />
-                      {link.label}
-                    </Link>
-                  </SheetClose>
-                ))}
+                {navLinks.map((link) => {
+                  const isActive = link.to === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.to);
+                  return (
+                    <SheetClose key={link.to} asChild>
+                      <Link
+                        to={link.to}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium no-underline transition-colors",
+                          isActive
+                            ? "bg-brand-violet text-white"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <link.icon className={cn("size-5", isActive ? "text-white" : "text-brand-violet")} />
+                        {link.label}
+                      </Link>
+                    </SheetClose>
+                  );
+                })}
                 <hr className="my-3 border-border" />
                 {user ? (
                   <button
