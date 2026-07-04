@@ -4,6 +4,9 @@ import { startCommand, ayudaCommand } from './handlers/ayuda';
 import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from './handlers/categorias';
 import { productosCommand, productoCrearCommand, productoEditarCommand } from './handlers/productos';
 import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand } from './handlers/ingredientes';
+import { stockCommand, stockSetCommand } from './handlers/stock';
+import { ventaCommand } from './handlers/ventas';
+import { fotoHandler } from './handlers/fotos';
 
 let botInstance: Bot | null = null;
 
@@ -54,10 +57,23 @@ export function setupBot(): Bot {
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
 
+  // Comandos de gestión — Stock
+  bot.command('stock', stockCommand);
+  bot.hears(/^\/stock set/, stockSetCommand);
+
+  // Comandos de gestión — Ventas
+  bot.command('venta', ventaCommand);
+
+  // Photos: manejar mensajes con foto (caption = producto ID)
+  bot.on('message:photo', fotoHandler);
+
   // Catch-all: ignorar mensajes sin comando
   bot.on('message', (ctx: Context) => {
     // Ignorar silenciosamente mensajes sin comando
-    console.log(`📩 Mensaje ignorado de ${ctx.from?.id}: ${ctx.message?.text?.slice(0, 50)}`);
+    const text = ctx.message?.text;
+    if (text) {
+      console.log(`📩 Mensaje ignorado de ${ctx.from?.id}: ${text.slice(0, 50)}`);
+    }
   });
 
   botInstance = bot;
