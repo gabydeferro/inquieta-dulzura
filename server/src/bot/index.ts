@@ -1,6 +1,9 @@
 import { Bot, webhookCallback, Context } from 'grammy';
 import { authGuard } from './auth';
 import { startCommand, ayudaCommand } from './handlers/ayuda';
+import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from './handlers/categorias';
+import { productosCommand, productoCrearCommand, productoEditarCommand } from './handlers/productos';
+import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand } from './handlers/ingredientes';
 
 let botInstance: Bot | null = null;
 
@@ -22,6 +25,34 @@ export function setupBot(): Bot {
   // Handlers del bot
   bot.command('start', startCommand);
   bot.command('ayuda', ayudaCommand);
+
+  // Comandos de gestión — Categorías
+  bot.command('categorias', categoriasCommand);
+  bot.hears(/^\/categoria (?:crear|editar|eliminar)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/categoria crear')) return categoriaCrearCommand(ctx);
+    if (text.startsWith('/categoria editar')) return categoriaEditarCommand(ctx);
+    if (text.startsWith('/categoria eliminar')) return categoriaEliminarCommand(ctx);
+    return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
+  });
+
+  // Comandos de gestión — Productos
+  bot.command('productos', productosCommand);
+  bot.hears(/^\/producto (?:crear|editar)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/producto crear')) return productoCrearCommand(ctx);
+    if (text.startsWith('/producto editar')) return productoEditarCommand(ctx);
+    return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
+  });
+
+  // Comandos de gestión — Ingredientes
+  bot.command('ingredientes', ingredientesCommand);
+  bot.hears(/^\/ingrediente (?:crear|editar)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/ingrediente crear')) return ingredienteCrearCommand(ctx);
+    if (text.startsWith('/ingrediente editar')) return ingredienteEditarCommand(ctx);
+    return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
+  });
 
   // Catch-all: ignorar mensajes sin comando
   bot.on('message', (ctx: Context) => {
