@@ -9,6 +9,7 @@ import {
   parseProductoCrear,
   parseProductoEditar,
   parseIngredienteCrear,
+  parseIngredienteEditar,
   parseStockSet,
   parseVenta,
 } from '../../bot/parser';
@@ -163,6 +164,34 @@ describe('parseIngredienteCrear', () => {
 
   it('debe fallar si falta costo', () => {
     const result = parseIngredienteCrear('/ingrediente crear Harina');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseIngredienteEditar', () => {
+  it('debe extraer id, nombre y costo', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 3 Harina 2500');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 3, nombre: 'Harina', costo: 2500 });
+    }
+  });
+
+  it('debe extraer nombre compuesto y costo decimal', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 7 Azucar impalpable 1200.50');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 7, nombre: 'Azucar impalpable', costo: 1200.5 });
+    }
+  });
+
+  it('debe fallar si falta costo', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 3 Harina');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si falta todo', () => {
+    const result = parseIngredienteEditar('/ingrediente editar');
     expect(result.success).toBe(false);
   });
 });
