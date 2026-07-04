@@ -22,6 +22,7 @@ describe('Bot webhook mounting in index.ts', () => {
     vi.doMock('grammy', () => ({
       Bot: class {
         command = vi.fn();
+        hears = vi.fn();
         on = vi.fn();
         use = vi.fn();
         api = { setWebhook: vi.fn() };

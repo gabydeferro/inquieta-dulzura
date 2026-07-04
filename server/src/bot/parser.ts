@@ -74,6 +74,15 @@ export function parseIngredienteCrear(text: string): ParseResult<{ nombre: strin
 }
 
 /**
+ * Extrae parámetros de /ingrediente editar <id> <nombre> <costo>
+ */
+export function parseIngredienteEditar(text: string): ParseResult<{ id: number; nombre: string; costo: number }> {
+  const match = text.match(/^\/ingrediente editar (\d+) (.+?) (\d+(?:\.\d+)?)$/);
+  if (!match) return { success: false, error: 'Formato: /ingrediente editar <id> <nombre> <costo>' };
+  return { success: true, data: { id: Number(match[1]), nombre: match[2], costo: Number(match[3]) } };
+}
+
+/**
  * Extrae parámetros de /stock set <producto_id> <cantidad>
  */
 export function parseStockSet(text: string): ParseResult<{ producto_id: number; cantidad: number }> {

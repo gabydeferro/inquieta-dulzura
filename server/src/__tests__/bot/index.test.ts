@@ -17,6 +17,7 @@ describe('bot/index', () => {
       Bot: class {
         constructor(token: string) { capturedToken = token; }
         command = mockCommand;
+        hears = vi.fn();
         on = mockOn;
         use = mockUse;
         api = { setWebhook: vi.fn() };
@@ -33,7 +34,9 @@ describe('bot/index', () => {
 
   it('setupBot() debe lanzar error si falta TELEGRAM_BOT_TOKEN', async () => {
     vi.doMock('grammy', () => ({
-      Bot: class {},
+      Bot: class {
+        hears = vi.fn();
+      },
       webhookCallback: vi.fn(() => vi.fn()),
     }));
 
@@ -47,6 +50,7 @@ describe('bot/index', () => {
     vi.doMock('grammy', () => ({
       Bot: class {
         command = vi.fn();
+        hears = vi.fn();
         on = vi.fn();
         use = mockUse;
         api = { setWebhook: vi.fn() };
@@ -66,6 +70,7 @@ describe('bot/index', () => {
     vi.doMock('grammy', () => ({
       Bot: class {
         command = mockCommand;
+        hears = vi.fn();
         on = vi.fn();
         use = vi.fn();
         api = { setWebhook: vi.fn() };
@@ -86,6 +91,7 @@ describe('bot/index', () => {
     vi.doMock('grammy', () => ({
       Bot: class {
         command = vi.fn();
+        hears = vi.fn();
         on = mockOn;
         use = vi.fn();
         api = { setWebhook: vi.fn() };
@@ -103,11 +109,12 @@ describe('bot/index', () => {
     process.env.TELEGRAM_BOT_TOKEN = '123456:test-token';
     const mockWebhookCallback = vi.fn(() => 'mock-middleware');
     const mockBotInstance = {
-      command: vi.fn(), on: vi.fn(), use: vi.fn(), api: { setWebhook: vi.fn() },
+      command: vi.fn(), hears: vi.fn(), on: vi.fn(), use: vi.fn(), api: { setWebhook: vi.fn() },
     };
     vi.doMock('grammy', () => ({
       Bot: class {
         command = vi.fn();
+        hears = vi.fn();
         on = vi.fn();
         use = vi.fn();
         api = { setWebhook: vi.fn() };
