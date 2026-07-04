@@ -12,6 +12,7 @@ import recetasRoutes from './routes/recetas';
 import contenidoDigitalRouter from './controllers/ContenidoDigitalController';
 import ventasRoutes from './routes/ventas';
 import { authenticateToken } from './middleware/auth';
+import { setupBot, configureWebhook } from './bot';
 
 // Inicializar Express
 const app = express();
@@ -27,6 +28,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// Webhook del bot de Telegram — body raw debe ir ANTES de express.json()
+const botWebhookRaw = express.raw({ type: 'application/json' });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -61,6 +65,22 @@ app.use('/api/recetas', recetasRoutes);
 app.use('/api/contenido-digital', contenidoDigitalRouter);
 app.use('/api/ventas', ventasRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
+
+// ============================================
+// TELEGRAM BOT WEBHOOK
+// ============================================
+
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  try {
+    const bot = setupBot();
+    app.use('/api/bot/webhook', botWebhookRaw);
+    app.use('/api/bot/webhook', configureWebhook(bot));
+  } catch (error) {
+    console.error('❌ Error al configurar bot de Telegram:', error);
+  }
+} else {
+  console.log('ℹ️  TELEGRAM_BOT_TOKEN no configurado — bot desactivado');
+}
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
