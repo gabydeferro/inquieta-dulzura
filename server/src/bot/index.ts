@@ -95,7 +95,7 @@ export function getBot(): Bot {
  * Retorna un middleware que puede montarse con app.use().
  */
 export function configureWebhook(bot: Bot) {
-  return webhookCallback(bot, {
+  return webhookCallback(bot, 'express', {
     secretToken: process.env.TELEGRAM_WEBHOOK_SECRET,
     timeoutMilliseconds: 10_000,
   });

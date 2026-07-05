@@ -71,12 +71,16 @@ app.use('/api/fotos', authenticateToken, fotosRoutes);
 // ============================================
 
 if (process.env.TELEGRAM_BOT_TOKEN) {
-  try {
-    const bot = setupBot();
-    app.use('/api/bot/webhook', botWebhookRaw);
-    app.use('/api/bot/webhook', configureWebhook(bot));
-  } catch (error) {
-    console.error('❌ Error al configurar bot de Telegram:', error);
+  if (process.env.BOT_POLLING === 'true') {
+    console.log('ℹ️  BOT_POLLING activo — webhook desactivado (el polling lo maneja aparte)');
+  } else {
+    try {
+      const bot = setupBot();
+      app.use('/api/bot/webhook', botWebhookRaw);
+      app.use('/api/bot/webhook', configureWebhook(bot));
+    } catch (error) {
+      console.error('❌ Error al configurar bot de Telegram:', error);
+    }
   }
 } else {
   console.log('ℹ️  TELEGRAM_BOT_TOKEN no configurado — bot desactivado');
