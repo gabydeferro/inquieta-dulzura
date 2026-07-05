@@ -1,0 +1,27 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .claro { fill: #D1B2E0; opacity: 0.8; }
+      .medio { fill: #A981C2; }
+      .oscuro { fill: #703081; }
+      .texto-id { fill: white; font-family: 'Georgia', serif; font-weight: bold; font-size: 45px; }
+      .texto-principal { fill: #703081; font-family: 'Georgia', serif; font-size: 38px; }
+    </style>
+  </defs>
+
+  <g transform="translate(200, 160)">
+    <circle r="75" class="claro" transform="rotate(0) translate(20)" />
+    <circle r="75" class="medio" transform="rotate(45) translate(20)" />
+    <circle r="75" class="claro" transform="rotate(90) translate(20)" />
+    <circle r="75" class="medio" transform="rotate(135) translate(20)" />
+    <circle r="75" class="claro" transform="rotate(180) translate(20)" />
+    <circle r="75" class="medio" transform="rotate(225) translate(20)" />
+    <circle r="75" class="claro" transform="rotate(270) translate(20)" />
+    <circle r="75" class="medio" transform="rotate(315) translate(20)" />
+    
+    <circle r="60" class="medio" stroke="white" stroke-width="3" />
+    <text x="0" y="15" text-anchor="middle" class="texto-id">I D</text>
+  </g>
+
+  <text x="200" y="320" text-anchor="middle" class="texto-principal">Inquieta Dulzura</text>
+</svg>

@@ -1,156 +1,226 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import './LandingPage.css';
+import { Button } from '@/components/ui/button';
+import { Cake, Cookie, Croissant, Candy, Truck, ShieldCheck, CreditCard } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="landing-page">
+    <div className="bg-background">
       {/* Hero Section */}
-      <section className="hero">
-        <div className="container hero-wrapper">
-          <div className="hero-text">
-            <h2 className="hero-eyebrow script-text">Pastelería Boutique</h2>
-            <h1 className="hero-title">Inquieta Dulzura</h1>
-            <p className="hero-description">
+      <section className="flex min-h-[90vh] items-center px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="mb-2 font-[var(--font-script)] text-2xl text-foreground/80">
+              Pastelería Boutique
+            </p>
+            <h1 className="font-[var(--font-titles)] text-5xl font-bold uppercase leading-[0.95] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              Inquieta Dulzura
+            </h1>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-foreground/70">
               Endulzando momentos, creando recuerdos. Descubre nuestra selección de piezas únicas
               hechas con amor.
             </p>
-            <div className="hero-buttons">
-              <Link to="/catalogo" className="btn btn-primary btn-large">
-                Ver Catálogo
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link to="/catalogo">
+                <Button size="lg" className="bg-brand-violet text-white hover:bg-brand-violet/90">
+                  Ver Catálogo
+                </Button>
               </Link>
               {!isAuthenticated && (
-                <Link to="/register" className="btn btn-secondary btn-large">
-                  Únete a nosotros
+                <Link to="/register">
+                  <Button variant="outline" size="lg">
+                    Únete a nosotros
+                  </Button>
                 </Link>
               )}
             </div>
           </div>
-          <div className="hero-image-container">
-            <img src="/hero_pastel_cake.png" alt="Luxury Pastel Cake" className="hero-main-image" />
+          <div className="overflow-hidden rounded-2xl shadow-2xl">
+            <img
+              src="/hero_pastel_cake.png"
+              alt="Luxury Pastel Cake"
+              className="w-full transition-transform duration-1000 hover:scale-105"
+            />
           </div>
         </div>
       </section>
 
-      {/* Categorías Destacadas (Estilo Valu) */}
-      <section className="categories-section">
-        <div className="container">
-          <h2 className="section-title">Nuestras Especialidades</h2>
-          <div className="categories-grid">
-            <div className="category-card">
-              <div className="category-image pink">🎂</div>
-              <h3>Tortas</h3>
+      {/* Categories Section */}
+      <section className="bg-card py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="font-[var(--font-titles)] mb-16 text-center text-4xl font-bold uppercase tracking-[6px] text-foreground sm:text-5xl">
+            Nuestras Especialidades
+          </h2>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Tortas */}
+            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+              <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-primary transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-primary/30">
+                <Cake className="size-20 text-foreground/60" />
+              </div>
+              <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
+                Tortas
+              </h3>
             </div>
-            <div className="category-card">
-              <div className="category-image mint">🥖</div>
-              <h3>Panes</h3>
+            {/* Panes */}
+            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+              <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-secondary transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-secondary/30">
+                <Croissant className="size-20 text-foreground/60" />
+              </div>
+              <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
+                Panes
+              </h3>
             </div>
-            <div className="category-card">
-              <div className="category-image lavender">🍪</div>
-              <h3>Cookies</h3>
+            {/* Cookies */}
+            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+              <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-accent transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-accent/30">
+                <Cookie className="size-20 text-foreground/60" />
+              </div>
+              <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
+                Cookies
+              </h3>
             </div>
-            <div className="category-card">
-              <div className="category-image peach">🍮</div>
-              <h3>Postres</h3>
+            {/* Postres */}
+            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+              <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-highlight transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-highlight/30">
+                <Candy className="size-20 text-foreground/60" />
+              </div>
+              <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
+                Postres
+              </h3>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Info Bar (Estilo Trust Bar) */}
-      <section className="info-bar">
-        <div className="container info-wrapper">
-          <div className="info-item">
-            <span className="info-icon">🛵</span>
+      {/* Info Bar */}
+      <section className="bg-brand-dark py-16 text-white">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+          <div className="flex items-center gap-6 border-b border-white/10 pb-8 last:border-none lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
+            <Truck className="size-12 shrink-0" />
             <div>
-              <h4>Envío a Domicilio</h4>
-              <p>Llegamos a toda la zona</p>
+              <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
+                Envío a Domicilio
+              </h4>
+              <p className="text-sm text-white/60">Llegamos a toda la zona</p>
             </div>
           </div>
-          <div className="info-item">
-            <span className="info-icon">🛡️</span>
+          <div className="flex items-center gap-6 border-b border-white/10 pb-8 last:border-none lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
+            <ShieldCheck className="size-12 shrink-0" />
             <div>
-              <h4>Compra Segura</h4>
-              <p>Tus datos siempre protegidos</p>
+              <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
+                Compra Segura
+              </h4>
+              <p className="text-sm text-white/60">Tus datos siempre protegidos</p>
             </div>
           </div>
-          <div className="info-item">
-            <span className="info-icon">💳</span>
+          <div className="flex items-center gap-6 pb-8 last:border-none lg:pb-0">
+            <CreditCard className="size-12 shrink-0" />
             <div>
-              <h4>Medios de Pago</h4>
-              <p>Todas las tarjetas y efectivo</p>
+              <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
+                Medios de Pago
+              </h4>
+              <p className="text-sm text-white/60">Todas las tarjetas y efectivo</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
-        <div className="container">
-          <div className="cta-content">
-            <h2>¿Listo para comenzar?</h2>
-            <p>Únete a nuestra plataforma y gestiona tu pastelería de forma profesional</p>
-            {!isAuthenticated && (
-              <div className="cta-buttons">
-                <Link to="/register" className="btn btn-primary btn-large">
+      <section className="bg-background px-4 py-32 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="font-[var(--font-titles)] mb-6 text-4xl font-bold uppercase tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            ¿Listo para comenzar?
+          </h2>
+          <p className="font-[var(--font-script)] mx-auto mb-12 max-w-2xl text-3xl text-foreground/90 sm:text-4xl">
+            Únete a nuestra plataforma y gestiona tu pastelería de forma profesional
+          </p>
+          {!isAuthenticated && (
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/register">
+                <Button size="lg" className="bg-brand-violet text-white hover:bg-brand-violet/90">
                   Crear Cuenta Gratis
-                </Link>
-                <Link to="/login" className="btn btn-outline btn-large">
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="outline" size="lg">
                   Ya tengo cuenta
-                </Link>
-              </div>
-            )}
-          </div>
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-grid">
-          <div className="footer-section">
-            <div className="footer-brand">
-              <img src="/logo.svg" alt="Inquieta Dulzura" className="footer-logo-img" />
-              <h3 className="footer-logo">Inquieta Dulzura</h3>
+      <footer className="bg-black px-4 pb-0 pt-24 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto mb-16 grid max-w-7xl gap-16 lg:grid-cols-[2fr_1fr_1.5fr_1.2fr]">
+          <div>
+            <div className="mb-8 flex items-center gap-4">
+              <img src="/logo.svg" alt="Inquieta Dulzura" className="h-14 w-auto" />
+              <h3 className="font-[var(--font-titles)] text-3xl font-bold uppercase tracking-tight">
+                Inquieta Dulzura
+              </h3>
             </div>
-            <p>
+            <p className="text-base text-white/70">
               Pastelería artesanal desde 2024. Creamos momentos dulces para tus ocasiones más
               especiales.
             </p>
           </div>
-          <div className="footer-section">
-            <h4>Navegación</h4>
-            <ul>
+          <div>
+            <h4 className="font-[var(--font-titles)] mb-6 text-xs font-bold uppercase tracking-[3px] text-white/40">
+              Navegación
+            </h4>
+            <ul className="space-y-3">
               <li>
-                <Link to="/catalogo">Catálogo</Link>
+                <Link
+                  to="/catalogo"
+                  className="text-sm text-white/60 no-underline transition-all hover:pl-1 hover:text-white"
+                >
+                  Catálogo
+                </Link>
               </li>
               <li>
-                <Link to="/login">Iniciar Sesión</Link>
+                <Link
+                  to="/login"
+                  className="text-sm text-white/60 no-underline transition-all hover:pl-1 hover:text-white"
+                >
+                  Iniciar Sesión
+                </Link>
               </li>
               <li>
-                <Link to="/register">Registrarse</Link>
+                <Link
+                  to="/register"
+                  className="text-sm text-white/60 no-underline transition-all hover:pl-1 hover:text-white"
+                >
+                  Registrarse
+                </Link>
               </li>
             </ul>
           </div>
-          <div className="footer-section">
-            <h4>Contacto</h4>
-            <p>📍 Villa Ramallo, Buenos Aires</p>
-            <p>📞 (2477) 123456</p>
-            <p>📧 info@inquietadulzura.com</p>
+          <div>
+            <h4 className="font-[var(--font-titles)] mb-6 text-xs font-bold uppercase tracking-[3px] text-white/40">
+              Contacto
+            </h4>
+            <p className="text-sm text-white/70">📍 Villa Ramallo, Buenos Aires</p>
+            <p className="text-sm text-white/70">📞 (2477) 123456</p>
+            <p className="text-sm text-white/70">📧 info@inquietadulzura.com</p>
           </div>
-          <div className="footer-section">
-            <h4>Horarios</h4>
-            <p>Mar a Sáb: 09:00 - 20:00</p>
-            <p>Dom: 09:00 - 13:00</p>
-            <p>Lun: Cerrado</p>
+          <div>
+            <h4 className="font-[var(--font-titles)] mb-6 text-xs font-bold uppercase tracking-[3px] text-white/40">
+              Horarios
+            </h4>
+            <p className="text-sm text-white/70">Mar a Sáb: 09:00 - 20:00</p>
+            <p className="text-sm text-white/70">Dom: 09:00 - 13:00</p>
+            <p className="text-sm text-white/70">Lun: Cerrado</p>
           </div>
         </div>
-        <div className="footer-bottom">
-          <div className="container">
-            <p>&copy; 2024 Inquieta Dulzura. Todos los derechos reservados. | Diseñado con ❤️</p>
-          </div>
+        <div className="border-t border-white/10 py-6 text-center">
+          <p className="text-xs tracking-[1px] text-white/30">
+            &copy; 2024 Inquieta Dulzura. Todos los derechos reservados. | Diseñado con ❤️
+          </p>
         </div>
       </footer>
     </div>
