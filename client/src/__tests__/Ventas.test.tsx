@@ -75,7 +75,7 @@ describe('Ventas Component', () => {
   it('renders the ventas list from API', async () => {
     renderVentas();
     await waitFor(() => {
-      expect(screen.getByText('💰 Ventas')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /Ventas/i })).toBeInTheDocument();
     });
     expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     const dollars = screen.getAllByText('$50.00');
@@ -333,6 +333,11 @@ describe('Ventas Component', () => {
 
     await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
 
+    // Wait for dialog to fully render (Radix portal + animations)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Agregar Producto/i })).toBeInTheDocument();
+    });
+
     // Add a product with valid precio_unitario
     await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
     const spinbuttons = screen.getAllByRole('spinbutton');
@@ -347,12 +352,18 @@ describe('Ventas Component', () => {
 
     (api.createVenta as Mock).mockImplementationOnce(() => deferred);
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Registrar Venta/i })).toBeInTheDocument();
+    });
+
     // Click submit — the promise hasn't resolved yet, so loading state should be active
     const submitPromise = user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
 
     // Wait for the button to show loading state
+    // Note: after submit, button text changes to "Registrando..." so query by type="submit"
     await waitFor(() => {
-      const submitBtn = screen.getByRole('button', { name: /Registrar Venta/i });
+      const submitBtn = document.querySelector('button[type="submit"]');
+      expect(submitBtn).toBeDefined();
       expect(submitBtn).toBeDisabled();
     });
 

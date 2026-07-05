@@ -5,6 +5,17 @@ describe('bot/index', () => {
     vi.resetModules();
     delete process.env.TELEGRAM_BOT_TOKEN;
     delete process.env.TELEGRAM_WEBHOOK_URL;
+
+    // Mocks para dependencias de handlers — todos los tests usan import() dinámico
+    vi.doMock('../../db', () => ({ connection: { execute: vi.fn(), query: vi.fn() } }));
+    vi.doMock('mysql2', () => ({ RowDataPacket: class {}, ResultSetHeader: class {} }));
+    vi.doMock('../../services/CategoriaService', () => ({ CategoriaService: vi.fn() }));
+    vi.doMock('../../services/ProductoService', () => ({ ProductoService: vi.fn() }));
+    vi.doMock('../../services/IngredienteService', () => ({ IngredienteService: vi.fn() }));
+    vi.doMock('../../services/VentasService', () => ({ VentasService: vi.fn() }));
+    vi.doMock('../../services/FotoService', () => ({ FotoService: vi.fn() }));
+    vi.doMock('../../dtos/VentasDTO', () => ({ CreateVentaDTO: class {}, VentaDetalleDTO: class {} }));
+    vi.doMock('../telegram-file', () => ({ downloadTelegramFile: vi.fn(), createMulterFile: vi.fn() }));
   });
 
   it('setupBot() debe crear una instancia de Bot cuando hay token', async () => {
@@ -13,6 +24,7 @@ describe('bot/index', () => {
     const mockOn = vi.fn();
     const mockUse = vi.fn();
     let capturedToken = '';
+
     vi.doMock('grammy', () => ({
       Bot: class {
         constructor(token: string) { capturedToken = token; }

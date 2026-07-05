@@ -16,8 +16,6 @@ vi.mock('../services/api', () => ({
   },
 }));
 
-globalThis.URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
-
 describe('ContenidoDigital Component', () => {
   const mockImagenes = [
     {
@@ -42,11 +40,6 @@ describe('ContenidoDigital Component', () => {
     },
   ];
 
-  const mockProductos = [
-    { id: 1, nombre: 'Torta de Chocolate' },
-    { id: 2, nombre: 'Bebida de Vainilla' },
-  ];
-
   const renderComponent = () => {
     return render(
       <BrowserRouter>
@@ -57,9 +50,8 @@ describe('ContenidoDigital Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.get as Mock).mockResolvedValue({ data: mockProductos });
     (api.getContenidoDigital as Mock).mockResolvedValue({ data: mockImagenes });
-    (api.createContenidoDigital as Mock).mockResolvedValue({ data: undefined });
+    (api.deleteContenidoDigital as Mock).mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -77,7 +69,7 @@ describe('ContenidoDigital Component', () => {
     });
   });
 
-  it('opens upload modal and loads productos dropdown', async () => {
+  it('filters images by tag when typing in filter input', async () => {
     const user = userEvent.setup();
     renderComponent();
 
@@ -85,17 +77,16 @@ describe('ContenidoDigital Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /Subir contenido/i }));
+    const filterInput = screen.getByPlaceholderText('Filtrar por etiqueta...');
+    await user.type(filterInput, 'promo');
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Subir Contenido/i })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'Torta de Chocolate' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'Bebida de Vainilla' })).toBeInTheDocument();
+      expect(screen.queryByText('Torta de Chocolate')).not.toBeInTheDocument();
+      expect(screen.getByText('Video Demo')).toBeInTheDocument();
     });
-    expect(api.get).toHaveBeenCalledWith('/productos');
   });
 
-  it('shows validation errors on empty submit', async () => {
+  it('shows no results message when filter matches nothing', async () => {
     const user = userEvent.setup();
     renderComponent();
 
@@ -103,90 +94,11 @@ describe('ContenidoDigital Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /Subir contenido/i }));
+    const filterInput = screen.getByPlaceholderText('Filtrar por etiqueta...');
+    await user.type(filterInput, 'xyz');
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Subir Contenido/i })).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /^Subir$/ }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Debes seleccionar un archivo')).toBeInTheDocument();
-      expect(screen.getByText('Selecciona un producto')).toBeInTheDocument();
-      expect(screen.getByText('El título es requerido')).toBeInTheDocument();
-    });
-    expect(api.createContenidoDigital).not.toHaveBeenCalled();
-  });
-
-  it('closes modal on cancel', async () => {
-    const user = userEvent.setup();
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /Subir contenido/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Subir Contenido/i })).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /Cancelar/i }));
-
-    await waitFor(() => {
-      expect(
-        screen.queryByRole('heading', { name: /Subir Contenido/i }),
-      ).not.toBeInTheDocument();
-    });
-  });
-
-  it('submits form with valid data and file', async () => {
-    const user = userEvent.setup();
-    const { container } = renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /Subir contenido/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Subir Contenido/i })).toBeInTheDocument();
-    });
-
-    // Select file via hidden input
-    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test-image.jpg', { type: 'image/jpeg' });
-    await user.upload(fileInput, file);
-
-    await waitFor(() => {
-      expect(screen.getByText('test-image.jpg')).toBeInTheDocument();
-    });
-
-    // Select producto (labels lack htmlFor/id in this codebase, use index)
-    const comboboxes = screen.getAllByRole('combobox');
-    await user.selectOptions(comboboxes[0], '1');
-
-    // Type title
-    const tituloInput = screen.getByPlaceholderText('Título del contenido');
-    await user.type(tituloInput, 'Mi Contenido');
-
-    // Submit
-    await user.click(screen.getByRole('button', { name: /^Subir$/ }));
-
-    await waitFor(() => {
-      expect(api.createContenidoDigital).toHaveBeenCalled();
-      const formDataArg = (api.createContenidoDigital as Mock).mock.calls[0][0];
-      expect(formDataArg).toBeInstanceOf(FormData);
-    });
-
-    // Modal should close on success
-    await waitFor(() => {
-      expect(
-        screen.queryByRole('heading', { name: /Subir Contenido/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.getByText('No hay imágenes disponibles')).toBeInTheDocument();
     });
   });
 
@@ -198,7 +110,6 @@ describe('ContenidoDigital Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    // Mock window.confirm to return true (jsdom doesn't implement confirm)
     const originalConfirm = window.confirm;
     window.confirm = vi.fn(() => true);
 
@@ -212,5 +123,25 @@ describe('ContenidoDigital Component', () => {
     });
 
     window.confirm = originalConfirm;
+  });
+
+  it('shows loading state on mount', () => {
+    (api.getContenidoDigital as Mock).mockImplementationOnce(
+      () => new Promise(() => {}), // never resolves
+    );
+
+    renderComponent();
+    expect(screen.getByText('Cargando contenido digital...')).toBeInTheDocument();
+  });
+
+  it('renders header with title and description', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('Contenido Digital')).toBeInTheDocument();
+      expect(
+        screen.getByText('Gestión de fotos y videos de productos'),
+      ).toBeInTheDocument();
+    });
   });
 });

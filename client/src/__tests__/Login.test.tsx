@@ -29,7 +29,8 @@ describe('Login Component', () => {
     renderLogin();
 
     expect(screen.getByAltText(/Inquieta Dulzura/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Iniciar Sesión/i })).toBeInTheDocument();
+    // "Iniciar Sesión" aparece en CardTitle (div) y en el botón submit
+    expect(screen.getAllByText(/Iniciar Sesión/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).toBeInTheDocument();
