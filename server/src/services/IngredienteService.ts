@@ -56,13 +56,36 @@ export class IngredienteService {
   }
 
   async update(id: number, ingrediente: Partial<IngredienteDTO>): Promise<IngredienteDTO | null> {
-    const { nombre, descripcion, unidad_medida, costo_unitario, activo } = ingrediente;
+    const setClauses: string[] = [];
+    const values: any[] = [];
+
+    const fieldMap: Record<string, any> = {
+      nombre: ingrediente.nombre,
+      descripcion: ingrediente.descripcion,
+      unidad_medida: ingrediente.unidad_medida,
+      costo_unitario: ingrediente.costo_unitario,
+      activo: ingrediente.activo,
+    };
+
+    for (const [field, value] of Object.entries(fieldMap)) {
+      if (value !== undefined) {
+        setClauses.push(`${field} = ?`);
+        values.push(value);
+      }
+    }
+
+    if (setClauses.length === 0) {
+      return this.getById(id);
+    }
+
+    values.push(id);
     const [result] = await pool.query<ResultSetHeader>(
-      'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
-      [nombre, descripcion, unidad_medida, costo_unitario, activo, id],
+      `UPDATE ingredientes SET ${setClauses.join(', ')} WHERE id = ?`,
+      values,
     );
+
     if (result.affectedRows === 0) {
-      return null; // Ingrediente not found or no changes made
+      return null;
     }
     return this.getById(id);
   }

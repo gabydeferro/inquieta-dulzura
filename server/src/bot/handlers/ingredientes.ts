@@ -1,6 +1,6 @@
 import { Context } from 'grammy';
 import { IngredienteService } from '../../services/IngredienteService';
-import { parseIngredienteCrear, parseIngredienteEditar } from '../parser';
+import { parseIngredienteCrear, parseIngredienteEditar, parseIngredienteEliminar } from '../parser';
 
 const ingredienteService = new IngredienteService();
 
@@ -44,7 +44,7 @@ export async function ingredienteCrearCommand(ctx: Context): Promise<void> {
     const ingrediente = await ingredienteService.create({
       nombre: parsed.data.nombre,
       costo_unitario: parsed.data.costo,
-      unidad_medida: 'unidades',
+      unidad_medida: parsed.data.unidad,
       activo: true,
     });
 
@@ -74,6 +74,8 @@ export async function ingredienteEditarCommand(ctx: Context): Promise<void> {
     const result = await ingredienteService.update(parsed.data.id, {
       nombre: parsed.data.nombre,
       costo_unitario: parsed.data.costo,
+      unidad_medida: parsed.data.unidad,
+      activo: true,
     });
 
     if (!result) {
@@ -87,6 +89,32 @@ export async function ingredienteEditarCommand(ctx: Context): Promise<void> {
     );
   } catch (error) {
     console.error('Error en ingredienteEditarCommand:', error);
+    await ctx.reply('Error interno. Intentalo de nuevo.');
+  }
+}
+
+/**
+ * Handler para /ingrediente eliminar <id>
+ */
+export async function ingredienteEliminarCommand(ctx: Context): Promise<void> {
+  try {
+    const text = ctx.message?.text || '';
+    const parsed = parseIngredienteEliminar(text);
+
+    if (!parsed.success) {
+      await ctx.reply(`❌ ${parsed.error}`);
+      return;
+    }
+
+    const deleted = await ingredienteService.delete(parsed.data.id);
+    if (!deleted) {
+      await ctx.reply(`❌ Ingrediente #${parsed.data.id} no encontrado.`);
+      return;
+    }
+
+    await ctx.reply(`✅ Ingrediente #${parsed.data.id} eliminado.`);
+  } catch (error) {
+    console.error('Error en ingredienteEliminarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
   }
 }

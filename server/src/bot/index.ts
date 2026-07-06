@@ -3,7 +3,7 @@ import { authGuard } from './auth';
 import { startCommand, ayudaCommand } from './handlers/ayuda';
 import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from './handlers/categorias';
 import { productosCommand, productoCrearCommand, productoEditarCommand } from './handlers/productos';
-import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand } from './handlers/ingredientes';
+import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from './handlers/ingredientes';
 import { stockCommand, stockSetCommand } from './handlers/stock';
 import { ventaCommand } from './handlers/ventas';
 import { fotoHandler } from './handlers/fotos';
@@ -50,10 +50,11 @@ export function setupBot(): Bot {
 
   // Comandos de gestión — Ingredientes
   bot.command('ingredientes', ingredientesCommand);
-  bot.hears(/^\/ingrediente (?:crear|editar)/, (ctx: Context) => {
+  bot.hears(/^\/ingrediente (?:crear|editar|eliminar)/, (ctx: Context) => {
     const text = ctx.message?.text || '';
     if (text.startsWith('/ingrediente crear')) return ingredienteCrearCommand(ctx);
     if (text.startsWith('/ingrediente editar')) return ingredienteEditarCommand(ctx);
+    if (text.startsWith('/ingrediente eliminar')) return ingredienteEliminarCommand(ctx);
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
 

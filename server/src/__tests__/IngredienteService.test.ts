@@ -138,17 +138,10 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.update(1, updatedData);
       expect(result).toEqual({ ...existingIngrediente, ...updatedData });
-      // Omitted fields come as undefined, NOT merged old values
+      // Only provided fields are SET — omitted fields are NOT overwritten
       expect(mockQuery).toHaveBeenCalledWith(
-        'UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida = ?, costo_unitario = ?, activo = ? WHERE id = ?',
-        [
-          updatedData.nombre, // 'Ingrediente Actualizado'
-          undefined, // descripcion not provided → undefined
-          undefined, // unidad_medida not provided → undefined
-          updatedData.costo_unitario, // 20.0
-          undefined, // activo not provided → undefined
-          1,
-        ],
+        'UPDATE ingredientes SET nombre = ?, costo_unitario = ? WHERE id = ?',
+        [updatedData.nombre, updatedData.costo_unitario, 1],
       );
     });
 

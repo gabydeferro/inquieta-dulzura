@@ -10,6 +10,7 @@ import {
   parseProductoEditar,
   parseIngredienteCrear,
   parseIngredienteEditar,
+  parseIngredienteEliminar,
   parseStockSet,
   parseVenta,
 } from '../../bot/parser';
@@ -146,52 +147,119 @@ describe('parseProductoEditar', () => {
 // ───── ingrediente ─────
 
 describe('parseIngredienteCrear', () => {
-  it('debe extraer nombre y costo', () => {
-    const result = parseIngredienteCrear('/ingrediente crear Harina 2500');
+  it('debe extraer nombre, costo y unidad', () => {
+    const result = parseIngredienteCrear('/ingrediente crear Harina 2500 kg');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ nombre: 'Harina', costo: 2500 });
+      expect(result.data).toEqual({ nombre: 'Harina', costo: 2500, unidad: 'kg' });
     }
   });
 
-  it('debe manejar costo decimal', () => {
-    const result = parseIngredienteCrear('/ingrediente crear Azucar impalpable 1200.50');
+  it('debe extraer nombre compuesto, costo decimal y unidad', () => {
+    const result = parseIngredienteCrear('/ingrediente crear Azucar impalpable 1200.50 gramos');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ nombre: 'Azucar impalpable', costo: 1200.5 });
+      expect(result.data).toEqual({ nombre: 'Azucar impalpable', costo: 1200.5, unidad: 'gramos' });
     }
+  });
+
+  it('debe aceptar todas las unidades validas', () => {
+    const units = ['kg', 'gramos', 'litros', 'ml', 'unidades'];
+    for (const unit of units) {
+      const result = parseIngredienteCrear(`/ingrediente crear Test 100 ${unit}`);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.unidad).toBe(unit);
+      }
+    }
+  });
+
+  it('debe fallar si falta la unidad', () => {
+    const result = parseIngredienteCrear('/ingrediente crear Harina 2500');
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.toLowerCase()).toContain('unidad');
+    }
+  });
+
+  it('debe fallar si la unidad es invalida', () => {
+    const result = parseIngredienteCrear('/ingrediente crear Harina 2500 litro');
+    expect(result.success).toBe(false);
   });
 
   it('debe fallar si falta costo', () => {
-    const result = parseIngredienteCrear('/ingrediente crear Harina');
+    const result = parseIngredienteCrear('/ingrediente crear Harina kg');
     expect(result.success).toBe(false);
   });
 });
 
 describe('parseIngredienteEditar', () => {
-  it('debe extraer id, nombre y costo', () => {
+  it('debe extraer id, nombre, costo y unidad', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 3 Harina 2500 kg');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 3, nombre: 'Harina', costo: 2500, unidad: 'kg' });
+    }
+  });
+
+  it('debe extraer nombre compuesto, costo decimal y unidad', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 7 Azucar impalpable 1200.50 litros');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 7, nombre: 'Azucar impalpable', costo: 1200.5, unidad: 'litros' });
+    }
+  });
+
+  it('debe aceptar todas las unidades validas en editar', () => {
+    const units = ['kg', 'gramos', 'litros', 'ml', 'unidades'];
+    for (const unit of units) {
+      const result = parseIngredienteEditar(`/ingrediente editar 1 Test 100 ${unit}`);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.unidad).toBe(unit);
+      }
+    }
+  });
+
+  it('debe fallar si falta la unidad', () => {
     const result = parseIngredienteEditar('/ingrediente editar 3 Harina 2500');
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toEqual({ id: 3, nombre: 'Harina', costo: 2500 });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.toLowerCase()).toContain('unidad');
     }
   });
 
-  it('debe extraer nombre compuesto y costo decimal', () => {
-    const result = parseIngredienteEditar('/ingrediente editar 7 Azucar impalpable 1200.50');
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toEqual({ id: 7, nombre: 'Azucar impalpable', costo: 1200.5 });
-    }
-  });
-
-  it('debe fallar si falta costo', () => {
-    const result = parseIngredienteEditar('/ingrediente editar 3 Harina');
+  it('debe fallar si la unidad es invalida', () => {
+    const result = parseIngredienteEditar('/ingrediente editar 3 Harina 2500 kilo');
     expect(result.success).toBe(false);
   });
 
   it('debe fallar si falta todo', () => {
     const result = parseIngredienteEditar('/ingrediente editar');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseIngredienteEliminar', () => {
+  it('debe extraer id numerico', () => {
+    const result = parseIngredienteEliminar('/ingrediente eliminar 5');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 5 });
+    }
+  });
+
+  it('debe fallar si no hay id', () => {
+    const result = parseIngredienteEliminar('/ingrediente eliminar');
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.toLowerCase()).toContain('formato');
+      expect(result.error).toContain('eliminar');
+    }
+  });
+
+  it('debe fallar si id no es numerico', () => {
+    const result = parseIngredienteEliminar('/ingrediente eliminar abc');
     expect(result.success).toBe(false);
   });
 });
