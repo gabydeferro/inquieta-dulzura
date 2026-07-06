@@ -1,6 +1,6 @@
 import { Context } from 'grammy';
 import { ProductoService } from '../../services/ProductoService';
-import { parseProductosListar, parseProductoCrear, parseProductoEditar } from '../parser';
+import { parseProductosListar, parseProductoCrear, parseProductoEditar, parseProductoEliminar } from '../parser';
 import { connection } from '../../db';
 import { RowDataPacket } from 'mysql2';
 
@@ -8,7 +8,7 @@ const productoService = new ProductoService();
 
 interface StockRow {
   producto_id: number;
-  cantidad: number;
+  cantidad_disponible: number;
 }
 
 /**
@@ -17,11 +17,11 @@ interface StockRow {
 async function getStockMap(): Promise<Map<number, number>> {
   try {
     const [rows] = await connection.query<RowDataPacket[]>(
-      'SELECT producto_id, cantidad FROM stock',
+      'SELECT producto_id, cantidad_disponible FROM stock',
     );
     const map = new Map<number, number>();
     for (const row of rows as StockRow[]) {
-      map.set(row.producto_id, row.cantidad);
+      map.set(row.producto_id, row.cantidad_disponible);
     }
     return map;
   } catch {
@@ -127,6 +127,38 @@ export async function productoEditarCommand(ctx: Context): Promise<void> {
     await ctx.reply(`✅ Producto #${result.id} actualizado: *${result.nombre}*`, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Error en productoEditarCommand:', error);
+    await ctx.reply('Error interno. Intentalo de nuevo.');
+  }
+}
+
+/**
+ * Handler para /producto eliminar <id>
+ */
+export async function productoEliminarCommand(ctx: Context): Promise<void> {
+  try {
+    const text = ctx.message?.text || '';
+    const parsed = parseProductoEliminar(text);
+
+    if (!parsed.success) {
+      await ctx.reply(`❌ ${parsed.error}`);
+      return;
+    }
+
+    const deleted = await productoService.delete(parsed.data.id);
+    if (!deleted) {
+      await ctx.reply(`❌ Producto #${parsed.data.id} no encontrado.`);
+      return;
+    }
+
+    await ctx.reply(`✅ Producto #${parsed.data.id} eliminado.`);
+  } catch (error: any) {
+    if (error?.message?.toLowerCase().includes('foreign key') ||
+        error?.message?.toLowerCase().includes('cannot delete') ||
+        error?.message?.toLowerCase().includes('parent row')) {
+      await ctx.reply('❌ No se puede eliminar: tiene stock, fotos o ventas asociadas.');
+      return;
+    }
+    console.error('Error en productoEliminarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
   }
 }

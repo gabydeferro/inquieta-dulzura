@@ -5,7 +5,8 @@ import { UnidadMedidaIngrediente } from '../dtos/IngredienteDTO';
  * Extrae parámetros de /categoria crear <nombre> [desc]
  */
 export function parseCategoriaCrear(text: string): ParseResult<{ nombre: string; descripcion?: string }> {
-  const match = text.match(/^\/categoria crear (.+?)(?:\s+(.+))?$/);
+  const normalized = text.replace(/í/g, 'i');
+  const match = normalized.match(/^\/categoria crear (.+?)(?:\s+(.+))?$/);
   if (!match) return { success: false, error: 'Formato: /categoria crear <nombre> [descripción]' };
   return { success: true, data: { nombre: match[1], descripcion: match[2] } };
 }
@@ -14,7 +15,8 @@ export function parseCategoriaCrear(text: string): ParseResult<{ nombre: string;
  * Extrae parámetros de /categoria editar <id> <nombre> [desc]
  */
 export function parseCategoriaEditar(text: string): ParseResult<{ id: number; nombre: string; descripcion?: string }> {
-  const match = text.match(/^\/categoria editar (\d+) (.+?)(?:\s+(.+))?$/);
+  const normalized = text.replace(/í/g, 'i');
+  const match = normalized.match(/^\/categoria editar (\d+) (.+?)(?:\s+(.+))?$/);
   if (!match) return { success: false, error: 'Formato: /categoria editar <id> <nombre> [descripción]' };
   return { success: true, data: { id: Number(match[1]), nombre: match[2], descripcion: match[3] } };
 }
@@ -23,7 +25,8 @@ export function parseCategoriaEditar(text: string): ParseResult<{ id: number; no
  * Extrae parámetros de /categoria eliminar <id>
  */
 export function parseCategoriaEliminar(text: string): ParseResult<{ id: number }> {
-  const match = text.match(/^\/categoria eliminar (\d+)$/);
+  const normalized = text.replace(/í/g, 'i');
+  const match = normalized.match(/^\/categoria eliminar (\d+)$/);
   if (!match) return { success: false, error: 'Formato: /categoria eliminar <id>' };
   return { success: true, data: { id: Number(match[1]) } };
 }
@@ -63,6 +66,15 @@ export function parseProductoEditar(text: string): ParseResult<{ id: number; cam
   const match = text.match(/^\/producto editar (\d+) (\w+) (.+)$/);
   if (!match) return { success: false, error: 'Formato: /producto editar <id> <campo> <valor>' };
   return { success: true, data: { id: Number(match[1]), campo: match[2], valor: match[3] } };
+}
+
+/**
+ * Extrae parámetros de /producto eliminar <id>
+ */
+export function parseProductoEliminar(text: string): ParseResult<{ id: number }> {
+  const match = text.match(/^\/producto eliminar (\d+)$/);
+  if (!match) return { success: false, error: 'Formato: /producto eliminar <id>' };
+  return { success: true, data: { id: Number(match[1]) } };
 }
 
 const VALID_UNITS = '(kg|gramos|litros|ml|unidades)';

@@ -30,6 +30,7 @@ export async function ayudaCommand(ctx: Context): Promise<void> {
     '`/productos [cat_id]` — Listar productos (filtro por categoría)',
     '`/producto crear <cat_id> <nombre> <precio> [costo]` — Crear producto',
     '`/producto editar <id> <campo> <valor>` — Editar producto',
+    '`/producto eliminar <id>` — Eliminar producto',
     '',
     '🧂 *Ingredientes*',
     '`/ingredientes` — Listar ingredientes',

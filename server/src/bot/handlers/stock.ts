@@ -4,7 +4,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 interface LowStockRow {
   producto_id: number;
-  cantidad: number;
+  cantidad_disponible: number;
   producto_nombre: string;
   categoria_nombre: string;
 }
@@ -24,12 +24,12 @@ export async function stockCommand(ctx: Context): Promise<void> {
     }
 
     const [rows] = await connection.query<RowDataPacket[]>(
-      `SELECT s.producto_id, s.cantidad, p.nombre AS producto_nombre, c.nombre AS categoria_nombre
+      `SELECT s.producto_id, s.cantidad_disponible, p.nombre AS producto_nombre, c.nombre AS categoria_nombre
        FROM stock s
        JOIN productos p ON s.producto_id = p.id
        LEFT JOIN categorias c ON p.categoria_id = c.id
-       WHERE s.cantidad < ?
-       ORDER BY s.cantidad ASC`,
+       WHERE s.cantidad_disponible < ?
+       ORDER BY s.cantidad_disponible ASC`,
       [limite],
     );
 
@@ -41,7 +41,7 @@ export async function stockCommand(ctx: Context): Promise<void> {
     }
 
     const lines = stockRows.map(
-      (r) => `\`${r.producto_id}\` • *${r.producto_nombre}* — ${r.categoria_nombre} | Stock: ${r.cantidad}`,
+      (r) => `\`${r.producto_id}\` • *${r.producto_nombre}* — ${r.categoria_nombre} | Stock: ${r.cantidad_disponible}`,
     );
 
     await ctx.reply(`📦 *Stock bajo* (< ${limite})\n\n${lines.join('\n')}`, { parse_mode: 'Markdown' });
@@ -80,8 +80,8 @@ export async function stockSetCommand(ctx: Context): Promise<void> {
 
     // Actualizar stock (INSERT ON DUPLICATE KEY UPDATE para manejar si no existe registro)
     await connection.query(
-      `INSERT INTO stock (producto_id, cantidad) VALUES (?, ?)
-       ON DUPLICATE KEY UPDATE cantidad = ?`,
+      `INSERT INTO stock (producto_id, cantidad_disponible) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE cantidad_disponible = ?`,
       [productoId, cantidad, cantidad],
     );
 

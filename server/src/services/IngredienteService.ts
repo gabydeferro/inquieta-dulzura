@@ -5,7 +5,7 @@ import { IngredienteDTO } from '../dtos/IngredienteDTO';
 export class IngredienteService {
   async getAll(): Promise<IngredienteDTO[]> {
     const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT * FROM ingredientes WHERE activo = TRUE',
+      'SELECT * FROM ingredientes WHERE activo = TRUE ORDER BY nombre ASC',
     );
     return rows as IngredienteDTO[];
   }

@@ -2,7 +2,7 @@ import { Bot, webhookCallback, Context } from 'grammy';
 import { authGuard } from './auth';
 import { startCommand, ayudaCommand } from './handlers/ayuda';
 import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from './handlers/categorias';
-import { productosCommand, productoCrearCommand, productoEditarCommand } from './handlers/productos';
+import { productosCommand, productoCrearCommand, productoEditarCommand, productoEliminarCommand } from './handlers/productos';
 import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from './handlers/ingredientes';
 import { stockCommand, stockSetCommand } from './handlers/stock';
 import { ventaCommand } from './handlers/ventas';
@@ -31,20 +31,23 @@ export function setupBot(): Bot {
 
   // Comandos de gestión — Categorías
   bot.command('categorias', categoriasCommand);
-  bot.hears(/^\/categoria (?:crear|editar|eliminar)/, (ctx: Context) => {
+  bot.hears(/^\/categor[ií]as$/i, (ctx: Context) => categoriasCommand(ctx));
+  bot.hears(/^\/categor[ií]a (?:crear|editar|eliminar)/i, (ctx: Context) => {
     const text = ctx.message?.text || '';
-    if (text.startsWith('/categoria crear')) return categoriaCrearCommand(ctx);
-    if (text.startsWith('/categoria editar')) return categoriaEditarCommand(ctx);
-    if (text.startsWith('/categoria eliminar')) return categoriaEliminarCommand(ctx);
+    const normalized = text.replace(/í/g, 'i');
+    if (normalized.startsWith('/categoria crear')) return categoriaCrearCommand(ctx);
+    if (normalized.startsWith('/categoria editar')) return categoriaEditarCommand(ctx);
+    if (normalized.startsWith('/categoria eliminar')) return categoriaEliminarCommand(ctx);
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
 
   // Comandos de gestión — Productos
   bot.command('productos', productosCommand);
-  bot.hears(/^\/producto (?:crear|editar)/, (ctx: Context) => {
+  bot.hears(/^\/producto (?:crear|editar|eliminar)/, (ctx: Context) => {
     const text = ctx.message?.text || '';
     if (text.startsWith('/producto crear')) return productoCrearCommand(ctx);
     if (text.startsWith('/producto editar')) return productoEditarCommand(ctx);
+    if (text.startsWith('/producto eliminar')) return productoEliminarCommand(ctx);
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
 
