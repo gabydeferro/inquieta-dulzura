@@ -117,7 +117,9 @@ export async function productoEditarCommand(ctx: Context): Promise<void> {
     }
 
     const updates = buildProductoUpdate(parsed.data.campo, parsed.data.valor);
+    console.log('🔍 productoEditarCommand — parsed:', JSON.stringify(parsed.data), 'updates:', JSON.stringify(updates));
     const result = await productoService.update(parsed.data.id, updates);
+    console.log('🔍 productoEditarCommand — update result:', result ? JSON.stringify({ id: result.id, nombre: result.nombre, precio: result.precio }) : 'null');
 
     if (!result) {
       await ctx.reply(`❌ Producto #${parsed.data.id} no encontrado.`);
