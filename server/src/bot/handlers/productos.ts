@@ -92,15 +92,23 @@ export async function productoCrearCommand(ctx: Context): Promise<void> {
   }
 }
 
+const VALID_PRODUCTO_FIELDS = ['nombre', 'precio', 'costo', 'categoria_id', 'descripcion', 'sku'];
+
 /**
- * Construye el partial update basado en campo:valor
+ * Construye el partial update basado en campo:valor.
+ * Valida que el campo sea una columna real de productos.
  */
-function buildProductoUpdate(campo: string, valor: string): Record<string, any> {
+function buildProductoUpdate(campo: string, valor: string): { ok: true; data: Record<string, any> } | { ok: false; error: string } {
+  if (!VALID_PRODUCTO_FIELDS.includes(campo)) {
+    const fields = VALID_PRODUCTO_FIELDS.map((f) => `\`${f}\``).join(', ');
+    return { ok: false, error: `Campo inválido: \`${campo}\`. Campos válidos: ${fields}. Ej: \`/producto editar 15 nombre Chocotorta\`` };
+  }
+
   const numericFields = ['precio', 'costo', 'categoria_id'];
   if (numericFields.includes(campo)) {
-    return { [campo]: Number(valor) };
+    return { ok: true, data: { [campo]: Number(valor) } };
   }
-  return { [campo]: valor };
+  return { ok: true, data: { [campo]: valor } };
 }
 
 /**
@@ -116,10 +124,13 @@ export async function productoEditarCommand(ctx: Context): Promise<void> {
       return;
     }
 
-    const updates = buildProductoUpdate(parsed.data.campo, parsed.data.valor);
-    console.log('🔍 productoEditarCommand — parsed:', JSON.stringify(parsed.data), 'updates:', JSON.stringify(updates));
-    const result = await productoService.update(parsed.data.id, updates);
-    console.log('🔍 productoEditarCommand — update result:', result ? JSON.stringify({ id: result.id, nombre: result.nombre, precio: result.precio }) : 'null');
+    const buildResult = buildProductoUpdate(parsed.data.campo, parsed.data.valor);
+    if (!buildResult.ok) {
+      await ctx.reply(`❌ ${buildResult.error}`);
+      return;
+    }
+
+    const result = await productoService.update(parsed.data.id, buildResult.data);
 
     if (!result) {
       await ctx.reply(`❌ Producto #${parsed.data.id} no encontrado.`);

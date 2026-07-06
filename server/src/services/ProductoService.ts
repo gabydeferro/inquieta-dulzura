@@ -53,10 +53,7 @@ export class ProductoService {
 
     const updatedProducto = { ...producto, ...data };
 
-    console.log('🔍 ProductoService.update — id:', id, 'data:', JSON.stringify(data));
-    console.log('🔍 ProductoService.update — updatedProducto keys:', Object.keys(updatedProducto), 'nombre:', updatedProducto.nombre, 'precio:', updatedProducto.precio);
-
-    const [updateResult] = await connection.query<ResultSetHeader>(
+    await connection.query(
       'UPDATE productos SET categoria_id = ?, nombre = ?, descripcion = ?, precio = ?, costo = ?, sku = ?, activo = ? WHERE id = ?',
       [
         updatedProducto.categoria_id,
@@ -70,11 +67,7 @@ export class ProductoService {
       ],
     );
 
-    console.log('🔍 ProductoService.update — affectedRows:', updateResult.affectedRows, 'changedRows:', updateResult.changedRows);
-
-    const updated = await this.getById(id);
-    console.log('🔍 ProductoService.update — re-read:', JSON.stringify({ id: updated?.id, nombre: updated?.nombre, precio: updated?.precio }));
-    return updated;
+    return await this.getById(id);
   }
 
   async delete(id: number): Promise<boolean> {
