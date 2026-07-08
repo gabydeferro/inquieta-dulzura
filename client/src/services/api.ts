@@ -172,6 +172,57 @@ class ApiService {
     return this.delete<void>(`/contenido-digital/${id}`);
   }
 
+  // --- Instagram Integration ---
+  async instagramUploadMedia(
+    productId: number,
+    imageUrl: string,
+    caption: string,
+  ): Promise<AxiosResponse<{ containerId: string }>> {
+    return this.post('/instagram/upload-media', { productId, imageUrl, caption });
+  }
+
+  async instagramPublish(
+    productId: number,
+    containerId: string,
+    caption: string,
+  ): Promise<AxiosResponse<{ postId: string; status: string }>> {
+    return this.post('/instagram/publish', { productId, containerId, caption });
+  }
+
+  async instagramGetPostStatus(productId: number): Promise<AxiosResponse> {
+    return this.get(`/instagram/products/${productId}/post`);
+  }
+
+  async instagramGetMetrics(
+    productId: number,
+    period: string = '30d',
+  ): Promise<AxiosResponse> {
+    return this.get(`/instagram/products/${productId}/metrics?period=${period}`);
+  }
+
+  async instagramGetComments(postId: string): Promise<AxiosResponse> {
+    return this.get(`/instagram/posts/${postId}/comments`);
+  }
+
+  async instagramReplyToComment(
+    commentId: string,
+    text: string,
+  ): Promise<AxiosResponse> {
+    return this.post(`/instagram/comments/${commentId}/reply`, { text });
+  }
+
+  async instagramHideComment(commentId: string): Promise<AxiosResponse> {
+    return this.post(`/instagram/comments/${commentId}/hide`);
+  }
+
+  async instagramUnhideComment(commentId: string): Promise<AxiosResponse> {
+    return this.post(`/instagram/comments/${commentId}/unhide`);
+  }
+
+  async instagramRefreshToken(): Promise<AxiosResponse> {
+    return this.post('/instagram/auth/refresh');
+  }
+
   // Método especial para subir archivos
   async uploadFile<T = unknown>(url: string, formData: FormData): Promise<AxiosResponse<T>> {
     return this.api.post<T>(url, formData, {
