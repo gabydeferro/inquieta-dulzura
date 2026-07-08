@@ -13,6 +13,8 @@ import contenidoDigitalRouter from './controllers/ContenidoDigitalController';
 import ventasRoutes from './routes/ventas';
 import { authenticateToken } from './middleware/auth';
 import { setupBot, configureWebhook } from './bot';
+import instagramRouter from './routes/instagram';
+import { verificarConfiguracion as verificarConfiguracionInstagram } from './config/instagram';
 
 // Inicializar Express
 const app = express();
@@ -84,6 +86,17 @@ if (process.env.TELEGRAM_BOT_TOKEN) {
   }
 } else {
   console.log('ℹ️  TELEGRAM_BOT_TOKEN no configurado — bot desactivado');
+}
+
+// ============================================
+// INSTAGRAM INTEGRATION
+// ============================================
+
+if (verificarConfiguracionInstagram()) {
+  app.use('/api/instagram', instagramRouter);
+  console.log('✅ Rutas de Instagram montadas');
+} else {
+  console.log('ℹ️  Instagram no configurado — rutas desactivadas');
 }
 
 app.use((req: Request, res: Response) => {
