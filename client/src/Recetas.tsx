@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from './services/api';
+import { Ingrediente } from './types/Ingrediente';
+import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from './types/Receta';
+import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { recetaSchema } from './schemas/receta.schema';
 import {
   Card,
   CardContent,
@@ -32,46 +36,34 @@ import {
   Pencil,
 } from 'lucide-react';
 
-const RECETAS_STORAGE_KEY = 'inquieta-recetas';
-
-interface IngredienteDB {
-  id: number;
-  nombre: string;
-  unidad_medida: string;
-  costo_unitario: number;
-  activo: boolean;
-}
-
-interface Ingrediente {
-  id: number;
+interface FormIngrediente {
+  ingrediente_id: number;
   nombre: string;
   cantidad: number;
   unidad_medida: string;
 }
 
-interface Receta {
-  id: number;
-  nombre: string;
-  descripcion?: string;
-  instrucciones?: string;
-  tiempo_preparacion?: number;
-  porciones?: number;
-  activo: boolean;
-  ingredientes?: Ingrediente[];
-}
-
 const Recetas: React.FC = () => {
   const confirm = useConfirm();
-  const [recetas, setRecetas] = useState<Receta[]>([]);
-  const [selectedReceta, setSelectedReceta] = useState<Receta | null>(null);
-  const [editingReceta, setEditingReceta] = useState<Receta | null>(null);
+  const { showNotification } = useNotification();
+  const [recetas, setRecetas] = useState<RecetaDTO[]>([]);
+  const [selectedReceta, setSelectedReceta] = useState<RecetaDTO | null>(null);
+  const [editingReceta, setEditingReceta] = useState<RecetaDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form state
-  const [ingredientesDisponibles, setIngredientesDisponibles] = useState<IngredienteDB[]>([]);
-  const [formData, setFormData] = useState<Partial<Receta>>({
+  const [ingredientesDisponibles, setIngredientesDisponibles] = useState<Ingrediente[]>([]);
+  const [formData, setFormData] = useState<{
+    nombre: string;
+    descripcion: string;
+    instrucciones: string;
+    tiempo_preparacion: number;
+    porciones: number;
+    ingredientes: FormIngrediente[];
+  }>({
     nombre: '',
     descripcion: '',
     instrucciones: '',
@@ -84,10 +76,10 @@ const Recetas: React.FC = () => {
 
   const cargarIngredientes = async () => {
     try {
-      const response = await api.get<IngredienteDB[]>('/ingredientes');
+      const response = await api.getIngredientes();
       setIngredientesDisponibles(response.data);
-    } catch (error) {
-      console.error('Error al cargar ingredientes:', error);
+    } catch {
+      showNotification('Error al cargar ingredientes', 'error');
     }
   };
 
@@ -98,49 +90,12 @@ const Recetas: React.FC = () => {
   }, [showModal]);
 
   const cargarRecetas = async () => {
+    setLoading(true);
     try {
-      const stored = localStorage.getItem(RECETAS_STORAGE_KEY);
-      if (stored) {
-        setRecetas(JSON.parse(stored));
-      } else {
-        setRecetas([
-          {
-            id: 1,
-            nombre: 'Torta de Chocolate',
-            descripcion: 'Deliciosa torta de chocolate con cobertura',
-            instrucciones:
-              '1. Precalentar el horno a 180°C\n2. Mezclar ingredientes secos\n3. Agregar ingredientes húmedos\n4. Hornear por 35 minutos',
-            tiempo_preparacion: 60,
-            porciones: 8,
-            activo: true,
-            ingredientes: [
-              { id: 1, nombre: 'Harina', cantidad: 300, unidad_medida: 'gramos' },
-              { id: 2, nombre: 'Azúcar', cantidad: 200, unidad_medida: 'gramos' },
-              { id: 3, nombre: 'Chocolate', cantidad: 150, unidad_medida: 'gramos' },
-              { id: 4, nombre: 'Huevos', cantidad: 3, unidad_medida: 'unidades' },
-              { id: 5, nombre: 'Mantequilla', cantidad: 100, unidad_medida: 'gramos' },
-            ],
-          },
-          {
-            id: 2,
-            nombre: 'Pan Integral',
-            descripcion: 'Pan artesanal integral',
-            instrucciones:
-              '1. Mezclar harina con levadura\n2. Agregar agua tibia\n3. Amasar por 10 minutos\n4. Dejar reposar 1 hora\n5. Hornear a 200°C por 30 minutos',
-            tiempo_preparacion: 120,
-            porciones: 12,
-            activo: true,
-            ingredientes: [
-              { id: 6, nombre: 'Harina Integral', cantidad: 500, unidad_medida: 'gramos' },
-              { id: 7, nombre: 'Levadura', cantidad: 10, unidad_medida: 'gramos' },
-              { id: 8, nombre: 'Agua', cantidad: 300, unidad_medida: 'ml' },
-              { id: 9, nombre: 'Sal', cantidad: 10, unidad_medida: 'gramos' },
-            ],
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error('Error al cargar recetas:', error);
+      const response = await api.getRecetas();
+      setRecetas(response.data);
+    } catch {
+      showNotification('Error al cargar recetas', 'error');
     } finally {
       setLoading(false);
     }
@@ -150,19 +105,33 @@ const Recetas: React.FC = () => {
     void cargarRecetas();
   }, []);
 
-  // Persist recetas to localStorage on every change
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem(RECETAS_STORAGE_KEY, JSON.stringify(recetas));
+  const validateForm = (): boolean => {
+    const result = recetaSchema.safeParse({
+      ...formData,
+      tiempo_preparacion: formData.tiempo_preparacion || 0,
+      porciones: formData.porciones || 0,
+    });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path.join('.');
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return false;
     }
-  }, [recetas, loading]);
+    setErrors({});
+    return true;
+  };
 
-  const handleViewDetail = (receta: Receta) => {
+  const handleViewDetail = (receta: RecetaDTO) => {
     setSelectedReceta(receta);
     setShowDetailModal(true);
   };
 
-  const handlePrint = (receta: Receta) => {
+  const handlePrint = (receta: RecetaDTO) => {
     console.log('Imprimir receta:', receta.nombre);
   };
 
@@ -180,10 +149,11 @@ const Recetas: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingReceta(null);
+    setErrors({});
     resetForm();
   };
 
-  const handleEdit = (receta: Receta) => {
+  const handleEdit = (receta: RecetaDTO) => {
     setEditingReceta(receta);
     setFormData({
       nombre: receta.nombre,
@@ -191,7 +161,12 @@ const Recetas: React.FC = () => {
       instrucciones: receta.instrucciones || '',
       tiempo_preparacion: receta.tiempo_preparacion || 0,
       porciones: receta.porciones || 0,
-      ingredientes: receta.ingredientes || [],
+      ingredientes: (receta.ingredientes || []).map((ing) => ({
+        ingrediente_id: ing.ingrediente_id,
+        nombre: ing.ingrediente?.nombre || `ID: ${ing.ingrediente_id}`,
+        cantidad: ing.cantidad,
+        unidad_medida: ing.unidad_medida,
+      })),
     });
     setShowModal(true);
   };
@@ -200,8 +175,16 @@ const Recetas: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value,
+      [name]:
+        name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value,
     }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleAgregarIngrediente = () => {
@@ -210,8 +193,8 @@ const Recetas: React.FC = () => {
     const ingrediente = ingredientesDisponibles.find((i) => i.id === selectedIngredienteId);
     if (!ingrediente) return;
 
-    const nuevoIngrediente: Ingrediente = {
-      id: ingrediente.id,
+    const nuevoIngrediente: FormIngrediente = {
+      ingrediente_id: ingrediente.id as number,
       nombre: ingrediente.nombre,
       cantidad: cantidad,
       unidad_medida: ingrediente.unidad_medida,
@@ -219,7 +202,7 @@ const Recetas: React.FC = () => {
 
     setFormData((prev) => ({
       ...prev,
-      ingredientes: [...(prev.ingredientes || []), nuevoIngrediente],
+      ingredientes: [...prev.ingredientes, nuevoIngrediente],
     }));
 
     setSelectedIngredienteId('');
@@ -229,48 +212,65 @@ const Recetas: React.FC = () => {
   const handleEliminarIngrediente = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      ingredientes: prev.ingredientes?.filter((_, i) => i !== index),
+      ingredientes: prev.ingredientes.filter((_, i) => i !== index),
     }));
   };
 
-  const handleGuardarReceta = () => {
-    if (!formData.nombre) {
-      alert('El nombre de la receta es requerido');
-      return;
-    }
+  const handleGuardarReceta = async () => {
+    if (!validateForm()) return;
 
-    if (editingReceta) {
-      // Update existing recipe in-place
-      setRecetas(
-        recetas.map((r) =>
-          r.id === editingReceta.id
-            ? { ...r, ...formData, id: r.id, activo: r.activo }
-            : r,
-        ),
-      );
-    } else {
-      // Create new recipe
-      const nuevaReceta: Receta = {
-        id: Date.now(),
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        instrucciones: formData.instrucciones,
-        tiempo_preparacion: formData.tiempo_preparacion,
-        porciones: formData.porciones,
-        activo: true,
-        ingredientes: formData.ingredientes,
-      };
-      setRecetas([...recetas, nuevaReceta]);
-    }
+    const apiIngredientes = formData.ingredientes.map((i) => ({
+      ingrediente_id: i.ingrediente_id,
+      cantidad: i.cantidad,
+      unidad_medida: i.unidad_medida as 'kg' | 'litros' | 'unidades' | 'gramos' | 'ml',
+    }));
 
-    handleCloseModal();
+    try {
+      if (editingReceta) {
+        const payload: UpdateRecetaDTO = {
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          instrucciones: formData.instrucciones,
+          tiempo_preparacion: formData.tiempo_preparacion,
+          porciones: formData.porciones,
+          ingredientes: apiIngredientes.length > 0 ? apiIngredientes : undefined,
+        };
+        await api.updateReceta(editingReceta.id, payload);
+        showNotification('Receta actualizada con éxito', 'success');
+      } else {
+        const payload: CreateRecetaDTO = {
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          instrucciones: formData.instrucciones,
+          tiempo_preparacion: formData.tiempo_preparacion,
+          porciones: formData.porciones,
+          ingredientes: apiIngredientes.length > 0 ? apiIngredientes : undefined,
+        };
+        await api.createReceta(payload);
+        showNotification('Receta creada con éxito', 'success');
+      }
+      handleCloseModal();
+      void cargarRecetas();
+    } catch {
+      showNotification('Error al guardar receta', 'error');
+    }
   };
 
   const handleEliminarReceta = async (id: number) => {
     const confirmed = await confirm({ message: '¿Estás seguro de eliminar esta receta?' });
     if (!confirmed) return;
 
-    setRecetas(recetas.filter((r) => r.id !== id));
+    try {
+      await api.deleteReceta(id);
+      showNotification('Receta eliminada con éxito', 'success');
+      void cargarRecetas();
+    } catch {
+      showNotification('Error al eliminar receta', 'error');
+    }
+  };
+
+  const getIngredientName = (ing: RecetaDTO['ingredientes'][number]): string => {
+    return ing.ingrediente?.nombre || `ID: ${ing.ingrediente_id}`;
   };
 
   if (loading) {
@@ -291,98 +291,109 @@ const Recetas: React.FC = () => {
           </h1>
           <p className="text-muted-foreground">Recetas de productos de la pastelería</p>
         </div>
-        <Button onClick={() => { setEditingReceta(null); resetForm(); setShowModal(true); }}>
+        <Button onClick={() => { setEditingReceta(null); resetForm(); setErrors({}); setShowModal(true); }}>
           <Plus className="size-4" />
           Nueva Receta
         </Button>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
-        {recetas.map((receta) => (
-          <Card
-            key={receta.id}
-            className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {receta.tiempo_preparacion && (
-                  <Badge variant="secondary" className="gap-1">
-                    <Clock className="size-3" />
-                    {receta.tiempo_preparacion} min
-                  </Badge>
-                )}
-                {receta.porciones && (
-                  <Badge variant="secondary" className="gap-1">
-                    <Cake className="size-3" />
-                    {receta.porciones} porciones
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <p className="mb-3 text-sm text-muted-foreground">{receta.descripcion}</p>
-
-              <div className="mb-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
-                <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                  <ChefHat className="mr-1 inline size-3" />
-                  Ingredientes ({receta.ingredientes?.length || 0})
-                </h4>
-                <ul className="space-y-1">
-                  {receta.ingredientes?.slice(0, 3).map((ing) => (
-                    <li key={ing.id} className="text-xs text-amber-900 dark:text-amber-200">
-                      {ing.nombre} — {ing.cantidad} {ing.unidad_medida}
-                    </li>
-                  ))}
-                  {(receta.ingredientes?.length || 0) > 3 && (
-                    <li className="text-xs italic text-amber-700 dark:text-amber-400">
-                      + {(receta.ingredientes?.length || 0) - 3} más...
-                    </li>
+      {recetas.length === 0 ? (
+        <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-muted-foreground">
+          <BookOpen className="size-12 opacity-40" />
+          <p className="text-lg">No hay recetas disponibles</p>
+          <Button onClick={() => { setEditingReceta(null); resetForm(); setErrors({}); setShowModal(true); }}>
+            <Plus className="size-4" />
+            Crear primera receta
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+          {recetas.map((receta) => (
+            <Card
+              key={receta.id}
+              className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {receta.tiempo_preparacion && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Clock className="size-3" />
+                      {receta.tiempo_preparacion} min
+                    </Badge>
                   )}
-                </ul>
-              </div>
+                  {receta.porciones && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Cake className="size-3" />
+                      {receta.porciones} porciones
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
 
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleViewDetail(receta)}
-                >
-                  <Eye className="size-3.5" />
-                  Ver Detalle
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleEdit(receta)}
-                  title="Editar"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handlePrint(receta)}
-                  title="Imprimir"
-                >
-                  <Printer className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => handleEliminarReceta(receta.id)}
-                  title="Eliminar"
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              <CardContent>
+                <p className="mb-3 text-sm text-muted-foreground">{receta.descripcion}</p>
+
+                <div className="mb-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
+                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                    <ChefHat className="mr-1 inline size-3" />
+                    Ingredientes ({receta.ingredientes?.length || 0})
+                  </h4>
+                  <ul className="space-y-1">
+                    {receta.ingredientes?.slice(0, 3).map((ing) => (
+                      <li key={ing.ingrediente_id} className="text-xs text-amber-900 dark:text-amber-200">
+                        {getIngredientName(ing)} — {ing.cantidad} {ing.unidad_medida}
+                      </li>
+                    ))}
+                    {(receta.ingredientes?.length || 0) > 3 && (
+                      <li className="text-xs italic text-amber-700 dark:text-amber-400">
+                        + {(receta.ingredientes?.length || 0) - 3} más...
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleViewDetail(receta)}
+                  >
+                    <Eye className="size-3.5" />
+                    Ver Detalle
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => handleEdit(receta)}
+                    title="Editar"
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => handlePrint(receta)}
+                    title="Imprimir"
+                  >
+                    <Printer className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => handleEliminarReceta(receta.id)}
+                    title="Eliminar"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Detail Dialog */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
@@ -440,11 +451,11 @@ const Recetas: React.FC = () => {
                 <div className="space-y-1 rounded-lg bg-amber-50 p-4 dark:bg-amber-950/30">
                   {selectedReceta.ingredientes?.map((ing) => (
                     <div
-                      key={ing.id}
+                      key={ing.ingrediente_id}
                       className="flex items-center justify-between border-b border-amber-200/50 py-2 last:border-0 dark:border-amber-800/30"
                     >
                       <span className="font-medium text-amber-900 dark:text-amber-200">
-                        {ing.nombre}
+                        {getIngredientName(ing)}
                       </span>
                       <span className="font-semibold text-amber-800 dark:text-amber-300">
                         {ing.cantidad} {ing.unidad_medida}
@@ -508,10 +519,12 @@ const Recetas: React.FC = () => {
                 <Input
                   id="nombre"
                   name="nombre"
-                  value={formData.nombre || ''}
+                  value={formData.nombre}
                   onChange={handleFormChange}
                   required
+                  className={errors.nombre ? 'border-destructive' : ''}
                 />
+                {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
               </div>
             </div>
 
@@ -522,9 +535,13 @@ const Recetas: React.FC = () => {
                   id="tiempo_preparacion"
                   type="number"
                   name="tiempo_preparacion"
-                  value={formData.tiempo_preparacion || 0}
+                  value={formData.tiempo_preparacion || ''}
                   onChange={handleFormChange}
+                  className={errors.tiempo_preparacion ? 'border-destructive' : ''}
                 />
+                {errors.tiempo_preparacion && (
+                  <p className="text-xs text-destructive">{errors.tiempo_preparacion}</p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="porciones">Porciones</Label>
@@ -532,22 +549,29 @@ const Recetas: React.FC = () => {
                   id="porciones"
                   type="number"
                   name="porciones"
-                  value={formData.porciones || 0}
+                  value={formData.porciones || ''}
                   onChange={handleFormChange}
+                  className={errors.porciones ? 'border-destructive' : ''}
                 />
+                {errors.porciones && (
+                  <p className="text-xs text-destructive">{errors.porciones}</p>
+                )}
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="descripcion">Descripción</Label>
+              <Label htmlFor="descripcion">Descripción *</Label>
               <textarea
                 id="descripcion"
                 name="descripcion"
-                value={formData.descripcion || ''}
+                value={formData.descripcion}
                 onChange={handleFormChange}
                 rows={3}
-                className="h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+                className={`h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 ${errors.descripcion ? 'border-destructive' : ''}`}
               />
+              {errors.descripcion && (
+                <p className="text-xs text-destructive">{errors.descripcion}</p>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -585,10 +609,10 @@ const Recetas: React.FC = () => {
               </div>
 
               <div className="mt-2 space-y-1 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
-                {formData.ingredientes?.length === 0 && (
+                {formData.ingredientes.length === 0 && (
                   <p className="text-xs text-muted-foreground">No hay ingredientes agregados</p>
                 )}
-                {formData.ingredientes?.map((ing, index) => (
+                {formData.ingredientes.map((ing, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between border-b border-amber-200/50 py-1.5 last:border-0 dark:border-amber-800/30"
@@ -620,7 +644,7 @@ const Recetas: React.FC = () => {
               <textarea
                 id="instrucciones"
                 name="instrucciones"
-                value={formData.instrucciones || ''}
+                value={formData.instrucciones}
                 onChange={handleFormChange}
                 rows={6}
                 placeholder="Escribe las instrucciones paso a paso..."
