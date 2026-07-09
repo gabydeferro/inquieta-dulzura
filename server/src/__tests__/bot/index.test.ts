@@ -138,7 +138,11 @@ describe('bot/index', () => {
     const bot = setupBot();
     const middleware = configureWebhook(bot);
 
-    expect(mockWebhookCallback).toHaveBeenCalledWith(bot, expect.any(Object));
+    expect(mockWebhookCallback).toHaveBeenCalledWith(
+      bot,
+      'express',
+      expect.objectContaining({ timeoutMilliseconds: 10_000 }),
+    );
     expect(middleware).toBe('mock-middleware');
   });
 });
