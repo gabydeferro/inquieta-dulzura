@@ -64,16 +64,15 @@ router.post(
         return;
       }
 
-      const result = await contenidoDigitalService.crearImagen(
-        {
-          productoId: parseInt(productoId, 10),
-          titulo,
-          descripcion,
-          tipo,
-          etiquetas: etiquetas ? JSON.parse(etiquetas) as string[] : undefined,
-        },
-        req.file,
-      );
+      const result = await contenidoDigitalService.crearImagen({
+        productoId: parseInt(productoId, 10),
+        titulo,
+        descripcion,
+        tipo,
+        url: '',
+        fechaSubida: new Date(),
+        etiquetas: etiquetas ? JSON.parse(etiquetas) as string[] : [],
+      });
 
       res.status(201).json(result);
     } catch (error: unknown) {
@@ -168,11 +167,7 @@ router.put(
       }
       if (url !== undefined) updateData.url = url;
 
-      const result = await contenidoDigitalService.actualizarImagen(
-        id,
-        updateData,
-        req.file || undefined,
-      );
+      const result = await contenidoDigitalService.actualizarImagen(id, updateData);
 
       if (!result) {
         res.status(404).json({ error: 'Contenido digital no encontrado' });
@@ -199,14 +194,14 @@ router.delete(
   requireAdmin,
   async (req: AuthRequest, res: Response) => {
     try {
-      const deleted = await contenidoDigitalService.eliminarImagen(
-        parseInt(req.params.id, 10),
-      );
-
-      if (!deleted) {
+      const id = parseInt(req.params.id, 10);
+      const exists = await contenidoDigitalService.obtenerImagenPorId(id);
+      if (!exists) {
         res.status(404).json({ error: 'Contenido digital no encontrado' });
         return;
       }
+
+      contenidoDigitalService.eliminarImagen(id);
 
       res.status(204).send();
     } catch (error: unknown) {
