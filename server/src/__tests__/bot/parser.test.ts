@@ -13,6 +13,14 @@ import {
   parseIngredienteEliminar,
   parseStockSet,
   parseVenta,
+  parseRecetasListar,
+  parseRecetaVer,
+  parseRecetaCrear,
+  parseRecetaEditar,
+  parseRecetaEliminar,
+  parseRecetaIngredienteAgregar,
+  parseRecetaIngredienteQuitar,
+  parseRecetaIngredienteEditar,
 } from '../../bot/parser';
 
 // ───── categoria ─────
@@ -307,6 +315,227 @@ describe('parseVenta', () => {
 
   it('debe fallar si no hay items', () => {
     const result = parseVenta('/venta');
+    expect(result.success).toBe(false);
+  });
+});
+
+// ───── recetas ─────
+
+describe('parseRecetasListar', () => {
+  it('debe aceptar /recetas sin argumentos', () => {
+    const result = parseRecetasListar('/recetas');
+    expect(result.success).toBe(true);
+  });
+
+  it('debe fallar si hay argumentos extra', () => {
+    const result = parseRecetasListar('/recetas 5');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaVer', () => {
+  it('debe extraer id numerico', () => {
+    const result = parseRecetaVer('/receta 5');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 5 });
+    }
+  });
+
+  it('debe fallar si el id no es numerico', () => {
+    const result = parseRecetaVer('/receta abc');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si falta el id', () => {
+    const result = parseRecetaVer('/receta');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaCrear', () => {
+  it('debe extraer nombre (primer palabra), descripcion y ultimos dos numeros', () => {
+    const result = parseRecetaCrear('/receta crear Pastel de Chocolate Delicioso pastel con cobertura 45 8');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        nombre: 'Pastel',
+        descripcion: 'de Chocolate Delicioso pastel con cobertura',
+        tiempo_preparacion: 45,
+        porciones: 8,
+      });
+    }
+  });
+
+  it('debe extraer con nombre corto y descripcion simple', () => {
+    const result = parseRecetaCrear('/receta crear Torta receta clasica 30 12');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        nombre: 'Torta',
+        descripcion: 'receta clasica',
+        tiempo_preparacion: 30,
+        porciones: 12,
+      });
+    }
+  });
+
+  it('debe fallar si faltan argumentos (menos de 4 tokens tras crear)', () => {
+    const result = parseRecetaCrear('/receta crear Pastel 30');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si los valores numericos no son numeros', () => {
+    const result = parseRecetaCrear('/receta crear Pastel Desc abc ocho');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaEditar', () => {
+  it('debe extraer id, campo y valor', () => {
+    const result = parseRecetaEditar('/receta editar 5 nombre New Name');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 5, campo: 'nombre', valor: 'New Name' });
+    }
+  });
+
+  it('debe aceptar campo tiempo_preparacion', () => {
+    const result = parseRecetaEditar('/receta editar 5 tiempo_preparacion 45');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 5, campo: 'tiempo_preparacion', valor: '45' });
+    }
+  });
+
+  it('debe fallar si el campo no es valido', () => {
+    const result = parseRecetaEditar('/receta editar 5 invalidField value');
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('nombre');
+      expect(result.error).toContain('descripcion');
+      expect(result.error).toContain('instrucciones');
+      expect(result.error).toContain('tiempo_preparacion');
+      expect(result.error).toContain('porciones');
+    }
+  });
+
+  it('debe fallar si faltan parametros', () => {
+    const result = parseRecetaEditar('/receta editar 5');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaEliminar', () => {
+  it('debe extraer id numerico', () => {
+    const result = parseRecetaEliminar('/receta eliminar 7');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ id: 7 });
+    }
+  });
+
+  it('debe fallar si no hay id', () => {
+    const result = parseRecetaEliminar('/receta eliminar');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si id no es numerico', () => {
+    const result = parseRecetaEliminar('/receta eliminar abc');
+    expect(result.success).toBe(false);
+  });
+});
+
+// ───── receta ingrediente ─────
+
+describe('parseRecetaIngredienteAgregar', () => {
+  it('debe extraer receta_id, ingrediente_id, cantidad y unidad', () => {
+    const result = parseRecetaIngredienteAgregar('/receta ingrediente agregar 5 3 200 gramos');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ receta_id: 5, ingrediente_id: 3, cantidad: 200, unidad_medida: 'gramos' });
+    }
+  });
+
+  it('debe aceptar todas las unidades validas', () => {
+    const units = ['kg', 'gramos', 'litros', 'ml', 'unidades'];
+    for (const unit of units) {
+      const result = parseRecetaIngredienteAgregar(`/receta ingrediente agregar 1 2 100 ${unit}`);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.unidad_medida).toBe(unit);
+      }
+    }
+  });
+
+  it('debe fallar si la unidad es invalida', () => {
+    const result = parseRecetaIngredienteAgregar('/receta ingrediente agregar 5 3 200 litro');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si falta cantidad', () => {
+    const result = parseRecetaIngredienteAgregar('/receta ingrediente agregar 5 3 gramos');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si faltan todos los argumentos', () => {
+    const result = parseRecetaIngredienteAgregar('/receta ingrediente agregar');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaIngredienteQuitar', () => {
+  it('debe extraer receta_id e ingrediente_id', () => {
+    const result = parseRecetaIngredienteQuitar('/receta ingrediente quitar 5 3');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ receta_id: 5, ingrediente_id: 3 });
+    }
+  });
+
+  it('debe fallar si falta algun id', () => {
+    const result = parseRecetaIngredienteQuitar('/receta ingrediente quitar 5');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si los ids no son numericos', () => {
+    const result = parseRecetaIngredienteQuitar('/receta ingrediente quitar abc def');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaIngredienteEditar', () => {
+  it('debe extraer receta_id, ingrediente_id, cantidad y unidad', () => {
+    const result = parseRecetaIngredienteEditar('/receta ingrediente editar 5 3 500 ml');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ receta_id: 5, ingrediente_id: 3, cantidad: 500, unidad_medida: 'ml' });
+    }
+  });
+
+  it('debe aceptar todas las unidades validas en editar', () => {
+    const units = ['kg', 'gramos', 'litros', 'ml', 'unidades'];
+    for (const unit of units) {
+      const result = parseRecetaIngredienteEditar(`/receta ingrediente editar 1 2 100 ${unit}`);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.unidad_medida).toBe(unit);
+      }
+    }
+  });
+
+  it('debe fallar si la unidad es invalida', () => {
+    const result = parseRecetaIngredienteEditar('/receta ingrediente editar 5 3 200 litro');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si falta cantidad', () => {
+    const result = parseRecetaIngredienteEditar('/receta ingrediente editar 5 3 ml');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar si falta todo', () => {
+    const result = parseRecetaIngredienteEditar('/receta ingrediente editar');
     expect(result.success).toBe(false);
   });
 });
