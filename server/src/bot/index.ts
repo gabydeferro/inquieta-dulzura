@@ -6,6 +6,7 @@ import { productosCommand, productoCrearCommand, productoEditarCommand, producto
 import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from './handlers/ingredientes';
 import { stockCommand, stockSetCommand } from './handlers/stock';
 import { ventaCommand } from './handlers/ventas';
+import { recetasCommand, recetaVerCommand, recetaCrearCommand, recetaEditarCommand, recetaEliminarCommand, recetaIngredienteAgregarCommand, recetaIngredienteQuitarCommand, recetaIngredienteEditarCommand } from './handlers/recetas';
 import { fotoHandler } from './handlers/fotos';
 
 let botInstance: Bot | null = null;
@@ -67,6 +68,25 @@ export function setupBot(): Bot {
 
   // Comandos de gestión — Ventas
   bot.command('venta', ventaCommand);
+
+  // Comandos de gestión — Recetas
+  bot.command('recetas', recetasCommand);
+  // Ingredient sub-commands MUST register BEFORE /receta hears to avoid regex conflicts
+  bot.hears(/^\/receta ingrediente (agregar|quitar|editar)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/receta ingrediente agregar')) return recetaIngredienteAgregarCommand(ctx);
+    if (text.startsWith('/receta ingrediente quitar')) return recetaIngredienteQuitarCommand(ctx);
+    if (text.startsWith('/receta ingrediente editar')) return recetaIngredienteEditarCommand(ctx);
+    return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
+  });
+  bot.hears(/^\/receta (crear|editar|eliminar|\d+)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/receta crear')) return recetaCrearCommand(ctx);
+    if (text.startsWith('/receta editar')) return recetaEditarCommand(ctx);
+    if (text.startsWith('/receta eliminar')) return recetaEliminarCommand(ctx);
+    // Default: /receta <id> — parseRecetaVer handler
+    return recetaVerCommand(ctx);
+  });
 
   // Photos: manejar mensajes con foto (caption = producto ID)
   bot.on('message:photo', fotoHandler);
