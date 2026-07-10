@@ -145,4 +145,8 @@ const startServer = async () => {
   }
 };
 
-void startServer();
+// Only start the server when executed directly (not when imported in tests)
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+if (!isTestEnv) {
+  void startServer();
+}
