@@ -6,9 +6,9 @@ const router = express.Router();
 const contenidoDigitalService = new ContenidoDigitalService();
 
 // GET /api/contenido-digital - Obtener todas las imágenes
-router.get('/', (_req: Request, res: Response) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
-    const imagenes = contenidoDigitalService.obtenerTodasLasImagenes();
+    const imagenes = await contenidoDigitalService.obtenerTodasLasImagenes();
     res.json(imagenes);
   } catch {
     res.status(500).json({ error: 'Error al obtener imágenes' });
@@ -16,9 +16,9 @@ router.get('/', (_req: Request, res: Response) => {
 });
 
 // GET /api/contenido-digital/:id - Obtener imagen por ID
-router.get('/:id', (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const imagen = contenidoDigitalService.obtenerImagenPorId(parseInt(req.params.id));
+    const imagen = await contenidoDigitalService.obtenerImagenPorId(parseInt(req.params.id));
     if (!imagen) {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
@@ -29,9 +29,9 @@ router.get('/:id', (req: Request, res: Response) => {
 });
 
 // POST /api/contenido-digital - Crear nueva imagen
-router.post('/', (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const nuevaImagen = contenidoDigitalService.crearImagen(
+    const nuevaImagen = await contenidoDigitalService.crearImagen(
       req.body as Omit<ContenidoDigitalDTO, 'id'>,
     );
     res.status(201).json(nuevaImagen);
@@ -41,9 +41,9 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 // PUT /api/contenido-digital/:id - Actualizar imagen
-router.put('/:id', (req: Request, res: Response) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const imagenActualizada = contenidoDigitalService.actualizarImagen(
+    const imagenActualizada = await contenidoDigitalService.actualizarImagen(
       parseInt(req.params.id),
       req.body as Partial<ContenidoDigitalDTO>,
     );
@@ -54,9 +54,9 @@ router.put('/:id', (req: Request, res: Response) => {
 });
 
 // DELETE /api/contenido-digital/:id - Eliminar imagen
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    contenidoDigitalService.eliminarImagen(parseInt(req.params.id));
+    await contenidoDigitalService.eliminarImagen(parseInt(req.params.id));
     res.status(204).send();
   } catch {
     res.status(500).json({ error: 'Error al eliminar imagen' });
