@@ -1,4 +1,4 @@
-import { Context } from 'grammy';
+import { Bot, Context } from 'grammy';
 import { connection } from '../../db';
 import { RowDataPacket } from 'mysql2';
 import { downloadTelegramFile, createMulterFile } from '../telegram-file';
@@ -49,9 +49,10 @@ export async function fotoHandler(ctx: Context): Promise<void> {
 
     // Descargar archivo de Telegram
     // ctx.api is an Api instance with token and getFile
-    const api = ctx.api as unknown as { getFile: Function; token: string };
+    type TelegramFileApi = { getFile: (fileId: string) => Promise<{ file_path?: string }>; token: string };
+    const api = ctx.api as unknown as TelegramFileApi;
     const { buffer, tempPath, ext } = await downloadTelegramFile(
-      { api, token: api.token } as any,
+      { api, token: api.token } as unknown as Bot,
       lastPhoto.file_id,
     );
 

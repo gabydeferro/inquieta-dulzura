@@ -13,16 +13,16 @@ const bot = setupBot();
 // Capturar Ctrl+C para apagar el bot correctamente
 process.once('SIGINT', () => {
   console.log('\n🛑 Bot detenido');
-  bot.stop();
+  void bot.stop();
   process.exit(0);
 });
 
 process.once('SIGTERM', () => {
   console.log('\n🛑 Bot detenido');
-  bot.stop();
+  void bot.stop();
   process.exit(0);
 });
 
-bot.start();
+void bot.start();
 console.log('🤖 Bot de Telegram activo (modo polling)');
 console.log('   Presioná Ctrl+C para detenerlo');

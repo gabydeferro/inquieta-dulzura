@@ -44,7 +44,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   upload.single('archivo'),
-  async (req: AuthRequest, res: Response) => {
+  (req: AuthRequest, res: Response) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: 'No se proporcionó ningún archivo' });
@@ -64,7 +64,7 @@ router.post(
         return;
       }
 
-      const result = await contenidoDigitalService.crearImagen({
+      const result = contenidoDigitalService.crearImagen({
         productoId: parseInt(productoId, 10),
         titulo,
         descripcion,
@@ -88,7 +88,7 @@ router.post(
  * List all content, optionally filtered by productoId or etiqueta.
  * @access  Public
  */
-router.get('/', async (req: AuthRequest, res: Response) => {
+router.get('/', (req: AuthRequest, res: Response) => {
   try {
     const { productoId, etiqueta } = req.query as {
       productoId?: string;
@@ -98,11 +98,11 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     let result;
 
     if (productoId) {
-      result = await contenidoDigitalService.obtenerImagenesPorProducto(parseInt(productoId, 10));
+      result = contenidoDigitalService.obtenerImagenesPorProducto(parseInt(productoId, 10));
     } else if (etiqueta) {
-      result = await contenidoDigitalService.obtenerImagenesPorEtiqueta(etiqueta);
+      result = contenidoDigitalService.obtenerImagenesPorEtiqueta(etiqueta);
     } else {
-      result = await contenidoDigitalService.obtenerTodasLasImagenes();
+      result = contenidoDigitalService.obtenerTodasLasImagenes();
     }
 
     res.json(result);
@@ -118,9 +118,9 @@ router.get('/', async (req: AuthRequest, res: Response) => {
  * Find by primary key.
  * @access  Public
  */
-router.get('/:id', async (req: AuthRequest, res: Response) => {
+router.get('/:id', (req: AuthRequest, res: Response) => {
   try {
-    const result = await contenidoDigitalService.obtenerImagenPorId(parseInt(req.params.id, 10));
+    const result = contenidoDigitalService.obtenerImagenPorId(parseInt(req.params.id, 10));
 
     if (!result) {
       res.status(404).json({ error: 'Contenido digital no encontrado' });
@@ -145,7 +145,7 @@ router.put(
   authenticateToken,
   requireAdmin,
   upload.single('archivo'),
-  async (req: AuthRequest, res: Response) => {
+  (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
       const { titulo, descripcion, tipo, url } = req.body as {
@@ -167,7 +167,7 @@ router.put(
       }
       if (url !== undefined) updateData.url = url;
 
-      const result = await contenidoDigitalService.actualizarImagen(id, updateData);
+      const result = contenidoDigitalService.actualizarImagen(id, updateData);
 
       if (!result) {
         res.status(404).json({ error: 'Contenido digital no encontrado' });
@@ -192,10 +192,10 @@ router.delete(
   '/:id',
   authenticateToken,
   requireAdmin,
-  async (req: AuthRequest, res: Response) => {
+  (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const exists = await contenidoDigitalService.obtenerImagenPorId(id);
+      const exists = contenidoDigitalService.obtenerImagenPorId(id);
       if (!exists) {
         res.status(404).json({ error: 'Contenido digital no encontrado' });
         return;

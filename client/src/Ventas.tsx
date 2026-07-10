@@ -32,7 +32,6 @@ import {
   Trash2,
   BarChart3,
   TrendingUp,
-  X,
 } from 'lucide-react';
 
 interface ProductoVenta {

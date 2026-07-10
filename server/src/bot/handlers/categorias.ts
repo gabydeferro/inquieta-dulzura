@@ -96,12 +96,13 @@ export async function categoriaEliminarCommand(ctx: Context): Promise<void> {
       return;
     }
 
-    const deleted = await categoriaService.delete(parsed.data.id);
+    await categoriaService.delete(parsed.data.id);
     await ctx.reply(`✅ Categoría #${parsed.data.id} eliminada.`);
-  } catch (error: any) {
-    if (error?.message?.toLowerCase().includes('foreign key') ||
-        error?.message?.toLowerCase().includes('cannot delete') ||
-        error?.message?.toLowerCase().includes('parent row')) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    if (errMsg.includes('foreign key') ||
+        errMsg.includes('cannot delete') ||
+        errMsg.includes('parent row')) {
       await ctx.reply('❌ No se puede eliminar: tiene productos asociados.');
       return;
     }

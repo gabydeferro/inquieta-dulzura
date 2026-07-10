@@ -2,6 +2,41 @@ import axios from 'axios';
 import { getConfig } from '../config/instagram';
 import { InstagramToken, InstagramMetrics, InstagramComment } from '../types/instagram';
 
+// ── Instagram Graph API response shapes ──────────
+
+interface TokenExchangeResponse {
+  access_token: string;
+  expires_in: number;
+}
+
+interface MediaOperationResponse {
+  id: string;
+}
+
+interface MetricsResponse {
+  like_count?: number;
+  comments_count?: number;
+  reach?: number;
+  impressions?: number;
+  timestamp?: string;
+}
+
+interface CommentsListResponse {
+  data: Array<{
+    id: string;
+    text: string;
+    username: string;
+    timestamp: string;
+  }>;
+}
+
+interface InstagramApiErrorData {
+  error?: {
+    code?: number;
+    message?: string;
+  };
+}
+
 export class InstagramService {
   private baseUrl = 'https://graph.facebook.com/v21.0';
   private token: InstagramToken;
@@ -41,7 +76,7 @@ export class InstagramService {
   async exchangeToken(shortLivedToken: string): Promise<InstagramToken> {
     const config = getConfig();
     try {
-      const response = await axios.get(`${this.baseUrl}/oauth/access_token`, {
+      const response = await axios.get<TokenExchangeResponse>(`${this.baseUrl}/oauth/access_token`, {
         params: {
           grant_type: 'fb_exchange_token',
           client_id: config.appId,
@@ -59,8 +94,9 @@ export class InstagramService {
       this.token = token;
       return token;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const message = error.response.data?.error?.message || 'Token exchange failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const message = apiError?.error?.message || 'Token exchange failed';
         throw new Error(`AuthError: ${message}`);
       }
       throw new Error('AuthError: Token exchange failed — network error');
@@ -74,7 +110,7 @@ export class InstagramService {
   async refreshToken(): Promise<void> {
     const config = getConfig();
     try {
-      const response = await axios.get(`${this.baseUrl}/oauth/access_token`, {
+      const response = await axios.get<TokenExchangeResponse>(`${this.baseUrl}/oauth/access_token`, {
         params: {
           grant_type: 'fb_exchange_token',
           client_id: config.appId,
@@ -91,9 +127,10 @@ export class InstagramService {
 
       console.log('Instagram token refreshed — expires in', expires_in, 'seconds');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const code = error.response.data?.error?.code;
-        const message = error.response.data?.error?.message || 'Token refresh failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const code = apiError?.error?.code;
+        const message = apiError?.error?.message || 'Token refresh failed';
         if (code === 190) {
           throw new Error('ExpiredTokenError: Token is expired and cannot be refreshed');
         }
@@ -116,7 +153,7 @@ export class InstagramService {
     const config = getConfig();
 
     try {
-      const response = await axios.post(`${this.baseUrl}/${config.businessId}/media`, {
+      const response = await axios.post<MediaOperationResponse>(`${this.baseUrl}/${config.businessId}/media`, {
         image_url: imageUrl,
         caption,
         access_token: this.token.accessToken,
@@ -124,8 +161,9 @@ export class InstagramService {
 
       return response.data.id;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const message = error.response.data?.error?.message || 'Media upload failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const message = apiError?.error?.message || 'Media upload failed';
         throw new Error(`ValidationError: ${message}`);
       }
       throw new Error('ValidationError: Media upload failed — network error');
@@ -141,16 +179,17 @@ export class InstagramService {
     const config = getConfig();
 
     try {
-      const response = await axios.post(`${this.baseUrl}/${config.businessId}/media_publish`, {
+      const response = await axios.post<MediaOperationResponse>(`${this.baseUrl}/${config.businessId}/media_publish`, {
         creation_id: containerId,
         access_token: this.token.accessToken,
       });
 
       return response.data.id;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const code = error.response.data?.error?.code;
-        const message = error.response.data?.error?.message || 'Publish failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const code = apiError?.error?.code;
+        const message = apiError?.error?.message || 'Publish failed';
         if (code === 4 || code === 17) {
           throw new Error(`RateLimitError: ${message}`);
         }
@@ -180,7 +219,7 @@ export class InstagramService {
     await this.ensureValidToken();
 
     try {
-      const response = await axios.get(`${this.baseUrl}/${instagramPostId}`, {
+      const response = await axios.get<MetricsResponse>(`${this.baseUrl}/${instagramPostId}`, {
         params: {
           fields: 'like_count,comments_count,reach,impressions,timestamp',
           access_token: this.token.accessToken,
@@ -226,9 +265,10 @@ export class InstagramService {
 
       return metrics;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const code = error.response.data?.error?.code;
-        const message = error.response.data?.error?.message || 'Metrics fetch failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const code = apiError?.error?.code;
+        const message = apiError?.error?.message || 'Metrics fetch failed';
         if (code === 100) {
           throw new Error(`NotFoundError: Post no longer available — ${message}`);
         }
@@ -249,22 +289,23 @@ export class InstagramService {
     await this.ensureValidToken();
 
     try {
-      const response = await axios.get(`${this.baseUrl}/${instagramPostId}/comments`, {
+      const response = await axios.get<CommentsListResponse>(`${this.baseUrl}/${instagramPostId}/comments`, {
         params: {
           fields: 'text,username,timestamp',
           access_token: this.token.accessToken,
         },
       });
 
-      return (response.data.data || []).map((c: any) => ({
+      return (response.data.data || []).map((c) => ({
         id: c.id,
         text: c.text,
         username: c.username,
         timestamp: c.timestamp,
       }));
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const message = error.response.data?.error?.message || 'Comments fetch failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const message = apiError?.error?.message || 'Comments fetch failed';
         throw new Error(`ValidationError: ${message}`);
       }
       throw new Error('ValidationError: Comments fetch failed — network error');
@@ -283,9 +324,10 @@ export class InstagramService {
         access_token: this.token.accessToken,
       });
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const code = error.response.data?.error?.code;
-        const message = error.response.data?.error?.message || 'Reply failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const code = apiError?.error?.code;
+        const message = apiError?.error?.message || 'Reply failed';
         if (code === 100) {
           throw new Error(`NotFoundError: ${message}`);
         }
@@ -306,8 +348,9 @@ export class InstagramService {
         access_token: this.token.accessToken,
       });
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const message = error.response.data?.error?.message || 'Hide failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const message = apiError?.error?.message || 'Hide failed';
         throw new Error(`ValidationError: ${message}`);
       }
       throw new Error('ValidationError: Hide failed — network error');
@@ -325,8 +368,9 @@ export class InstagramService {
         access_token: this.token.accessToken,
       });
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        const message = error.response.data?.error?.message || 'Unhide failed';
+      if (axios.isAxiosError<InstagramApiErrorData>(error) && error.response) {
+        const apiError = error.response.data;
+        const message = apiError?.error?.message || 'Unhide failed';
         throw new Error(`ValidationError: ${message}`);
       }
       throw new Error('ValidationError: Unhide failed — network error');

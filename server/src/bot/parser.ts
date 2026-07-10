@@ -122,7 +122,7 @@ const VALID_CAMPOS_RECETA = ['nombre', 'descripcion', 'instrucciones', 'tiempo_p
 /**
  * Extrae parámetros de /recetas (listar)
  */
-export function parseRecetasListar(text: string): ParseResult<{}> {
+export function parseRecetasListar(text: string): ParseResult<Record<string, never>> {
   const match = text.match(/^\/recetas$/);
   if (!match) return { success: false, error: 'Formato: /recetas' };
   return { success: true, data: {} };

@@ -164,10 +164,11 @@ export async function productoEliminarCommand(ctx: Context): Promise<void> {
     }
 
     await ctx.reply(`✅ Producto #${parsed.data.id} eliminado.`);
-  } catch (error: any) {
-    if (error?.message?.toLowerCase().includes('foreign key') ||
-        error?.message?.toLowerCase().includes('cannot delete') ||
-        error?.message?.toLowerCase().includes('parent row')) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    if (errMsg.includes('foreign key') ||
+        errMsg.includes('cannot delete') ||
+        errMsg.includes('parent row')) {
       await ctx.reply('❌ No se puede eliminar: tiene stock, fotos o ventas asociadas.');
       return;
     }

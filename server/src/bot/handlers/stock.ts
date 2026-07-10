@@ -1,6 +1,6 @@
 import { Context } from 'grammy';
 import { connection } from '../../db';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { RowDataPacket } from 'mysql2';
 
 interface LowStockRow {
   producto_id: number;

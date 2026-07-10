@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, EyeOff, Eye, Reply } from 'lucide-react';
+import { MessageCircle, EyeOff, Reply } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
 import api from '../services/api';
 import type { InstagramComment } from '../types/instagram';
@@ -56,16 +56,6 @@ export const InstagramCommentManager: React.FC<InstagramCommentManagerProps> = (
       void loadComments();
     } catch {
       showNotification('Error al ocultar comentario', 'error');
-    }
-  };
-
-  const handleUnhide = async (commentId: string) => {
-    try {
-      await api.instagramUnhideComment(commentId);
-      showNotification('✅ Comentario visible nuevamente', 'success');
-      void loadComments();
-    } catch {
-      showNotification('Error al mostrar comentario', 'error');
     }
   };
 

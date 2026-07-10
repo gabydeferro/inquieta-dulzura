@@ -19,7 +19,7 @@ export class InstagramController {
    */
   uploadMedia = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { productId, imageUrl, caption } = req.body;
+      const { productId, imageUrl, caption } = req.body as { productId?: string; imageUrl?: string; caption?: string };
 
       if (!imageUrl || !caption) {
         res.status(400).json({ success: false, message: 'imageUrl and caption are required' });
@@ -40,7 +40,7 @@ export class InstagramController {
    */
   publishPost = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { productId, containerId, caption } = req.body;
+      const { productId, containerId, caption } = req.body as { productId?: string; containerId?: string; caption?: string };
 
       if (!containerId) {
         res.status(400).json({ success: false, message: 'containerId is required' });
@@ -59,7 +59,7 @@ export class InstagramController {
    * GET /api/instagram/products/:productId/post
    * Get Instagram post status for a product.
    */
-  getPostStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  getPostStatus = (req: AuthRequest, res: Response): void => {
     try {
       const { productId } = req.params;
 
@@ -129,7 +129,7 @@ export class InstagramController {
   replyToComment = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { commentId } = req.params;
-      const { text } = req.body;
+      const { text } = req.body as { text?: string };
 
       if (!text) {
         res.status(400).json({ success: false, message: 'text is required' });
