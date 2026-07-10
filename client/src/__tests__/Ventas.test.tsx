@@ -53,18 +53,6 @@ describe('Ventas Component', () => {
       expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     });
 
-  /** Names in the internal mock data (fallback, ~6-8 records) */
-  const internalMockNames = [
-    'María García',
-    'Juan Pérez',
-    'Carlos López',
-    'Ana Martínez',
-    'Pedro Ramírez',
-    'Laura Fernández',
-    'Diego Sánchez',
-    'Sofía Torres',
-  ];
-
   // ── Render & fetch ──────────────────────────────────────────
 
   it('shows loading state while fetching', () => {

@@ -269,7 +269,7 @@ const Recetas: React.FC = () => {
     }
   };
 
-  const getIngredientName = (ing: RecetaDTO['ingredientes'][number]): string => {
+  const getIngredientName = (ing: NonNullable<RecetaDTO['ingredientes']>[number]): string => {
     return ing.ingrediente?.nombre || `ID: ${ing.ingrediente_id}`;
   };
 

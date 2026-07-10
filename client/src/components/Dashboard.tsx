@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const [fotosRes] = await Promise.all([api.get('/fotos/estadisticas')]);
+      const [fotosRes] = await Promise.all([api.get<{ total_fotos: number }>('/fotos/estadisticas')]);
 
       setStats({
         totalProductos: 0,

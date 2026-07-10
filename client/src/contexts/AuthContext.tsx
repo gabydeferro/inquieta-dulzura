@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get<{ usuario: Usuario }>('/auth/me');
       setUser(response.data.usuario);
     } catch (error) {
       console.error('Error al verificar autenticación:', error);
@@ -63,7 +63,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post<{
+        success: boolean;
+        tokens: { accessToken: string; refreshToken: string };
+        usuario: Usuario;
+        message?: string;
+      }>('/auth/login', { email, password });
 
       if (response.data.success) {
         const { accessToken, refreshToken } = response.data.tokens;
@@ -81,7 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, nombre: string) => {
     try {
-      const response = await api.post('/auth/register', { email, password, nombre });
+      const response = await api.post<{
+        success: boolean;
+        tokens: { accessToken: string; refreshToken: string };
+        usuario: Usuario;
+        message?: string;
+      }>('/auth/register', { email, password, nombre });
 
       if (response.data.success) {
         const { accessToken, refreshToken } = response.data.tokens;

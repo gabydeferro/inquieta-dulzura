@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { InstagramCaptionEditor } from '../components/InstagramCaptionEditor';
 

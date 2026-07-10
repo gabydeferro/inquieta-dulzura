@@ -1,9 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import api from '../services/api';
 
 describe('Instagram API methods', () => {
-  let postSpy: ReturnType<typeof vi.spyOn>;
-  let getSpy: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let postSpy: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let getSpy: any;
 
   beforeEach(() => {
     postSpy = vi.spyOn(api, 'post').mockResolvedValue({ data: {} } as never);

@@ -28,7 +28,7 @@ const Categorias: React.FC = () => {
   const cargarCategorias = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/categorias');
+      const response = await api.get<Categoria[]>('/categorias');
       setCategorias(response.data);
     } catch (error) {
       console.error('Error al cargar categorías:', error);

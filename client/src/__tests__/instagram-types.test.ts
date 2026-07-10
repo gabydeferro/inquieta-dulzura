@@ -1,9 +1,10 @@
 import { describe, test, expect } from 'vitest';
+import type { InstagramPost, InstagramMetrics, InstagramComment } from '../types/instagram';
 
 describe('Instagram client types', () => {
   test('InstagramPost interface shape', async () => {
-    const types = await import('../types/instagram');
-    const post: types.InstagramPost = {
+    await import('../types/instagram');
+    const post: InstagramPost = {
       id: 1,
       productId: 42,
       instagramPostId: 'ig-post-123',
@@ -20,12 +21,12 @@ describe('Instagram client types', () => {
   });
 
   test('InstagramPost supports all statuses', async () => {
-    const types = await import('../types/instagram');
-    const draft: types.InstagramPost = {
+    await import('../types/instagram');
+    const draft: InstagramPost = {
       id: 1, productId: 1, instagramPostId: '', status: 'draft',
       caption: '', mediaUrl: '',
     };
-    const failed: types.InstagramPost = {
+    const failed: InstagramPost = {
       id: 2, productId: 1, instagramPostId: '', status: 'failed',
       caption: '', mediaUrl: '', errorMessage: 'API error',
     };
@@ -35,8 +36,8 @@ describe('Instagram client types', () => {
   });
 
   test('InstagramMetrics interface shape', async () => {
-    const types = await import('../types/instagram');
-    const metrics: types.InstagramMetrics = {
+    await import('../types/instagram');
+    const metrics: InstagramMetrics = {
       likeCount: 42,
       commentCount: 7,
       reach: 1200,
@@ -49,8 +50,8 @@ describe('Instagram client types', () => {
   });
 
   test('InstagramComment interface shape', async () => {
-    const types = await import('../types/instagram');
-    const comment: types.InstagramComment = {
+    await import('../types/instagram');
+    const comment: InstagramComment = {
       id: 'comment-abc',
       text: 'Great photo!',
       username: 'test_user',

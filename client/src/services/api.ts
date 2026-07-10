@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
+import { VentaResponse, VentaCreateInput } from '../types/Venta';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -192,6 +193,15 @@ class ApiService {
 
   async deleteReceta(id: number): Promise<AxiosResponse<void>> {
     return this.delete<void>(`/recetas/${id}`);
+  }
+
+  // Ventas
+  async getVentas(): Promise<AxiosResponse<VentaResponse[]>> {
+    return this.get<VentaResponse[]>('/ventas');
+  }
+
+  async createVenta(data: VentaCreateInput): Promise<AxiosResponse<VentaResponse>> {
+    return this.post<VentaResponse>('/ventas', data);
   }
 
   // --- Instagram Integration ---

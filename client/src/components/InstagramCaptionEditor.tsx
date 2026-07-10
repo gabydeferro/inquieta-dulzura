@@ -22,7 +22,7 @@ export interface InstagramCaptionEditorProps {
   onPublish: (caption: string, image?: File) => void;
 }
 
-export const InstagramCaptionEditor: React.FC<CameraCaptionEditorProps> = ({
+export const InstagramCaptionEditor: React.FC<InstagramCaptionEditorProps> = ({
   open,
   onOpenChange,
   productName,

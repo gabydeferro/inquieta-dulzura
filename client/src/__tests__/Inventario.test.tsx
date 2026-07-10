@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import Inventario from '../Inventario';
 import api from '../services/api';
+import type { AxiosResponse } from 'axios';
 
 // Mock the API service
 vi.mock('../services/api', () => ({
@@ -28,11 +29,6 @@ vi.mock('../contexts/ConfirmContext', () => ({
   useConfirm: () => mockConfirm,
   ConfirmProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-
-const mockCategorias = [
-  { id: 1, nombre: 'Tortas', activo: true },
-  { id: 2, nombre: 'Bebidas', activo: true },
-];
 
 const mockProductos = [
   {
@@ -76,7 +72,7 @@ const mockProductos = [
 describe('Inventario Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(api.get).mockResolvedValue({ data: mockProductos });
+    vi.mocked(api.get).mockResolvedValue({ data: mockProductos } as unknown as AxiosResponse);
   });
 
   afterEach(() => {

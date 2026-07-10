@@ -82,7 +82,7 @@ const Inventario: React.FC = () => {
 
   const cargarCategorias = async () => {
     try {
-      const response = await api.get('/categorias');
+      const response = await api.get<{ id: number; nombre: string }[]>('/categorias');
       setCategorias(response.data);
       if (response.data.length > 0 && !formData.categoria_id) {
         setFormData((prev) => ({ ...prev, categoria_id: response.data[0].id.toString() }));
@@ -94,7 +94,7 @@ const Inventario: React.FC = () => {
 
   const cargarProductos = async () => {
     try {
-      const response = await api.get('/productos');
+      const response = await api.get<ProductoConStock[]>('/productos');
       setProductos(response.data);
     } catch (error) {
       console.error('Error al cargar productos:', error);

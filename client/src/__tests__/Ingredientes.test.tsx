@@ -66,7 +66,7 @@ describe('Ingredientes Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getIngredientes as vi.Mock).mockResolvedValue({ data: mockIngredientes });
+    vi.mocked(api.getIngredientes).mockResolvedValue({ data: mockIngredientes } as never);
   });
 
   it('should render the Ingredientes component and display ingredients', async () => {
@@ -122,15 +122,15 @@ describe('Ingredientes Component', () => {
     await user.clear(costoUnitarioInput);
     await user.type(costoUnitarioInput, '1.5');
 
-    (api.createIngrediente as vi.Mock).mockResolvedValueOnce({
+    vi.mocked(api.createIngrediente).mockResolvedValueOnce({
       data: { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
-    });
-    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({
+    } as never);
+    vi.mocked(api.getIngredientes).mockResolvedValueOnce({
       data: [
         ...mockIngredientes,
         { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
       ],
-    });
+    } as never);
 
     await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
@@ -180,12 +180,12 @@ describe('Ingredientes Component', () => {
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Harina Integral');
 
-    (api.updateIngrediente as vi.Mock).mockResolvedValueOnce({
+    vi.mocked(api.updateIngrediente).mockResolvedValueOnce({
       data: { ...mockIngredientes[0], nombre: 'Harina Integral' },
-    });
-    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({
+    } as never);
+    vi.mocked(api.getIngredientes).mockResolvedValueOnce({
       data: [{ ...mockIngredientes[0], nombre: 'Harina Integral' }, mockIngredientes[1]],
-    });
+    } as never);
 
     await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
@@ -210,9 +210,9 @@ describe('Ingredientes Component', () => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    (mockConfirm as vi.Mock).mockResolvedValueOnce(true);
-    (api.deleteIngrediente as vi.Mock).mockResolvedValueOnce({});
-    (api.getIngredientes as vi.Mock).mockResolvedValueOnce({ data: [mockIngredientes[1]] });
+    vi.mocked(mockConfirm).mockResolvedValueOnce(true);
+    vi.mocked(api.deleteIngrediente).mockResolvedValueOnce({} as never);
+    vi.mocked(api.getIngredientes).mockResolvedValueOnce({ data: [mockIngredientes[1]] } as never);
 
     await user.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
 
@@ -228,7 +228,7 @@ describe('Ingredientes Component', () => {
   });
 
   it('should show error notification on API failure during fetch', async () => {
-    (api.getIngredientes as vi.Mock).mockRejectedValueOnce(new Error('Network error'));
+    vi.mocked(api.getIngredientes).mockRejectedValueOnce(new Error('Network error'));
     renderIngredientes();
 
     await waitFor(() => {
@@ -252,7 +252,7 @@ describe('Ingredientes Component', () => {
     await user.type(nombreInput, 'Leche');
     await user.clear(costoUnitarioInput);
     await user.type(costoUnitarioInput, '1.5');
-    (api.createIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Creation failed'));
+    vi.mocked(api.createIngrediente).mockRejectedValueOnce(new Error('Creation failed'));
 
     await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
@@ -278,7 +278,7 @@ describe('Ingredientes Component', () => {
     const nombreInput = screen.getByDisplayValue('Harina');
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Harina Edit Failed');
-    (api.updateIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Update failed'));
+    vi.mocked(api.updateIngrediente).mockRejectedValueOnce(new Error('Update failed'));
 
     await user.click(screen.getByRole('button', { name: /Guardar/i }));
 
@@ -295,8 +295,8 @@ describe('Ingredientes Component', () => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    (mockConfirm as vi.Mock).mockResolvedValueOnce(true);
-    (api.deleteIngrediente as vi.Mock).mockRejectedValueOnce(new Error('Delete failed'));
+    vi.mocked(mockConfirm).mockResolvedValueOnce(true);
+    vi.mocked(api.deleteIngrediente).mockRejectedValueOnce(new Error('Delete failed'));
 
     await user.click(screen.getAllByRole('button', { name: /Eliminar/i })[0]);
 

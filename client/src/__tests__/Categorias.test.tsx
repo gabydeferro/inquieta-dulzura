@@ -50,7 +50,7 @@ describe('Categorias Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.get as vi.Mock).mockResolvedValue({ data: mockCategorias });
+    vi.mocked(api.get).mockResolvedValue({ data: mockCategorias } as never);
   });
 
   afterEach(() => {
@@ -135,13 +135,13 @@ describe('Categorias Component', () => {
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Panadería');
 
-    (api.post as vi.Mock).mockResolvedValueOnce({ data: { id: 3, nombre: 'Panadería' } });
-    (api.get as vi.Mock).mockResolvedValueOnce({
+    vi.mocked(api.post).mockResolvedValueOnce({ data: { id: 3, nombre: 'Panadería' } } as never);
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: [
         ...mockCategorias,
         { id: 3, nombre: 'Panadería', descripcion: '', created_at: '2024-06-29' },
       ],
-    });
+    } as never);
 
     await user.click(screen.getByRole('button', { name: /Crear/i }));
 

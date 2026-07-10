@@ -180,7 +180,7 @@ const Ventas: React.FC = () => {
   const cargarVentas = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.getVentas<VentaResponse[]>();
+      const response = await api.getVentas();
       if (Array.isArray(response.data)) {
         setVentas(response.data);
       }

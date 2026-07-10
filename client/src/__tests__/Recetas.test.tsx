@@ -98,8 +98,8 @@ describe('Recetas Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getRecetas as vi.Mock).mockResolvedValue({ data: mockRecetas });
-    (api.getIngredientes as vi.Mock).mockResolvedValue({ data: mockIngredientes });
+    vi.mocked(api.getRecetas).mockResolvedValue({ data: mockRecetas } as never);
+    vi.mocked(api.getIngredientes).mockResolvedValue({ data: mockIngredientes } as never);
   });
 
   // ── Render & Load ────────────────────────────────────────────
@@ -117,7 +117,7 @@ describe('Recetas Component', () => {
 
   it('shows loading state while fetching', async () => {
     // Don't resolve the promise yet
-    (api.getRecetas as vi.Mock).mockImplementationOnce(() => new Promise(() => {}));
+    vi.mocked(api.getRecetas).mockImplementationOnce(() => new Promise(() => {}));
 
     renderRecetas();
 
@@ -125,7 +125,7 @@ describe('Recetas Component', () => {
   });
 
   it('shows empty state when no recetas exist', async () => {
-    (api.getRecetas as vi.Mock).mockResolvedValueOnce({ data: [] });
+    vi.mocked(api.getRecetas).mockResolvedValueOnce({ data: [] } as never);
 
     renderRecetas();
 
@@ -135,7 +135,7 @@ describe('Recetas Component', () => {
   });
 
   it('shows error notification on fetch failure', async () => {
-    (api.getRecetas as vi.Mock).mockRejectedValueOnce(new Error('Network error'));
+    vi.mocked(api.getRecetas).mockRejectedValueOnce(new Error('Network error'));
 
     renderRecetas();
 
@@ -255,12 +255,12 @@ describe('Recetas Component', () => {
     await user.clear(porcionesInput);
     await user.type(porcionesInput, '4');
 
-    (api.createReceta as vi.Mock).mockResolvedValueOnce({
+    vi.mocked(api.createReceta).mockResolvedValueOnce({
       data: { id: 3, nombre: 'Nueva Receta Test', descripcion: 'Descripción de prueba', tiempo_preparacion: 30, porciones: 4, activo: true },
-    });
-    (api.getRecetas as vi.Mock).mockResolvedValueOnce({
+    } as never);
+    vi.mocked(api.getRecetas).mockResolvedValueOnce({
       data: [...mockRecetas, { id: 3, nombre: 'Nueva Receta Test', descripcion: 'Descripción de prueba', tiempo_preparacion: 30, porciones: 4, activo: true }],
-    });
+    } as never);
 
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
@@ -298,7 +298,7 @@ describe('Recetas Component', () => {
     await user.clear(porcionesInput);
     await user.type(porcionesInput, '4');
 
-    (api.createReceta as vi.Mock).mockRejectedValueOnce(new Error('Creation failed'));
+    vi.mocked(api.createReceta).mockRejectedValueOnce(new Error('Creation failed'));
 
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
@@ -328,12 +328,12 @@ describe('Recetas Component', () => {
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Torta de Chocolate Editada');
 
-    (api.updateReceta as vi.Mock).mockResolvedValueOnce({
+    vi.mocked(api.updateReceta).mockResolvedValueOnce({
       data: { ...mockRecetas[0], nombre: 'Torta de Chocolate Editada' },
-    });
-    (api.getRecetas as vi.Mock).mockResolvedValueOnce({
+    } as never);
+    vi.mocked(api.getRecetas).mockResolvedValueOnce({
       data: [{ ...mockRecetas[0], nombre: 'Torta de Chocolate Editada' }, mockRecetas[1]],
-    });
+    } as never);
 
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
@@ -362,7 +362,7 @@ describe('Recetas Component', () => {
     const nombreInput = screen.getByDisplayValue('Torta de Chocolate');
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Torta Edit Fail');
-    (api.updateReceta as vi.Mock).mockRejectedValueOnce(new Error('Update failed'));
+    vi.mocked(api.updateReceta).mockRejectedValueOnce(new Error('Update failed'));
 
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
@@ -411,9 +411,9 @@ describe('Recetas Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    (mockConfirm as vi.Mock).mockResolvedValueOnce(true);
-    (api.deleteReceta as vi.Mock).mockResolvedValueOnce({});
-    (api.getRecetas as vi.Mock).mockResolvedValueOnce({ data: [mockRecetas[1]] });
+    vi.mocked(mockConfirm).mockResolvedValueOnce(true);
+    vi.mocked(api.deleteReceta).mockResolvedValueOnce({} as never);
+    vi.mocked(api.getRecetas).mockResolvedValueOnce({ data: [mockRecetas[1]] } as never);
 
     await user.click(screen.getAllByTitle('Eliminar')[0]);
 
@@ -433,7 +433,7 @@ describe('Recetas Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    (mockConfirm as vi.Mock).mockResolvedValueOnce(false);
+    vi.mocked(mockConfirm).mockResolvedValueOnce(false);
 
     await user.click(screen.getAllByTitle('Eliminar')[0]);
 
@@ -452,8 +452,8 @@ describe('Recetas Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    (mockConfirm as vi.Mock).mockResolvedValueOnce(true);
-    (api.deleteReceta as vi.Mock).mockRejectedValueOnce(new Error('Delete failed'));
+    vi.mocked(mockConfirm).mockResolvedValueOnce(true);
+    vi.mocked(api.deleteReceta).mockRejectedValueOnce(new Error('Delete failed'));
 
     await user.click(screen.getAllByTitle('Eliminar')[0]);
 
