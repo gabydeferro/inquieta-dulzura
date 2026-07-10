@@ -18,6 +18,10 @@ interface ContenidoDigitalRow extends RowDataPacket {
   updated_at: Date;
 }
 
+function parseTags(raw: string): string[] {
+  return JSON.parse(raw) as string[];
+}
+
 // DTO ↔ DB column mapping helpers
 function rowToDTO(row: ContenidoDigitalRow): ContenidoDigitalDTO {
   return {
@@ -26,7 +30,7 @@ function rowToDTO(row: ContenidoDigitalRow): ContenidoDigitalDTO {
     url: row.url,
     titulo: row.titulo,
     descripcion: row.descripcion ?? undefined,
-    etiquetas: typeof row.etiquetas === 'string' ? JSON.parse(row.etiquetas) : (row.etiquetas as unknown as string[]),
+    etiquetas: typeof row.etiquetas === 'string' ? parseTags(row.etiquetas) : [],
     fechaSubida: row.fecha_subida,
     tipo: row.tipo,
     tamaño: row.tamaño ?? undefined,
