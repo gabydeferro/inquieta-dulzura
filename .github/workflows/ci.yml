@@ -48,6 +48,9 @@ jobs:
       - name: Build server
         run: npm run build:server
 
+      - name: Type-check client
+        run: npx tsc --noEmit -p client/tsconfig.json
+
       - name: Build client
         run: npm run build:client
 
