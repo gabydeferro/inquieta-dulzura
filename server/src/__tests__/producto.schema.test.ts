@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { productoSchema, productoUpdateSchema, productoIdSchema } from '../schemas/producto.schema';
+import { productoSchema, productoUpdateSchema, productoIdSchema, vinculoSchema } from '../schemas/producto.schema';
 
 describe('productoSchema', () => {
   it('should accept valid product data', () => {
@@ -113,6 +113,44 @@ describe('productoIdSchema', () => {
 
   it('should reject negative ID', () => {
     const result = productoIdSchema.safeParse({ id: '-1' });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('vinculoSchema', () => {
+  it('should accept valid vinculo payload', () => {
+    const result = vinculoSchema.safeParse({ receta_id: 3, cantidad_receta: 2.5 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.receta_id).toBe(3);
+      expect(result.data.cantidad_receta).toBe(2.5);
+    }
+  });
+
+  it('should default cantidad_receta to 1 when omitted', () => {
+    const result = vinculoSchema.safeParse({ receta_id: 3 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.cantidad_receta).toBe(1);
+    }
+  });
+
+  it('should reject missing receta_id', () => {
+    const result = vinculoSchema.safeParse({ cantidad_receta: 2 });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fieldErrors = result.error.issues.map((e) => e.path.join('.'));
+      expect(fieldErrors).toContain('receta_id');
+    }
+  });
+
+  it('should reject negative receta_id', () => {
+    const result = vinculoSchema.safeParse({ receta_id: -1, cantidad_receta: 1 });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject zero cantidad_receta', () => {
+    const result = vinculoSchema.safeParse({ receta_id: 3, cantidad_receta: 0 });
     expect(result.success).toBe(false);
   });
 });
