@@ -6,62 +6,44 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  DB_HOST: localhost
-  DB_USER: root
-  DB_PASSWORD: root
-  DB_NAME: inquieta_dulzura
-  DB_PORT: 3306
-
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: inquieta_dulzura
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
       - name: Lint
         run: npm run lint
 
-      - name: Build server
-        run: npm run build:server
+      - name: Build
+        run: npm run build
 
-      - name: Type-check client
-        run: npx tsc --noEmit -p client/tsconfig.json
-
-      - name: Build client
-        run: npm run build:client
-
-      - name: Test server
-        run: npm run test:server
+      - name: Run tests
+        run: npm test
         env:
           DB_HOST: localhost
           DB_USER: root
-          DB_PASSWORD: root
-          DB_NAME: inquieta_dulzura
+          DB_PASSWORD: ''
+          DB_NAME: test
           DB_PORT: 3306
-
-      - name: Test client
-        run: npm run test:client
+          JWT_SECRET: test-secret
+          TELEGRAM_BOT_TOKEN: ''
+          BOT_CHAT_IDS: ''
