@@ -21,6 +21,9 @@ import {
   parseRecetaIngredienteAgregar,
   parseRecetaIngredienteQuitar,
   parseRecetaIngredienteEditar,
+  parseRecetaProductosListar,
+  parseRecetaProductoVincular,
+  parseRecetaProductoDesvincular,
 } from '../../bot/parser';
 
 // ───── categoria ─────
@@ -536,6 +539,79 @@ describe('parseRecetaIngredienteEditar', () => {
 
   it('debe fallar si falta todo', () => {
     const result = parseRecetaIngredienteEditar('/receta ingrediente editar');
+    expect(result.success).toBe(false);
+  });
+});
+
+// ───── receta producto ─────
+
+describe('parseRecetaProductosListar', () => {
+  it('debe parsear /receta producto listar <id>', () => {
+    const result = parseRecetaProductosListar('/receta producto listar 5');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.receta_id).toBe(5);
+    }
+  });
+
+  it('debe fallar sin id', () => {
+    const result = parseRecetaProductosListar('/receta producto listar');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar con id no numerico', () => {
+    const result = parseRecetaProductosListar('/receta producto listar abc');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaProductoVincular', () => {
+  it('debe parsear /receta producto vincular <receta_id> <producto_id> <cantidad>', () => {
+    const result = parseRecetaProductoVincular('/receta producto vincular 5 3 200');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.receta_id).toBe(5);
+      expect(result.data.producto_id).toBe(3);
+      expect(result.data.cantidad_receta).toBe(200);
+    }
+  });
+
+  it('debe aceptar cantidad decimal', () => {
+    const result = parseRecetaProductoVincular('/receta producto vincular 1 2 1.5');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.cantidad_receta).toBe(1.5);
+    }
+  });
+
+  it('debe fallar si faltan parametros', () => {
+    const result = parseRecetaProductoVincular('/receta producto vincular 5 3');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar con id no numerico', () => {
+    const result = parseRecetaProductoVincular('/receta producto vincular abc 3 200');
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('parseRecetaProductoDesvincular', () => {
+  it('debe parsear /receta producto desvincular <receta_id> <producto_id>', () => {
+    const result = parseRecetaProductoDesvincular('/receta producto desvincular 5 3');
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.receta_id).toBe(5);
+      expect(result.data.producto_id).toBe(3);
+    }
+  });
+
+  it('debe fallar si faltan parametros', () => {
+    const result = parseRecetaProductoDesvincular('/receta producto desvincular 5');
+    expect(result.success).toBe(false);
+  });
+
+  it('debe fallar con ids no numericos', () => {
+    const result = parseRecetaProductoDesvincular('/receta producto desvincular abc def');
     expect(result.success).toBe(false);
   });
 });

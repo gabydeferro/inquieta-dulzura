@@ -6,7 +6,7 @@ import { productosCommand, productoCrearCommand, productoEditarCommand, producto
 import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from './handlers/ingredientes';
 import { stockCommand, stockSetCommand } from './handlers/stock';
 import { ventaCommand } from './handlers/ventas';
-import { recetasCommand, recetaVerCommand, recetaCrearCommand, recetaEditarCommand, recetaEliminarCommand, recetaIngredienteAgregarCommand, recetaIngredienteQuitarCommand, recetaIngredienteEditarCommand } from './handlers/recetas';
+import { recetasCommand, recetaVerCommand, recetaCrearCommand, recetaEditarCommand, recetaEliminarCommand, recetaIngredienteAgregarCommand, recetaIngredienteQuitarCommand, recetaIngredienteEditarCommand, recetaProductosListarCommand, recetaProductoVincularCommand, recetaProductoDesvincularCommand } from './handlers/recetas';
 import { fotoHandler } from './handlers/fotos';
 
 let botInstance: Bot | null = null;
@@ -77,6 +77,14 @@ export function setupBot(): Bot {
     if (text.startsWith('/receta ingrediente agregar')) return recetaIngredienteAgregarCommand(ctx);
     if (text.startsWith('/receta ingrediente quitar')) return recetaIngredienteQuitarCommand(ctx);
     if (text.startsWith('/receta ingrediente editar')) return recetaIngredienteEditarCommand(ctx);
+    return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
+  });
+  // Product sub-commands MUST register BEFORE /receta hears to avoid regex conflicts
+  bot.hears(/^\/receta producto (listar|vincular|desvincular)/, (ctx: Context) => {
+    const text = ctx.message?.text || '';
+    if (text.startsWith('/receta producto listar')) return recetaProductosListarCommand(ctx);
+    if (text.startsWith('/receta producto vincular')) return recetaProductoVincularCommand(ctx);
+    if (text.startsWith('/receta producto desvincular')) return recetaProductoDesvincularCommand(ctx);
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
   bot.hears(/^\/receta (crear|editar|eliminar|\d+)/, (ctx: Context) => {

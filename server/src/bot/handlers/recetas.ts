@@ -1,5 +1,6 @@
 import { Context } from 'grammy';
 import { RecetaService } from '../../services/RecetaService';
+import { ProductoService } from '../../services/ProductoService';
 import { connection } from '../../db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import {
@@ -11,9 +12,13 @@ import {
   parseRecetaIngredienteAgregar,
   parseRecetaIngredienteQuitar,
   parseRecetaIngredienteEditar,
+  parseRecetaProductosListar,
+  parseRecetaProductoVincular,
+  parseRecetaProductoDesvincular,
 } from '../parser';
 
 const recetaService = new RecetaService();
+const productoService = new ProductoService();
 
 /**
  * Helper: builds a field update object for RecetaService.update
@@ -319,6 +324,87 @@ export async function recetaIngredienteEditarCommand(ctx: Context): Promise<void
     await ctx.reply(`✅ Ingrediente #${ingrediente_id} actualizado en receta #${receta_id} (${cantidad} ${unidad_medida}).`);
   } catch (error) {
     console.error('Error en recetaIngredienteEditarCommand:', error);
+    await ctx.reply('Error interno. Intentalo de nuevo.');
+  }
+}
+
+/**
+ * Handler para /receta producto listar <receta_id> — lista productos que usa la receta
+ */
+export async function recetaProductosListarCommand(ctx: Context): Promise<void> {
+  try {
+    const text = ctx.message?.text || '';
+    const parsed = parseRecetaProductosListar(text);
+
+    if (!parsed.success) {
+      await ctx.reply(`❌ ${parsed.error}`);
+      return;
+    }
+
+    const productos = await recetaService.getProductosByReceta(parsed.data.receta_id);
+
+    if (productos.length === 0) {
+      await ctx.reply(`Sin productos vinculados a la receta #${parsed.data.receta_id}.`);
+      return;
+    }
+
+    const lines = productos.map((p) => `  • *${p.nombre}* — ${p.cantidad_receta} uds.`);
+    await ctx.reply(`📦 *Productos de receta #${parsed.data.receta_id}*\n\n${lines.join('\n')}`, {
+      parse_mode: 'Markdown',
+    });
+  } catch (error) {
+    console.error('Error en recetaProductosListarCommand:', error);
+    await ctx.reply('Error interno. Intentalo de nuevo.');
+  }
+}
+
+/**
+ * Handler para /receta producto vincular <receta_id> <producto_id> <cantidad>
+ */
+export async function recetaProductoVincularCommand(ctx: Context): Promise<void> {
+  try {
+    const text = ctx.message?.text || '';
+    const parsed = parseRecetaProductoVincular(text);
+
+    if (!parsed.success) {
+      await ctx.reply(`❌ ${parsed.error}`);
+      return;
+    }
+
+    const { receta_id, producto_id, cantidad_receta } = parsed.data;
+    await productoService.vincular(producto_id, receta_id, cantidad_receta);
+
+    await ctx.reply(`✅ Producto #${producto_id} vinculado a receta #${receta_id} (${cantidad_receta} uds.).`);
+  } catch (error) {
+    console.error('Error en recetaProductoVincularCommand:', error);
+    await ctx.reply('Error interno. Intentalo de nuevo.');
+  }
+}
+
+/**
+ * Handler para /receta producto desvincular <receta_id> <producto_id>
+ */
+export async function recetaProductoDesvincularCommand(ctx: Context): Promise<void> {
+  try {
+    const text = ctx.message?.text || '';
+    const parsed = parseRecetaProductoDesvincular(text);
+
+    if (!parsed.success) {
+      await ctx.reply(`❌ ${parsed.error}`);
+      return;
+    }
+
+    const { receta_id, producto_id } = parsed.data;
+    const deleted = await productoService.desvincular(producto_id, receta_id);
+
+    if (!deleted) {
+      await ctx.reply(`❌ Vínculo entre producto #${producto_id} y receta #${receta_id} no encontrado.`);
+      return;
+    }
+
+    await ctx.reply(`✅ Producto #${producto_id} desvinculado de receta #${receta_id}.`);
+  } catch (error) {
+    console.error('Error en recetaProductoDesvincularCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
   }
 }

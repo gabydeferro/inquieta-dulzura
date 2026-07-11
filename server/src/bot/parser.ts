@@ -240,6 +240,42 @@ export function parseRecetaIngredienteEditar(
 }
 
 /**
+ * Extrae parámetros de /receta producto listar <receta_id>
+ */
+export function parseRecetaProductosListar(text: string): ParseResult<{ receta_id: number }> {
+  const match = text.match(/^\/receta producto listar (\d+)$/);
+  if (!match) return { success: false, error: 'Formato: /receta producto listar <receta_id>' };
+  return { success: true, data: { receta_id: Number(match[1]) } };
+}
+
+/**
+ * Extrae parámetros de /receta producto vincular <receta_id> <producto_id> <cantidad>
+ */
+export function parseRecetaProductoVincular(
+  text: string,
+): ParseResult<{ receta_id: number; producto_id: number; cantidad_receta: number }> {
+  const match = text.match(/^\/receta producto vincular (\d+) (\d+) (\d+(?:\.\d+)?)$/);
+  if (!match) return { success: false, error: 'Formato: /receta producto vincular <receta_id> <producto_id> <cantidad>' };
+  return {
+    success: true,
+    data: {
+      receta_id: Number(match[1]),
+      producto_id: Number(match[2]),
+      cantidad_receta: Number(match[3]),
+    },
+  };
+}
+
+/**
+ * Extrae parámetros de /receta producto desvincular <receta_id> <producto_id>
+ */
+export function parseRecetaProductoDesvincular(text: string): ParseResult<{ receta_id: number; producto_id: number }> {
+  const match = text.match(/^\/receta producto desvincular (\d+) (\d+)$/);
+  if (!match) return { success: false, error: 'Formato: /receta producto desvincular <receta_id> <producto_id>' };
+  return { success: true, data: { receta_id: Number(match[1]), producto_id: Number(match[2]) } };
+}
+
+/**
  * Extrae la cadena de items de /venta <id:cant> [id:cant...]
  */
 export function parseVenta(text: string): ParseResult<string> {

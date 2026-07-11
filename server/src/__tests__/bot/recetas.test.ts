@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockQuery } = vi.hoisted(() => ({
+const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockGetProductosByReceta, mockVincular, mockDesvincular, mockQuery } = vi.hoisted(() => ({
   mockGetAll: vi.fn(),
   mockGetById: vi.fn(),
   mockCreate: vi.fn(),
   mockUpdate: vi.fn(),
+  mockGetProductosByReceta: vi.fn(),
+  mockVincular: vi.fn(),
+  mockDesvincular: vi.fn(),
   mockQuery: vi.fn(),
 }));
 
@@ -14,6 +17,14 @@ vi.mock('../../services/RecetaService', () => ({
     getById = mockGetById;
     create = mockCreate;
     update = mockUpdate;
+    getProductosByReceta = mockGetProductosByReceta;
+  },
+}));
+
+vi.mock('../../services/ProductoService', () => ({
+  ProductoService: class {
+    vincular = mockVincular;
+    desvincular = mockDesvincular;
   },
 }));
 
@@ -30,6 +41,9 @@ import {
   recetaIngredienteAgregarCommand,
   recetaIngredienteQuitarCommand,
   recetaIngredienteEditarCommand,
+  recetaProductosListarCommand,
+  recetaProductoVincularCommand,
+  recetaProductoDesvincularCommand,
 } from '../../bot/handlers/recetas';
 
 function createMockCtx() {
@@ -448,6 +462,129 @@ describe('recetaIngredienteEditarCommand', () => {
     await recetaIngredienteEditarCommand(ctx);
 
     expect(mockQuery).not.toHaveBeenCalled();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText.toLowerCase()).toContain('formato');
+  });
+});
+
+// ───── receta producto ─────
+
+describe('recetaProductosListarCommand', () => {
+  beforeEach(() => {
+    mockGetProductosByReceta.mockReset();
+  });
+
+  it('debe listar productos vinculados a una receta', async () => {
+    mockGetProductosByReceta.mockResolvedValue([
+      { producto_id: 1, nombre: 'Pan de masa madre', cantidad_receta: 2 },
+      { producto_id: 3, nombre: 'Medialunas', cantidad_receta: 6 },
+    ]);
+
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto listar 5';
+    await recetaProductosListarCommand(ctx);
+
+    expect(mockGetProductosByReceta).toHaveBeenCalledWith(5);
+    expect(ctx.reply).toHaveBeenCalledOnce();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText).toContain('Pan de masa madre');
+    expect(replyText).toContain('Medialunas');
+    expect(replyText).toContain('2');
+    expect(replyText).toContain('6');
+  });
+
+  it('debe responder si la receta no tiene productos', async () => {
+    mockGetProductosByReceta.mockResolvedValue([]);
+
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto listar 5';
+    await recetaProductosListarCommand(ctx);
+
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText.toLowerCase()).toContain('sin productos');
+  });
+
+  it('debe responder error de parseo si falta id', async () => {
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto listar';
+    await recetaProductosListarCommand(ctx);
+
+    expect(mockGetProductosByReceta).not.toHaveBeenCalled();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText.toLowerCase()).toContain('formato');
+  });
+});
+
+describe('recetaProductoVincularCommand', () => {
+  beforeEach(() => {
+    mockVincular.mockReset();
+  });
+
+  it('debe vincular producto a receta y confirmar', async () => {
+    mockVincular.mockResolvedValue({ producto_id: 3, receta_id: 5, cantidad_receta: 200 });
+
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto vincular 5 3 200';
+    await recetaProductoVincularCommand(ctx);
+
+    expect(mockVincular).toHaveBeenCalledWith(3, 5, 200);
+    expect(ctx.reply).toHaveBeenCalledOnce();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText).toContain('#3');
+    expect(replyText).toContain('#5');
+    expect(replyText).toContain('200');
+    expect(replyText.toLowerCase()).toContain('vinculado');
+  });
+
+  it('debe responder error de parseo si faltan parametros', async () => {
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto vincular 5 3';
+    await recetaProductoVincularCommand(ctx);
+
+    expect(mockVincular).not.toHaveBeenCalled();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText.toLowerCase()).toContain('formato');
+  });
+});
+
+describe('recetaProductoDesvincularCommand', () => {
+  beforeEach(() => {
+    mockDesvincular.mockReset();
+  });
+
+  it('debe desvincular producto de receta y confirmar', async () => {
+    mockDesvincular.mockResolvedValue(true);
+
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto desvincular 5 3';
+    await recetaProductoDesvincularCommand(ctx);
+
+    expect(mockDesvincular).toHaveBeenCalledWith(3, 5);
+    expect(ctx.reply).toHaveBeenCalledOnce();
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText).toContain('#3');
+    expect(replyText).toContain('#5');
+    expect(replyText.toLowerCase()).toContain('desvinculado');
+  });
+
+  it('debe responder si el vinculo no existe', async () => {
+    mockDesvincular.mockResolvedValue(false);
+
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto desvincular 999 888';
+    await recetaProductoDesvincularCommand(ctx);
+
+    expect(mockDesvincular).toHaveBeenCalledWith(888, 999);
+    const replyText: string = ctx.reply.mock.calls[0][0];
+    expect(replyText.toLowerCase()).toContain('no encontrado');
+  });
+
+  it('debe responder error de parseo si faltan parametros', async () => {
+    const ctx = createMockCtx() as any;
+    ctx.message.text = '/receta producto desvincular 5';
+    await recetaProductoDesvincularCommand(ctx);
+
+    expect(mockDesvincular).not.toHaveBeenCalled();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText.toLowerCase()).toContain('formato');
   });

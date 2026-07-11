@@ -52,6 +52,7 @@ describe('ayudaCommand', () => {
     expect(replyText.toLowerCase()).toContain('/categoria');
     expect(replyText.toLowerCase()).toContain('/producto');
     expect(replyText.toLowerCase()).toContain('/ingrediente');
+    expect(replyText.toLowerCase()).toContain('/receta');
     expect(replyText.toLowerCase()).toContain('/stock');
     expect(replyText.toLowerCase()).toContain('/venta');
   });
