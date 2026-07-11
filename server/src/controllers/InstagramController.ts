@@ -1,6 +1,8 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthRequest } from '../types/express';
 import { InstagramService } from '../services/InstagramService';
+import { InstagramWebhookNotification } from '../types/instagram';
+import { notifyTelegram } from '../bot/notifier';
 
 export class InstagramController {
   private service: InstagramService;
@@ -189,6 +191,61 @@ export class InstagramController {
       res.json({ success: true, message: 'Token refreshed' });
     } catch (error) {
       this.handleError(error, res);
+    }
+  };
+
+  // ========================================
+  // WEBHOOKS (Meta verification + notifications)
+  // ========================================
+
+  /**
+   * GET /api/instagram/webhook
+   * Meta envía esto para verificar que el webhook es nuestro.
+   * Debemos devolver hub.challenge si hub.verify_token coincide.
+   */
+  handleWebhookVerification = (req: Request, res: Response): void => {
+    const mode = req.query['hub.mode'] as string | undefined;
+    const token = req.query['hub.verify_token'] as string | undefined;
+    const challenge = req.query['hub.challenge'] as string | undefined;
+
+    if (!mode || !token) {
+      res.status(400).send('Missing hub.mode or hub.verify_token');
+      return;
+    }
+
+    if (mode !== 'subscribe') {
+      res.status(400).send('Invalid hub.mode');
+      return;
+    }
+
+    const verified = this.service.verifyWebhookToken(token);
+    if (!verified) {
+      res.status(403).send('Token de verificación inválido');
+      return;
+    }
+
+    res.status(200).send(challenge);
+  };
+
+  /**
+   * POST /api/instagram/webhook
+   * Meta envía notificaciones en tiempo real (comentarios, mensajes, etc.).
+   * Las reenviamos a Telegram si hay un chat configurado.
+   */
+  handleWebhookNotification = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const payload = req.body as InstagramWebhookNotification;
+
+      // Meta espera 200 OK rápido — procesamos async después
+      res.status(200).send('EVENT_RECEIVED');
+
+      const message = this.service.processWebhookNotification(payload);
+      if (message) {
+        await notifyTelegram(message);
+      }
+    } catch (error) {
+      // No lanzamos error al caller — Meta ya recibió su 200
+      console.error('Error procesando webhook de Instagram:', error);
     }
   };
 

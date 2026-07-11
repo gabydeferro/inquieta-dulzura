@@ -7,6 +7,7 @@ interface InstagramConfig {
   appSecret: string;
   accessToken: string;
   businessId: string;
+  webhookVerifyToken: string;
   configured: boolean;
 }
 
@@ -19,6 +20,7 @@ function loadConfig(): InstagramConfig {
     appSecret: process.env.META_APP_SECRET || '',
     accessToken: process.env.INSTAGRAM_ACCESS_TOKEN || '',
     businessId: process.env.INSTAGRAM_BUSINESS_ID || '',
+    webhookVerifyToken: process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN || '',
     get configured() {
       return !!(this.appId && this.appSecret && this.accessToken && this.businessId);
     },

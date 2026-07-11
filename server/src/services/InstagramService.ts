@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getConfig } from '../config/instagram';
-import { InstagramToken, InstagramMetrics, InstagramComment } from '../types/instagram';
+import { InstagramToken, InstagramMetrics, InstagramComment, InstagramWebhookNotification } from '../types/instagram';
 
 // ── Instagram Graph API response shapes ──────────
 
@@ -355,6 +355,74 @@ export class InstagramService {
       }
       throw new Error('ValidationError: Hide failed — network error');
     }
+  }
+
+  // ========================================
+  // WEBHOOKS
+  // ========================================
+
+  /**
+   * Verifica el token de verificación del webhook (Meta handshake).
+   * Retorna el challenge si el token coincide, o null si no.
+   */
+  verifyWebhookToken(token: string): string | null {
+    const config = getConfig();
+    if (token === config.webhookVerifyToken) {
+      return token; // Meta espera devolver el mismo challenge
+    }
+    return null;
+  }
+
+  /**
+   * Procesa una notificación de webhook entrante y extrae
+   * un mensaje legible para reenviar a Telegram.
+   * Retorna null si no hay nada que notificar.
+   */
+  processWebhookNotification(payload: InstagramWebhookNotification): string | null {
+    if (payload.object !== 'instagram') return null;
+
+    const messages: string[] = [];
+
+    for (const entry of payload.entry) {
+      for (const change of entry.changes) {
+        const value = change.value;
+
+        switch (change.field) {
+          case 'comments': {
+            const text = (value as any)?.text as string | undefined;
+            const username = (value as any)?.username as string | undefined;
+            const mediaId = (value as any)?.media_id as string | undefined;
+
+            if (text && username) {
+              messages.push(
+                `💬 *Nuevo comentario en Instagram*\n` +
+                `👤 ${username}: _${text}_` +
+                (mediaId ? `\n📷 Post: ${mediaId}` : ''),
+              );
+            }
+            break;
+          }
+
+          case 'messaging': {
+            const messageText = (value as any)?.message as string | undefined;
+            const senderName = (value as any)?.sender_name as string | undefined;
+
+            if (messageText && senderName) {
+              messages.push(
+                `✉️ *Nuevo mensaje en Instagram*\n` +
+                `👤 ${senderName}: _${messageText}_`,
+              );
+            }
+            break;
+          }
+
+          default:
+            break;
+        }
+      }
+    }
+
+    return messages.length > 0 ? messages.join('\n\n') : null;
   }
 
   /**
