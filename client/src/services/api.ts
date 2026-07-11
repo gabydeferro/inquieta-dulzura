@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
 import { VentaResponse, VentaCreateInput } from '../types/Venta';
+import { ProductoReceta, RecetaProducto } from '../types/Producto';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -193,6 +194,29 @@ class ApiService {
 
   async deleteReceta(id: number): Promise<AxiosResponse<void>> {
     return this.delete<void>(`/recetas/${id}`);
+  }
+
+  // --- Producto-Receta Vinculación ---
+  async getRecetasByProducto(productoId: number): Promise<AxiosResponse<ProductoReceta[]>> {
+    return this.get<ProductoReceta[]>(`/productos/${productoId}/recetas`);
+  }
+
+  async vincularProductoReceta(
+    productoId: number,
+    data: { receta_id: number; cantidad_receta: number },
+  ): Promise<AxiosResponse<ProductoReceta>> {
+    return this.post<ProductoReceta>(`/productos/${productoId}/recetas`, data);
+  }
+
+  async desvincularProductoReceta(
+    productoId: number,
+    recetaId: number,
+  ): Promise<AxiosResponse<void>> {
+    return this.delete<void>(`/productos/${productoId}/recetas/${recetaId}`);
+  }
+
+  async getProductosByReceta(recetaId: number): Promise<AxiosResponse<RecetaProducto[]>> {
+    return this.get<RecetaProducto[]>(`/recetas/${recetaId}/productos`);
   }
 
   // Ventas

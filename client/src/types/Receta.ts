@@ -1,4 +1,5 @@
 import { Ingrediente } from './Ingrediente';
+import { RecetaProducto } from './Producto';
 
 export type UnidadMedida = 'kg' | 'litros' | 'unidades' | 'gramos' | 'ml';
 
@@ -21,6 +22,7 @@ export interface RecetaDTO {
   created_at?: Date;
   updated_at?: Date;
   ingredientes?: RecetaIngredienteDTO[];
+  productos?: RecetaProducto[];
 }
 
 export interface CreateRecetaDTO {

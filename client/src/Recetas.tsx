@@ -34,6 +34,7 @@ import {
   CookingPot,
   X,
   Pencil,
+  Package,
 } from 'lucide-react';
 
 interface FormIngrediente {
@@ -482,6 +483,37 @@ const Recetas: React.FC = () => {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Productos que usan esta receta */}
+              <div>
+                <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+                  <Package className="size-4" />
+                  Productos que usan esta receta
+                </h3>
+                <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-950/30">
+                  {selectedReceta.productos && selectedReceta.productos.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedReceta.productos.map((prod) => (
+                        <div
+                          key={prod.producto_id}
+                          className="flex items-center justify-between border-b border-blue-200/50 py-2 last:border-0 dark:border-blue-800/30"
+                        >
+                          <span className="font-medium text-blue-900 dark:text-blue-200">
+                            {prod.nombre}
+                          </span>
+                          <span className="font-semibold text-blue-800 dark:text-blue-300">
+                            Cant: {prod.cantidad_receta}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      No hay productos vinculados a esta receta
+                    </p>
+                  )}
                 </div>
               </div>
 

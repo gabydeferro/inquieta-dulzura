@@ -3,6 +3,7 @@ import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { inventarioCreateSchema, inventarioUpdateSchema } from './schemas/inventario.schema';
+import { ProductoReceta } from './types/Producto';
 import {
   Card,
   CardContent,
@@ -33,6 +34,8 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
+  Link,
+  X,
 } from 'lucide-react';
 
 interface Producto {
@@ -79,6 +82,12 @@ const Inventario: React.FC = () => {
     cantidad_minima: '',
     unidad_medida: 'unidades',
   });
+
+  // Vinculación state
+  const [recetasVinculadas, setRecetasVinculadas] = useState<ProductoReceta[]>([]);
+  const [todasLasRecetas, setTodasLasRecetas] = useState<{ id: number; nombre: string }[]>([]);
+  const [selectedRecetaId, setSelectedRecetaId] = useState<number | ''>('');
+  const [cantidadReceta, setCantidadReceta] = useState<number>(1);
 
   const cargarCategorias = async () => {
     try {
@@ -169,7 +178,7 @@ const Inventario: React.FC = () => {
     }
   };
 
-  const handleEdit = (producto: ProductoConStock) => {
+  const handleEdit = async (producto: ProductoConStock) => {
     setErrors({});
     setEditingProduct(producto);
     setFormData({
@@ -184,6 +193,19 @@ const Inventario: React.FC = () => {
       unidad_medida: producto.stock?.unidad_medida || 'unidades',
     });
     setShowModal(true);
+
+    // Load vinculación data and available recetas
+    try {
+      const [recetasResp, todasResp] = await Promise.all([
+        api.getRecetasByProducto(producto.id),
+        api.getRecetas(),
+      ]);
+      setRecetasVinculadas(recetasResp.data);
+      setTodasLasRecetas(todasResp.data);
+    } catch {
+      setRecetasVinculadas([]);
+      setTodasLasRecetas([]);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -207,6 +229,44 @@ const Inventario: React.FC = () => {
     }
   };
 
+  const handleVincularReceta = async () => {
+    if (!editingProduct || !selectedRecetaId) return;
+    try {
+      await api.vincularProductoReceta(editingProduct.id, {
+        receta_id: selectedRecetaId as number,
+        cantidad_receta: cantidadReceta,
+      });
+      const resp = await api.getRecetasByProducto(editingProduct.id);
+      setRecetasVinculadas(resp.data);
+      setSelectedRecetaId('');
+      setCantidadReceta(1);
+      showNotification('Receta vinculada con éxito', 'success');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      const errorMsg = err.response?.data?.message || 'Error al vincular receta';
+      showNotification(errorMsg, 'error');
+    }
+  };
+
+  const handleDesvincularReceta = async (recetaId: number) => {
+    if (!editingProduct) return;
+    const isConfirmed = await confirm({
+      title: 'Desvincular Receta',
+      message: '¿Estás seguro de desvincular esta receta del producto?',
+      confirmText: 'Desvincular',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!isConfirmed) return;
+    try {
+      await api.desvincularProductoReceta(editingProduct.id, recetaId);
+      setRecetasVinculadas((prev) => prev.filter((r) => r.receta_id !== recetaId));
+      showNotification('Receta desvinculada', 'info');
+    } catch {
+      showNotification('Error al desvincular receta', 'error');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       nombre: '',
@@ -220,6 +280,10 @@ const Inventario: React.FC = () => {
       unidad_medida: 'unidades',
     });
     setEditingProduct(null);
+    setRecetasVinculadas([]);
+    setTodasLasRecetas([]);
+    setSelectedRecetaId('');
+    setCantidadReceta(1);
   };
 
   const getStockStatus = (producto: ProductoConStock) => {
@@ -519,6 +583,88 @@ const Inventario: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Recetas vinculadas section */}
+            {editingProduct && (
+              <div className="border-t pt-4">
+                <h4 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <Link className="size-4" />
+                  Recetas vinculadas
+                </h4>
+
+                {/* Add receta form */}
+                <div className="mb-3 flex flex-wrap items-end gap-2">
+                  <div className="flex-1 min-w-[180px]">
+                    <Label className="text-xs">Receta</Label>
+                    <Select
+                      value={selectedRecetaId.toString()}
+                      onValueChange={(v) => setSelectedRecetaId(v ? parseInt(v) : '')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar receta..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {todasLasRecetas
+                          .filter((r) => !recetasVinculadas.some((v) => v.receta_id === r.id))
+                          .map((r) => (
+                            <SelectItem key={r.id} value={r.id.toString()}>
+                              {r.nombre}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-24">
+                    <Label className="text-xs">Cantidad</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={cantidadReceta}
+                      onChange={(e) => setCantidadReceta(parseFloat(e.target.value) || 1)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleVincularReceta}
+                    disabled={!selectedRecetaId}
+                  >
+                    <Plus className="size-4" />
+                    Vincular
+                  </Button>
+                </div>
+
+                {/* Linked recetas list */}
+                <div className="space-y-1 rounded-lg bg-muted/30 p-3">
+                  {recetasVinculadas.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No hay recetas vinculadas</p>
+                  )}
+                  {recetasVinculadas.map((receta) => (
+                    <div
+                      key={receta.receta_id}
+                      className="flex items-center justify-between border-b border-border/50 py-1.5 last:border-0"
+                    >
+                      <span className="text-sm font-medium">{receta.nombre}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          Cant: {receta.cantidad_receta}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => handleDesvincularReceta(receta.receta_id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <DialogFooter>
               <Button
