@@ -1,3 +1,9 @@
+export interface ProductoRecetaDTO {
+  receta_id: number;
+  nombre: string;
+  cantidad_receta: number;
+}
+
 export interface ProductoDTO {
   id: number;
   categoria_id: number;
@@ -7,6 +13,7 @@ export interface ProductoDTO {
   costo?: number;
   sku?: string;
   activo: boolean;
+  recetas?: ProductoRecetaDTO[];
 }
 
 export interface CreateProductoDTO {

@@ -32,7 +32,24 @@ export class ProductoService {
     if (rows.length === 0) {
       return null;
     }
-    return rows[0] as ProductoDTO;
+    const producto = rows[0] as ProductoDTO;
+
+    // Eager-load linked recipes
+    const [recetas] = await connection.query<RowDataPacket[]>(
+      `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
+       FROM producto_receta pr
+       JOIN recetas r ON pr.receta_id = r.id
+       WHERE pr.producto_id = ?`,
+      [id],
+    );
+
+    producto.recetas = recetas.map((row) => ({
+      receta_id: row.receta_id as number,
+      nombre: row.nombre as string,
+      cantidad_receta: row.cantidad_receta as number,
+    }));
+
+    return producto;
   }
 
   async create(data: CreateProductoDTO): Promise<ProductoDTO> {
@@ -74,6 +91,47 @@ export class ProductoService {
     const [result] = await connection.query<ResultSetHeader>('DELETE FROM productos WHERE id = ?', [
       id,
     ]);
+    return result.affectedRows > 0;
+  }
+
+  // --- Vinculación methods ---
+
+  async getRecetasByProducto(productoId: number): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
+       FROM producto_receta pr
+       JOIN recetas r ON pr.receta_id = r.id
+       WHERE pr.producto_id = ?`,
+      [productoId],
+    );
+    return rows.map((row) => ({
+      receta_id: row.receta_id as number,
+      nombre: row.nombre as string,
+      cantidad_receta: row.cantidad_receta as number,
+    }));
+  }
+
+  async vincular(
+    productoId: number,
+    recetaId: number,
+    cantidadReceta: number,
+  ): Promise<{ producto_id: number; receta_id: number; cantidad_receta: number }> {
+    await connection.query<ResultSetHeader>(
+      'INSERT INTO producto_receta (producto_id, receta_id, cantidad_receta) VALUES (?, ?, ?)',
+      [productoId, recetaId, cantidadReceta],
+    );
+    return {
+      producto_id: productoId,
+      receta_id: recetaId,
+      cantidad_receta: cantidadReceta,
+    };
+  }
+
+  async desvincular(productoId: number, recetaId: number): Promise<boolean> {
+    const [result] = await connection.query<ResultSetHeader>(
+      'DELETE FROM producto_receta WHERE producto_id = ? AND receta_id = ?',
+      [productoId, recetaId],
+    );
     return result.affectedRows > 0;
   }
 }

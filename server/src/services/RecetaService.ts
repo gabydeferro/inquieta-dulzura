@@ -57,6 +57,21 @@ export class RecetaService {
       },
     })) as RecetaIngredienteDTO[];
 
+    // Eager-load linked products
+    const [productos] = await connection.query<RowDataPacket[]>(
+      `SELECT pr.producto_id, p.nombre, pr.cantidad_receta
+       FROM producto_receta pr
+       JOIN productos p ON pr.producto_id = p.id
+       WHERE pr.receta_id = ?`,
+      [id],
+    );
+
+    receta.productos = productos.map((row) => ({
+      producto_id: row.producto_id as number,
+      nombre: row.nombre as string,
+      cantidad_receta: row.cantidad_receta as number,
+    }));
+
     return receta;
   }
 
@@ -163,5 +178,22 @@ export class RecetaService {
       id,
     ]);
     return result.affectedRows > 0;
+  }
+
+  // --- Vinculación methods ---
+
+  async getProductosByReceta(recetaId: number): Promise<{ producto_id: number; nombre: string; cantidad_receta: number }[]> {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT pr.producto_id, p.nombre, pr.cantidad_receta
+       FROM producto_receta pr
+       JOIN productos p ON pr.producto_id = p.id
+       WHERE pr.receta_id = ?`,
+      [recetaId],
+    );
+    return rows.map((row) => ({
+      producto_id: row.producto_id as number,
+      nombre: row.nombre as string,
+      cantidad_receta: row.cantidad_receta as number,
+    }));
   }
 }

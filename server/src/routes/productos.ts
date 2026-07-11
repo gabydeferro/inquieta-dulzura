@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { ProductoController } from '../controllers/ProductoController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validate';
-import { productoSchema, productoUpdateSchema, productoIdSchema } from '../schemas/producto.schema';
+import { productoSchema, productoUpdateSchema, productoIdSchema, vinculoSchema } from '../schemas/producto.schema';
 
 const router = Router();
 const productoController = new ProductoController();
@@ -34,6 +34,27 @@ router.delete(
   requireAdmin,
   validate(productoIdSchema, 'params'),
   productoController.delete.bind(productoController),
+);
+
+// Rutas de vinculación producto-receta
+router.get(
+  '/:id/recetas',
+  authenticateToken,
+  requireAdmin,
+  productoController.getRecetasByProducto.bind(productoController),
+);
+router.post(
+  '/:id/recetas',
+  authenticateToken,
+  requireAdmin,
+  validate(vinculoSchema, 'body'),
+  productoController.vincularReceta.bind(productoController),
+);
+router.delete(
+  '/:id/recetas/:recetaId',
+  authenticateToken,
+  requireAdmin,
+  productoController.desvincularReceta.bind(productoController),
 );
 
 export default router;

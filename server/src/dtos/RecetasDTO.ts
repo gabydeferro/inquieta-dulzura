@@ -9,6 +9,12 @@ export interface RecetaIngredienteDTO {
   ingrediente?: IngredienteDTO;
 }
 
+export interface RecetaProductoDTO {
+  producto_id: number;
+  nombre: string;
+  cantidad_receta: number;
+}
+
 export interface RecetaDTO {
   id: number;
   nombre: string;
@@ -20,6 +26,7 @@ export interface RecetaDTO {
   created_at?: Date;
   updated_at?: Date;
   ingredientes?: RecetaIngredienteDTO[];
+  productos?: RecetaProductoDTO[];
 }
 
 export interface CreateRecetaDTO {
