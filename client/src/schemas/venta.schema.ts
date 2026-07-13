@@ -18,7 +18,8 @@ export const ventaCreateSchema = z.object({
   ),
   descuento: z.coerce.number().min(0, 'El descuento debe ser mayor o igual a 0').default(0),
   productos: z.array(ventaDetalleSchema).min(1, 'Debe agregar al menos un producto'),
-  cliente: z.string()
+  cliente: z
+    .string()
     .trim()
     .min(1, 'Cliente debe ser un nombre válido')
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Cliente debe ser un nombre válido')

@@ -81,15 +81,11 @@ describe('ContenidoDigitalService', () => {
   describe('agregarEtiqueta', () => {
     test('debe agregar una etiqueta a una imagen existente', async () => {
       // SELECT to get the image
-      mockQuery.mockResolvedValueOnce([
-        [makeRow({ etiquetas: '["original"]' })],
-      ]);
+      mockQuery.mockResolvedValueOnce([[makeRow({ etiquetas: '["original"]' })]]);
       // UPDATE to persist the new etiquetas
       mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
       // SELECT to return the updated image
-      mockQuery.mockResolvedValueOnce([
-        [makeRow({ etiquetas: '["original","nueva"]' })],
-      ]);
+      mockQuery.mockResolvedValueOnce([[makeRow({ etiquetas: '["original","nueva"]' })]]);
 
       const actualizada = await service.agregarEtiqueta(1, 'nueva');
       expect(actualizada.etiquetas).toContain('nueva');

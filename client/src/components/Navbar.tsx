@@ -1,8 +1,8 @@
-import * as React from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { useAuth } from "../contexts/AuthContext";
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
@@ -10,8 +10,8 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
-} from "@/components/ui/sheet";
-import { ThemeToggle } from "@/components/ThemeProvider";
+} from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ThemeProvider';
 import {
   Menu,
   LayoutDashboard,
@@ -24,7 +24,7 @@ import {
   LogOut,
   LogIn,
   UserPlus,
-} from "lucide-react";
+} from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -35,22 +35,22 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/login");
+      navigate('/login');
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error('Error al cerrar sesión:', error);
     }
   };
 
   const navLinks = user
     ? [
-        { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { to: "/inventario", label: "Inventario", icon: Package },
-        { to: "/recetas", label: "Recetas", icon: BookOpen },
-        { to: "/ingredientes", label: "Ingredientes", icon: Wheat },
-        { to: "/ventas", label: "Ventas", icon: ShoppingCart },
-        { to: "/contenido-digital", label: "Contenido Digital", icon: Image },
+        { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/inventario', label: 'Inventario', icon: Package },
+        { to: '/recetas', label: 'Recetas', icon: BookOpen },
+        { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
+        { to: '/ventas', label: 'Ventas', icon: ShoppingCart },
+        { to: '/contenido-digital', label: 'Contenido Digital', icon: Image },
       ]
-    : [{ to: "/catalogo", label: "Catálogo", icon: Tags }];
+    : [{ to: '/catalogo', label: 'Catálogo', icon: Tags }];
 
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-border/40 bg-accent/80 backdrop-blur-md">
@@ -67,18 +67,16 @@ const Navbar: React.FC = () => {
         {/* Desktop Nav */}
         <ul className="ml-auto hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {
-            const isActive = link.to === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.to);
+            const isActive = link.to === '/' ? pathname === '/' : pathname.startsWith(link.to);
             return (
               <li key={link.to}>
                 <Link
                   to={link.to}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide no-underline transition-colors",
+                    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide no-underline transition-colors',
                     isActive
-                      ? "bg-brand-violet text-white"
-                      : "text-brand-violet hover:bg-brand-violet hover:text-white"
+                      ? 'bg-brand-violet text-white'
+                      : 'text-brand-violet hover:bg-brand-violet hover:text-white',
                   )}
                 >
                   <link.icon className="size-4" />
@@ -95,12 +93,16 @@ const Navbar: React.FC = () => {
           {user ? (
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1.5 text-xs font-bold text-brand-violet">
-                <svg viewBox="0 0 24 24" className="size-4 fill-brand-violet" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="size-4 fill-brand-violet"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
                 {user.nombre}
               </span>
-              {user.rol === "admin" && (
+              {user.rol === 'admin' && (
                 <span className="inline-block rounded-full bg-brand-violet px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                   Admin
                 </span>
@@ -145,21 +147,22 @@ const Navbar: React.FC = () => {
               </SheetHeader>
               <nav className="flex flex-col gap-1 px-4 pt-4">
                 {navLinks.map((link) => {
-                  const isActive = link.to === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(link.to);
+                  const isActive =
+                    link.to === '/' ? pathname === '/' : pathname.startsWith(link.to);
                   return (
                     <SheetClose key={link.to} asChild>
                       <Link
                         to={link.to}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium no-underline transition-colors",
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium no-underline transition-colors',
                           isActive
-                            ? "bg-brand-violet text-white"
-                            : "text-foreground hover:bg-muted"
+                            ? 'bg-brand-violet text-white'
+                            : 'text-foreground hover:bg-muted',
                         )}
                       >
-                        <link.icon className={cn("size-5", isActive ? "text-white" : "text-brand-violet")} />
+                        <link.icon
+                          className={cn('size-5', isActive ? 'text-white' : 'text-brand-violet')}
+                        />
                         {link.label}
                       </Link>
                     </SheetClose>

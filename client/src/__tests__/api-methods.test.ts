@@ -25,9 +25,7 @@ describe('API search and pago methods', () => {
 
   describe('searchProductos', () => {
     it('calls GET /productos/search with query parameter', async () => {
-      const mockResults = [
-        { id: 1, nombre: 'Torta Red Velvet', precio: 5000, stock: 10 },
-      ];
+      const mockResults = [{ id: 1, nombre: 'Torta Red Velvet', precio: 5000, stock: 10 }];
       mockGet.mockResolvedValueOnce({ data: mockResults });
 
       const result = await api.searchProductos('torta');

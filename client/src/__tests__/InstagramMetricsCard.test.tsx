@@ -26,9 +26,7 @@ describe('InstagramMetricsCard', () => {
   });
 
   it('should show loading state initially', () => {
-    vi.mocked(api.instagramGetMetrics).mockImplementation(
-      () => new Promise(() => {}),
-    );
+    vi.mocked(api.instagramGetMetrics).mockImplementation(() => new Promise(() => {}));
 
     render(<InstagramMetricsCard productId={1} />);
 
@@ -52,9 +50,7 @@ describe('InstagramMetricsCard', () => {
   });
 
   it('should show error message when API fails', async () => {
-    vi.mocked(api.instagramGetMetrics).mockRejectedValue(
-      new Error('API Error'),
-    );
+    vi.mocked(api.instagramGetMetrics).mockRejectedValue(new Error('API Error'));
 
     render(<InstagramMetricsCard productId={1} />);
 

@@ -1,6 +1,7 @@
 export interface CreatePagoDTO {
   venta_id: number;
-  metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
+  metodo_pago:
+    'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
   monto: number;
   referencia_externa?: string | null;
   datos_json?: string | null;

@@ -101,14 +101,10 @@ describe('ContenidoDigitalService', () => {
     it('should auto-increment IDs for multiple images', async () => {
       // First create: INSERT → SELECT
       mockQuery.mockResolvedValueOnce([{ insertId: 1, affectedRows: 1 }]);
-      mockQuery.mockResolvedValueOnce([
-        [makeRow({ id: 1, titulo: 'First', url: '/img1.jpg' })],
-      ]);
+      mockQuery.mockResolvedValueOnce([[makeRow({ id: 1, titulo: 'First', url: '/img1.jpg' })]]);
       // Second create: INSERT → SELECT
       mockQuery.mockResolvedValueOnce([{ insertId: 2, affectedRows: 1 }]);
-      mockQuery.mockResolvedValueOnce([
-        [makeRow({ id: 2, titulo: 'Second', url: '/img2.jpg' })],
-      ]);
+      mockQuery.mockResolvedValueOnce([[makeRow({ id: 2, titulo: 'Second', url: '/img2.jpg' })]]);
 
       const img1 = await service.crearImagen({
         productoId: 1,

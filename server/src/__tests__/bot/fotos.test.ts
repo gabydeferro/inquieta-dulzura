@@ -76,9 +76,11 @@ describe('fotoHandler', () => {
     // Verificar que se creó el MulterFile
     expect(mockCreateMulterFile).toHaveBeenCalled();
     // Verificar que se llamó a subirFoto
-    expect(mockSubirFoto).toHaveBeenCalledWith(expect.objectContaining({
-      producto_id: 5,
-    }));
+    expect(mockSubirFoto).toHaveBeenCalledWith(
+      expect.objectContaining({
+        producto_id: 5,
+      }),
+    );
     // Verificar respuesta
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#5');

@@ -17,7 +17,12 @@ vi.mock('../../services/CategoriaService', () => ({
   },
 }));
 
-import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from '../../bot/handlers/categorias';
+import {
+  categoriasCommand,
+  categoriaCrearCommand,
+  categoriaEditarCommand,
+  categoriaEliminarCommand,
+} from '../../bot/handlers/categorias';
 
 function createMockCtx() {
   return {
@@ -77,7 +82,12 @@ describe('categoriaCrearCommand', () => {
   });
 
   it('debe crear categoria y responder con ID', async () => {
-    mockCreate.mockResolvedValue({ id: 5, nombre: 'Galletas', descripcion: undefined, activo: true });
+    mockCreate.mockResolvedValue({
+      id: 5,
+      nombre: 'Galletas',
+      descripcion: undefined,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/categoria crear Galletas';
@@ -91,13 +101,20 @@ describe('categoriaCrearCommand', () => {
   });
 
   it('debe crear categoria con descripcion opcional', async () => {
-    mockCreate.mockResolvedValue({ id: 10, nombre: 'Galletas', descripcion: 'Finas', activo: true });
+    mockCreate.mockResolvedValue({
+      id: 10,
+      nombre: 'Galletas',
+      descripcion: 'Finas',
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/categoria crear Galletas Finas';
     await categoriaCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ nombre: 'Galletas', descripcion: 'Finas' }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ nombre: 'Galletas', descripcion: 'Finas' }),
+    );
     expect(ctx.reply).toHaveBeenCalledOnce();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#10');
@@ -121,13 +138,21 @@ describe('categoriaEditarCommand', () => {
   });
 
   it('debe editar categoria y confirmar', async () => {
-    mockUpdate.mockResolvedValue({ id: 3, nombre: 'Panaderia', descripcion: 'Pan artesanal', activo: true });
+    mockUpdate.mockResolvedValue({
+      id: 3,
+      nombre: 'Panaderia',
+      descripcion: 'Pan artesanal',
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/categoria editar 3 Panaderia Pan artesanal';
     await categoriaEditarCommand(ctx);
 
-    expect(mockUpdate).toHaveBeenCalledWith(3, expect.objectContaining({ nombre: 'Panaderia', descripcion: 'Pan artesanal' }));
+    expect(mockUpdate).toHaveBeenCalledWith(
+      3,
+      expect.objectContaining({ nombre: 'Panaderia', descripcion: 'Pan artesanal' }),
+    );
     expect(ctx.reply).toHaveBeenCalledOnce();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#3');

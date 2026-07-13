@@ -49,7 +49,12 @@ module.exports = tseslint.config(
     },
   },
   {
-    files: ['client/src/**/*.test.ts', 'client/src/**/*.test.tsx', 'client/src/__tests__/**/*.ts', 'client/src/__tests__/**/*.tsx'],
+    files: [
+      'client/src/**/*.test.ts',
+      'client/src/**/*.test.tsx',
+      'client/src/__tests__/**/*.ts',
+      'client/src/__tests__/**/*.tsx',
+    ],
     rules: {
       // Client tests (jsdom environment) — no typed linting available
       '@typescript-eslint/no-explicit-any': 'warn',

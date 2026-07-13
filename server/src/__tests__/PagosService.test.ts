@@ -28,10 +28,14 @@ describe('PagosService', () => {
       });
 
       expect(mockQuery).toHaveBeenCalledOnce();
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO pagos'),
-        [10, 'efectivo', 14000, 'aprobado', null, null],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO pagos'), [
+        10,
+        'efectivo',
+        14000,
+        'aprobado',
+        null,
+        null,
+      ]);
       expect(result).toMatchObject({
         id: 1,
         venta_id: 10,
@@ -50,10 +54,14 @@ describe('PagosService', () => {
         monto: 5000,
       });
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO pagos'),
-        [11, 'mercado_pago', 5000, 'pendiente', null, null],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO pagos'), [
+        11,
+        'mercado_pago',
+        5000,
+        'pendiente',
+        null,
+        null,
+      ]);
       expect(result.estado).toBe('pendiente');
     });
 
@@ -69,10 +77,14 @@ describe('PagosService', () => {
         datos_json: JSON.stringify(datosJson),
       });
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO pagos'),
-        [12, 'mercado_pago', 3000, 'pendiente', 'MP-12345', JSON.stringify(datosJson)],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO pagos'), [
+        12,
+        'mercado_pago',
+        3000,
+        'pendiente',
+        'MP-12345',
+        JSON.stringify(datosJson),
+      ]);
     });
 
     it('should throw on database error', async () => {
@@ -122,10 +134,7 @@ describe('PagosService', () => {
       expect(result[1].metodo_pago).toBe('tarjeta');
       expect(result[1].monto).toBe(4000);
       expect(result[1].referencia_externa).toBe('TXN-999');
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE venta_id = ?'),
-        [10],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('WHERE venta_id = ?'), [10]);
     });
 
     it('should return empty array when no pagos exist for venta', async () => {
@@ -134,10 +143,7 @@ describe('PagosService', () => {
       const result = await pagosService.getByVentaId(999);
 
       expect(result).toEqual([]);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE venta_id = ?'),
-        [999],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('WHERE venta_id = ?'), [999]);
     });
   });
 });

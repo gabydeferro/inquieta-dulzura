@@ -30,10 +30,7 @@ describe('ProductoService — search', () => {
       expect(result).toHaveLength(2);
       expect(result[0].nombre).toBe('Torta de Chocolate');
       expect(result[1].nombre).toBe('Torta Red Velvet');
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('LIKE'),
-        ['%torta%'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('LIKE'), ['%torta%']);
     });
 
     it('should return empty array when no products match', async () => {
@@ -42,24 +39,16 @@ describe('ProductoService — search', () => {
       const result = await productoService.search('xyz123');
 
       expect(result).toEqual([]);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('LIKE'),
-        ['%xyz123%'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('LIKE'), ['%xyz123%']);
     });
 
     it('should only return active products', async () => {
-      const mockRows = [
-        { id: 1, nombre: 'Torta de Chocolate', precio: 25.0, stock: 10 },
-      ];
+      const mockRows = [{ id: 1, nombre: 'Torta de Chocolate', precio: 25.0, stock: 10 }];
       mockQuery.mockResolvedValueOnce([mockRows]);
 
       await productoService.search('torta');
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('activo = true'),
-        ['%torta%'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('activo = true'), ['%torta%']);
     });
 
     it('should be case-insensitive in search term', async () => {
@@ -68,10 +57,7 @@ describe('ProductoService — search', () => {
       await productoService.search('TORTA');
 
       // MySQL LIKE is case-insensitive by default with utf8mb4_unicode_ci
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('LIKE'),
-        ['%TORTA%'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('LIKE'), ['%TORTA%']);
     });
   });
 });

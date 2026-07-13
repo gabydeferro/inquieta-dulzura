@@ -20,7 +20,7 @@ const defaultProps = {
   productId: 1,
   productName: 'Torta de Chocolate',
   productDescription: 'Deliciosa torta artesanal',
-  productPrice: 250.00,
+  productPrice: 250.0,
   productImageUrl: 'https://example.com/torta.jpg',
 };
 
@@ -89,9 +89,7 @@ describe('InstagramPublishButton', () => {
   });
 
   it('should show loading state on button during publishing', async () => {
-    vi.mocked(api.instagramUploadMedia).mockImplementation(
-      () => new Promise(() => {}),
-    );
+    vi.mocked(api.instagramUploadMedia).mockImplementation(() => new Promise(() => {}));
 
     const user = userEvent.setup();
     renderComponent();
@@ -103,9 +101,7 @@ describe('InstagramPublishButton', () => {
   });
 
   it('should show error notification on API failure', async () => {
-    vi.mocked(api.instagramUploadMedia).mockRejectedValue(
-      new Error('Upload failed'),
-    );
+    vi.mocked(api.instagramUploadMedia).mockRejectedValue(new Error('Upload failed'));
 
     const user = userEvent.setup();
     renderComponent();
@@ -114,10 +110,7 @@ describe('InstagramPublishButton', () => {
     await user.click(screen.getAllByText('Publicar en Instagram')[1]);
 
     await waitFor(() => {
-      expect(mockShowNotification).toHaveBeenCalledWith(
-        expect.stringContaining('Error'),
-        'error',
-      );
+      expect(mockShowNotification).toHaveBeenCalledWith(expect.stringContaining('Error'), 'error');
     });
   });
 });

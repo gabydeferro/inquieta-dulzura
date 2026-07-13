@@ -104,7 +104,9 @@ export class ProductoService {
 
   // --- Vinculación methods ---
 
-  async getRecetasByProducto(productoId: number): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
+  async getRecetasByProducto(
+    productoId: number,
+  ): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
     const [rows] = await connection.query<RowDataPacket[]>(
       `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
        FROM producto_receta pr

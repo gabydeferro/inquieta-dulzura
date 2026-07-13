@@ -260,10 +260,7 @@ class ApiService {
     return this.get(`/instagram/products/${productId}/post`);
   }
 
-  async instagramGetMetrics(
-    productId: number,
-    period: string = '30d',
-  ): Promise<AxiosResponse> {
+  async instagramGetMetrics(productId: number, period: string = '30d'): Promise<AxiosResponse> {
     return this.get(`/instagram/products/${productId}/metrics?period=${period}`);
   }
 
@@ -271,10 +268,7 @@ class ApiService {
     return this.get(`/instagram/posts/${postId}/comments`);
   }
 
-  async instagramReplyToComment(
-    commentId: string,
-    text: string,
-  ): Promise<AxiosResponse> {
+  async instagramReplyToComment(commentId: string, text: string): Promise<AxiosResponse> {
     return this.post(`/instagram/comments/${commentId}/reply`, { text });
   }
 

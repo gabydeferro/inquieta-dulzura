@@ -8,7 +8,7 @@ const defaultProps = {
   onOpenChange: vi.fn(),
   productName: 'Torta de Chocolate',
   productDescription: 'Deliciosa torta artesanal',
-  productPrice: 250.00,
+  productPrice: 250.0,
   onPublish: vi.fn(),
 };
 
@@ -60,7 +60,7 @@ describe('InstagramCaptionEditor', () => {
     expect(onPublish).toHaveBeenCalledTimes(1);
     expect(onPublish).toHaveBeenCalledWith(
       expect.stringContaining('Torta de Chocolate'),
-      undefined
+      undefined,
     );
   });
 

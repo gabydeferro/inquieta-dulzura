@@ -30,8 +30,7 @@ export const InstagramCaptionEditor: React.FC<InstagramCaptionEditorProps> = ({
   productPrice,
   onPublish,
 }) => {
-  const defaultCaption =
-    `${productName}\n${productDescription ? productDescription + '\n' : ''}$${Number(productPrice).toFixed(2)}\n\n#InquietaDulzura #Artesanal`;
+  const defaultCaption = `${productName}\n${productDescription ? productDescription + '\n' : ''}$${Number(productPrice).toFixed(2)}\n\n#InquietaDulzura #Artesanal`;
   const [caption, setCaption] = useState(defaultCaption);
   const [selectedImage, setSelectedImage] = useState<File | undefined>(undefined);
   const [imagePreview, setImagePreview] = useState<string | undefined>(undefined);
@@ -119,11 +118,7 @@ export const InstagramCaptionEditor: React.FC<InstagramCaptionEditorProps> = ({
               />
               {imagePreview && (
                 <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="size-full object-cover"
-                  />
+                  <img src={imagePreview} alt="Preview" className="size-full object-cover" />
                 </div>
               )}
               {!imagePreview && (
@@ -139,11 +134,7 @@ export const InstagramCaptionEditor: React.FC<InstagramCaptionEditorProps> = ({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleOpenChange(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
             Cancelar
           </Button>
           <Button

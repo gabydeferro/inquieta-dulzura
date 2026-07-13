@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockGetAll, mockGetByCategoriaId, mockGetById, mockCreate, mockUpdate } = vi.hoisted(() => ({
-  mockGetAll: vi.fn(),
-  mockGetByCategoriaId: vi.fn(),
-  mockGetById: vi.fn(),
-  mockCreate: vi.fn(),
-  mockUpdate: vi.fn(),
-}));
+const { mockGetAll, mockGetByCategoriaId, mockGetById, mockCreate, mockUpdate } = vi.hoisted(
+  () => ({
+    mockGetAll: vi.fn(),
+    mockGetByCategoriaId: vi.fn(),
+    mockGetById: vi.fn(),
+    mockCreate: vi.fn(),
+    mockUpdate: vi.fn(),
+  }),
+);
 
 vi.mock('../../services/ProductoService', () => ({
   ProductoService: class {
@@ -26,7 +28,11 @@ vi.mock('../../db', () => ({
   connection: { query: mockQuery },
 }));
 
-import { productosCommand, productoCrearCommand, productoEditarCommand } from '../../bot/handlers/productos';
+import {
+  productosCommand,
+  productoCrearCommand,
+  productoEditarCommand,
+} from '../../bot/handlers/productos';
 
 function createMockCtx() {
   return {
@@ -48,7 +54,10 @@ describe('productosCommand', () => {
       { id: 2, categoria_id: 1, nombre: 'Alfajor', precio: 800, activo: true },
     ]);
     mockQuery.mockResolvedValue([
-      [{ producto_id: 1, cantidad: 10 }, { producto_id: 2, cantidad: 5 }],
+      [
+        { producto_id: 1, cantidad: 10 },
+        { producto_id: 2, cantidad: 5 },
+      ],
     ]);
 
     const ctx = createMockCtx() as any;
@@ -125,17 +134,25 @@ describe('productoCrearCommand', () => {
   });
 
   it('debe crear producto y confirmar', async () => {
-    mockCreate.mockResolvedValue({ id: 15, categoria_id: 1, nombre: 'Torta CH', precio: 2500, activo: true });
+    mockCreate.mockResolvedValue({
+      id: 15,
+      categoria_id: 1,
+      nombre: 'Torta CH',
+      precio: 2500,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/producto crear 1 Torta CH 2500';
     await productoCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      categoria_id: 1,
-      nombre: 'Torta CH',
-      precio: 2500,
-    }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        categoria_id: 1,
+        nombre: 'Torta CH',
+        precio: 2500,
+      }),
+    );
     expect(ctx.reply).toHaveBeenCalledOnce();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#15');
@@ -143,18 +160,27 @@ describe('productoCrearCommand', () => {
   });
 
   it('debe crear producto con costo opcional', async () => {
-    mockCreate.mockResolvedValue({ id: 16, categoria_id: 2, nombre: 'Brownie', precio: 500, costo: 300, activo: true });
+    mockCreate.mockResolvedValue({
+      id: 16,
+      categoria_id: 2,
+      nombre: 'Brownie',
+      precio: 500,
+      costo: 300,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/producto crear 2 Brownie 500 300';
     await productoCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      categoria_id: 2,
-      nombre: 'Brownie',
-      precio: 500,
-      costo: 300,
-    }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        categoria_id: 2,
+        nombre: 'Brownie',
+        precio: 500,
+        costo: 300,
+      }),
+    );
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#16');
   });
@@ -177,7 +203,13 @@ describe('productoEditarCommand', () => {
   });
 
   it('debe editar producto y confirmar', async () => {
-    mockUpdate.mockResolvedValue({ id: 5, categoria_id: 1, nombre: 'Torta CH', precio: 3000, activo: true });
+    mockUpdate.mockResolvedValue({
+      id: 5,
+      categoria_id: 1,
+      nombre: 'Torta CH',
+      precio: 3000,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/producto editar 5 precio 3000';

@@ -57,25 +57,18 @@ describe('InstagramSettings', () => {
   });
 
   it('should show error when refresh fails', async () => {
-    vi.mocked(api.instagramRefreshToken).mockRejectedValue(
-      new Error('Refresh failed'),
-    );
+    vi.mocked(api.instagramRefreshToken).mockRejectedValue(new Error('Refresh failed'));
 
     render(<InstagramSettings />);
     fireEvent.click(screen.getByText('Refrescar Token'));
 
     await waitFor(() => {
-      expect(mockShowNotification).toHaveBeenCalledWith(
-        expect.stringContaining('Error'),
-        'error',
-      );
+      expect(mockShowNotification).toHaveBeenCalledWith(expect.stringContaining('Error'), 'error');
     });
   });
 
   it('should disable refresh button during API call', async () => {
-    vi.mocked(api.instagramRefreshToken).mockImplementation(
-      () => new Promise(() => {}),
-    );
+    vi.mocked(api.instagramRefreshToken).mockImplementation(() => new Promise(() => {}));
 
     render(<InstagramSettings />);
     fireEvent.click(screen.getByText('Refrescar Token'));

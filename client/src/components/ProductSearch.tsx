@@ -58,14 +58,10 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
         />
       </div>
 
-      {loading && (
-        <p className="text-sm text-muted-foreground">Buscando...</p>
-      )}
+      {loading && <p className="text-sm text-muted-foreground">Buscando...</p>}
 
       {!loading && searched && results.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          No se encontraron productos
-        </p>
+        <p className="text-sm text-muted-foreground">No se encontraron productos</p>
       )}
 
       {!loading && results.length > 0 && (

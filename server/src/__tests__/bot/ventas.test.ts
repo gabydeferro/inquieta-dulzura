@@ -37,8 +37,8 @@ describe('ventaCommand', () => {
     // Handler flow: product existence → stock check → stock update (after createVenta)
     mockQuery
       .mockResolvedValueOnce([[{ id: 5, nombre: 'Torta CH', precio: 2500 }]]) // product existence
-      .mockResolvedValueOnce([[{ producto_id: 5, cantidad: 10 }]])            // stock check
-      .mockResolvedValueOnce([{ affectedRows: 1 }]);                          // stock update
+      .mockResolvedValueOnce([[{ producto_id: 5, cantidad: 10 }]]) // stock check
+      .mockResolvedValueOnce([{ affectedRows: 1 }]); // stock update
     mockCreateVenta.mockResolvedValue({
       id: 42,
       total: 2500,
@@ -118,10 +118,10 @@ describe('ventaCommand', () => {
   it('debe rechazar si stock insuficiente para algun producto (sin registro parcial)', async () => {
     // Flow: existence(1) → existence(2) → stock(1, enough) → stock(2, NOT enough) → stop
     mockQuery
-      .mockResolvedValueOnce([[{ id: 1, nombre: 'Alfajor', precio: 800 }]])   // product 1 exists
-      .mockResolvedValueOnce([[{ id: 2, nombre: 'Medialuna', precio: 300 }]])  // product 2 exists
-      .mockResolvedValueOnce([[{ producto_id: 1, cantidad: 10 }]])             // stock 1: 10 (enough for 2)
-      .mockResolvedValueOnce([[{ producto_id: 2, cantidad: 1 }]]);             // stock 2: 1 (NOT enough for 5)
+      .mockResolvedValueOnce([[{ id: 1, nombre: 'Alfajor', precio: 800 }]]) // product 1 exists
+      .mockResolvedValueOnce([[{ id: 2, nombre: 'Medialuna', precio: 300 }]]) // product 2 exists
+      .mockResolvedValueOnce([[{ producto_id: 1, cantidad: 10 }]]) // stock 1: 10 (enough for 2)
+      .mockResolvedValueOnce([[{ producto_id: 2, cantidad: 1 }]]); // stock 2: 1 (NOT enough for 5)
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/venta 1:2 2:5';
@@ -156,9 +156,9 @@ describe('ventaCommand', () => {
 
   it('debe responder error generico si el service falla', async () => {
     mockQuery
-      .mockResolvedValueOnce([[{ id: 1, nombre: 'Test', precio: 100 }]])   // product existence
-      .mockResolvedValueOnce([[{ producto_id: 1, cantidad: 10 }]])          // stock check
-      .mockResolvedValueOnce([{ affectedRows: 1 }]);                        // stock update won't be reached
+      .mockResolvedValueOnce([[{ id: 1, nombre: 'Test', precio: 100 }]]) // product existence
+      .mockResolvedValueOnce([[{ producto_id: 1, cantidad: 10 }]]) // stock check
+      .mockResolvedValueOnce([{ affectedRows: 1 }]); // stock update won't be reached
     mockCreateVenta.mockRejectedValue(new Error('DB error'));
 
     const ctx = createMockCtx() as any;

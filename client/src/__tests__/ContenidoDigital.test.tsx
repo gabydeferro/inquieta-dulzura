@@ -139,9 +139,7 @@ describe('ContenidoDigital Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Contenido Digital')).toBeInTheDocument();
-      expect(
-        screen.getByText('Gestión de fotos y videos de productos'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Gestión de fotos y videos de productos')).toBeInTheDocument();
     });
   });
 });

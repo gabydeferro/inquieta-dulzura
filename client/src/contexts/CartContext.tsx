@@ -25,9 +25,7 @@ function loadCartFromStorage(): CartState {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existing = state.items.find(
-        (i) => i.producto_id === action.payload.producto_id,
-      );
+      const existing = state.items.find((i) => i.producto_id === action.payload.producto_id);
       if (existing) {
         return {
           items: state.items.map((i) =>
@@ -38,26 +36,19 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         };
       }
       return {
-        items: [
-          ...state.items,
-          { ...action.payload, cantidad: action.payload.cantidad ?? 1 },
-        ],
+        items: [...state.items, { ...action.payload, cantidad: action.payload.cantidad ?? 1 }],
       };
     }
 
     case 'REMOVE_ITEM':
       return {
-        items: state.items.filter(
-          (i) => i.producto_id !== action.payload.producto_id,
-        ),
+        items: state.items.filter((i) => i.producto_id !== action.payload.producto_id),
       };
 
     case 'UPDATE_QUANTITY': {
       if (action.payload.cantidad <= 0) {
         return {
-          items: state.items.filter(
-            (i) => i.producto_id !== action.payload.producto_id,
-          ),
+          items: state.items.filter((i) => i.producto_id !== action.payload.producto_id),
         };
       }
       return {
@@ -101,10 +92,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(CART_KEY, JSON.stringify(state));
   }, [state]);
 
-  const total = state.items.reduce(
-    (sum, item) => sum + item.precio * item.cantidad,
-    0,
-  );
+  const total = state.items.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
 
   const itemCount = state.items.reduce((sum, item) => sum + item.cantidad, 0);
 

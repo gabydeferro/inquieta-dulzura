@@ -46,7 +46,9 @@ export async function categoriaCrearCommand(ctx: Context): Promise<void> {
       descripcion: parsed.data.descripcion,
     });
 
-    await ctx.reply(`✅ Categoría #${categoria.id} creada: *${categoria.nombre}*`, { parse_mode: 'Markdown' });
+    await ctx.reply(`✅ Categoría #${categoria.id} creada: *${categoria.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en categoriaCrearCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -76,7 +78,9 @@ export async function categoriaEditarCommand(ctx: Context): Promise<void> {
       return;
     }
 
-    await ctx.reply(`✅ Categoría #${result.id} actualizada: *${result.nombre}*`, { parse_mode: 'Markdown' });
+    await ctx.reply(`✅ Categoría #${result.id} actualizada: *${result.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en categoriaEditarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -99,10 +103,13 @@ export async function categoriaEliminarCommand(ctx: Context): Promise<void> {
     await categoriaService.delete(parsed.data.id);
     await ctx.reply(`✅ Categoría #${parsed.data.id} eliminada.`);
   } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-    if (errMsg.includes('foreign key') ||
-        errMsg.includes('cannot delete') ||
-        errMsg.includes('parent row')) {
+    const errMsg =
+      error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    if (
+      errMsg.includes('foreign key') ||
+      errMsg.includes('cannot delete') ||
+      errMsg.includes('parent row')
+    ) {
       await ctx.reply('❌ No se puede eliminar: tiene productos asociados.');
       return;
     }

@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { getConfig } from '../config/instagram';
-import { InstagramToken, InstagramMetrics, InstagramComment, InstagramWebhookNotification } from '../types/instagram';
+import {
+  InstagramToken,
+  InstagramMetrics,
+  InstagramComment,
+  InstagramWebhookNotification,
+} from '../types/instagram';
 
 // ── Instagram Graph API response shapes ──────────
 
@@ -76,14 +81,17 @@ export class InstagramService {
   async exchangeToken(shortLivedToken: string): Promise<InstagramToken> {
     const config = getConfig();
     try {
-      const response = await axios.get<TokenExchangeResponse>(`${this.baseUrl}/oauth/access_token`, {
-        params: {
-          grant_type: 'fb_exchange_token',
-          client_id: config.appId,
-          client_secret: config.appSecret,
-          fb_exchange_token: shortLivedToken,
+      const response = await axios.get<TokenExchangeResponse>(
+        `${this.baseUrl}/oauth/access_token`,
+        {
+          params: {
+            grant_type: 'fb_exchange_token',
+            client_id: config.appId,
+            client_secret: config.appSecret,
+            fb_exchange_token: shortLivedToken,
+          },
         },
-      });
+      );
 
       const { access_token, expires_in } = response.data;
       const token: InstagramToken = {
@@ -110,14 +118,17 @@ export class InstagramService {
   async refreshToken(): Promise<void> {
     const config = getConfig();
     try {
-      const response = await axios.get<TokenExchangeResponse>(`${this.baseUrl}/oauth/access_token`, {
-        params: {
-          grant_type: 'fb_exchange_token',
-          client_id: config.appId,
-          client_secret: config.appSecret,
-          fb_exchange_token: this.token.accessToken,
+      const response = await axios.get<TokenExchangeResponse>(
+        `${this.baseUrl}/oauth/access_token`,
+        {
+          params: {
+            grant_type: 'fb_exchange_token',
+            client_id: config.appId,
+            client_secret: config.appSecret,
+            fb_exchange_token: this.token.accessToken,
+          },
         },
-      });
+      );
 
       const { access_token, expires_in } = response.data;
       this.token = {
@@ -153,11 +164,14 @@ export class InstagramService {
     const config = getConfig();
 
     try {
-      const response = await axios.post<MediaOperationResponse>(`${this.baseUrl}/${config.businessId}/media`, {
-        image_url: imageUrl,
-        caption,
-        access_token: this.token.accessToken,
-      });
+      const response = await axios.post<MediaOperationResponse>(
+        `${this.baseUrl}/${config.businessId}/media`,
+        {
+          image_url: imageUrl,
+          caption,
+          access_token: this.token.accessToken,
+        },
+      );
 
       return response.data.id;
     } catch (error) {
@@ -179,10 +193,13 @@ export class InstagramService {
     const config = getConfig();
 
     try {
-      const response = await axios.post<MediaOperationResponse>(`${this.baseUrl}/${config.businessId}/media_publish`, {
-        creation_id: containerId,
-        access_token: this.token.accessToken,
-      });
+      const response = await axios.post<MediaOperationResponse>(
+        `${this.baseUrl}/${config.businessId}/media_publish`,
+        {
+          creation_id: containerId,
+          access_token: this.token.accessToken,
+        },
+      );
 
       return response.data.id;
     } catch (error) {
@@ -232,9 +249,7 @@ export class InstagramService {
       if (period !== 'all' && timestamp) {
         const postDate = new Date(timestamp);
         const now = Date.now();
-        const cutoffMs = period === '30d'
-          ? 30 * 24 * 60 * 60 * 1000
-          : 7 * 24 * 60 * 60 * 1000;
+        const cutoffMs = period === '30d' ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
 
         if (postDate.getTime() < now - cutoffMs) {
           const emptyMetrics: InstagramMetrics = {
@@ -289,12 +304,15 @@ export class InstagramService {
     await this.ensureValidToken();
 
     try {
-      const response = await axios.get<CommentsListResponse>(`${this.baseUrl}/${instagramPostId}/comments`, {
-        params: {
-          fields: 'text,username,timestamp',
-          access_token: this.token.accessToken,
+      const response = await axios.get<CommentsListResponse>(
+        `${this.baseUrl}/${instagramPostId}/comments`,
+        {
+          params: {
+            fields: 'text,username,timestamp',
+            access_token: this.token.accessToken,
+          },
         },
-      });
+      );
 
       return (response.data.data || []).map((c) => ({
         id: c.id,
@@ -396,8 +414,8 @@ export class InstagramService {
             if (text && username) {
               messages.push(
                 `💬 *Nuevo comentario en Instagram*\n` +
-                `👤 ${username}: _${text}_` +
-                (mediaId ? `\n📷 Post: ${mediaId}` : ''),
+                  `👤 ${username}: _${text}_` +
+                  (mediaId ? `\n📷 Post: ${mediaId}` : ''),
               );
             }
             break;
@@ -409,8 +427,7 @@ export class InstagramService {
 
             if (messageText && senderName) {
               messages.push(
-                `✉️ *Nuevo mensaje en Instagram*\n` +
-                `👤 ${senderName}: _${messageText}_`,
+                `✉️ *Nuevo mensaje en Instagram*\n` + `👤 ${senderName}: _${messageText}_`,
               );
             }
             break;

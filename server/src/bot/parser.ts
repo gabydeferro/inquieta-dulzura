@@ -4,7 +4,9 @@ import { UnidadMedidaIngrediente } from '../dtos/IngredienteDTO';
 /**
  * Extrae parámetros de /categoria crear <nombre> [desc]
  */
-export function parseCategoriaCrear(text: string): ParseResult<{ nombre: string; descripcion?: string }> {
+export function parseCategoriaCrear(
+  text: string,
+): ParseResult<{ nombre: string; descripcion?: string }> {
   const normalized = text.replace(/í/g, 'i');
   const match = normalized.match(/^\/categoria crear (.+?)(?:\s+(.+))?$/);
   if (!match) return { success: false, error: 'Formato: /categoria crear <nombre> [descripción]' };
@@ -14,10 +16,13 @@ export function parseCategoriaCrear(text: string): ParseResult<{ nombre: string;
 /**
  * Extrae parámetros de /categoria editar <id> <nombre> [desc]
  */
-export function parseCategoriaEditar(text: string): ParseResult<{ id: number; nombre: string; descripcion?: string }> {
+export function parseCategoriaEditar(
+  text: string,
+): ParseResult<{ id: number; nombre: string; descripcion?: string }> {
   const normalized = text.replace(/í/g, 'i');
   const match = normalized.match(/^\/categoria editar (\d+) (.+?)(?:\s+(.+))?$/);
-  if (!match) return { success: false, error: 'Formato: /categoria editar <id> <nombre> [descripción]' };
+  if (!match)
+    return { success: false, error: 'Formato: /categoria editar <id> <nombre> [descripción]' };
   return { success: true, data: { id: Number(match[1]), nombre: match[2], descripcion: match[3] } };
 }
 
@@ -47,7 +52,8 @@ export function parseProductoCrear(
   text: string,
 ): ParseResult<{ categoria_id: number; nombre: string; precio: number; costo?: number }> {
   const match = text.match(/^\/producto crear (\d+) (.+?) (\d+(?:\.\d+)?)(?:\s+(\d+(?:\.\d+)?))?$/);
-  if (!match) return { success: false, error: 'Formato: /producto crear <cat_id> <nombre> <precio> [costo]' };
+  if (!match)
+    return { success: false, error: 'Formato: /producto crear <cat_id> <nombre> <precio> [costo]' };
   return {
     success: true,
     data: {
@@ -62,7 +68,9 @@ export function parseProductoCrear(
 /**
  * Extrae parámetros de /producto editar <id> <campo> <valor>
  */
-export function parseProductoEditar(text: string): ParseResult<{ id: number; campo: string; valor: string }> {
+export function parseProductoEditar(
+  text: string,
+): ParseResult<{ id: number; campo: string; valor: string }> {
   const match = text.match(/^\/producto editar (\d+) (\w+) (.+)$/);
   if (!match) return { success: false, error: 'Formato: /producto editar <id> <campo> <valor>' };
   return { success: true, data: { id: Number(match[1]), campo: match[2], valor: match[3] } };
@@ -82,19 +90,52 @@ const VALID_UNITS = '(kg|gramos|litros|ml|unidades)';
 /**
  * Extrae parámetros de /ingrediente crear <nombre> <costo> <unidad>
  */
-export function parseIngredienteCrear(text: string): ParseResult<{ nombre: string; costo: number; unidad: UnidadMedidaIngrediente }> {
-  const match = text.match(new RegExp(`^\\/ingrediente crear (.+?) (\\d+(?:\\.\\d+)?) ${VALID_UNITS}$`));
-  if (!match) return { success: false, error: 'Formato: /ingrediente crear <nombre> <costo> <unidad>. Opciones: kg, gramos, litros, ml, unidades' };
-  return { success: true, data: { nombre: match[1], costo: Number(match[2]), unidad: match[3] as UnidadMedidaIngrediente } };
+export function parseIngredienteCrear(
+  text: string,
+): ParseResult<{ nombre: string; costo: number; unidad: UnidadMedidaIngrediente }> {
+  const match = text.match(
+    new RegExp(`^\\/ingrediente crear (.+?) (\\d+(?:\\.\\d+)?) ${VALID_UNITS}$`),
+  );
+  if (!match)
+    return {
+      success: false,
+      error:
+        'Formato: /ingrediente crear <nombre> <costo> <unidad>. Opciones: kg, gramos, litros, ml, unidades',
+    };
+  return {
+    success: true,
+    data: {
+      nombre: match[1],
+      costo: Number(match[2]),
+      unidad: match[3] as UnidadMedidaIngrediente,
+    },
+  };
 }
 
 /**
  * Extrae parámetros de /ingrediente editar <id> <nombre> <costo> <unidad>
  */
-export function parseIngredienteEditar(text: string): ParseResult<{ id: number; nombre: string; costo: number; unidad: UnidadMedidaIngrediente }> {
-  const match = text.match(new RegExp(`^\\/ingrediente editar (\\d+) (.+?) (\\d+(?:\\.\\d+)?) ${VALID_UNITS}$`));
-  if (!match) return { success: false, error: 'Formato: /ingrediente editar <id> <nombre> <costo> <unidad>. Opciones: kg, gramos, litros, ml, unidades' };
-  return { success: true, data: { id: Number(match[1]), nombre: match[2], costo: Number(match[3]), unidad: match[4] as UnidadMedidaIngrediente } };
+export function parseIngredienteEditar(
+  text: string,
+): ParseResult<{ id: number; nombre: string; costo: number; unidad: UnidadMedidaIngrediente }> {
+  const match = text.match(
+    new RegExp(`^\\/ingrediente editar (\\d+) (.+?) (\\d+(?:\\.\\d+)?) ${VALID_UNITS}$`),
+  );
+  if (!match)
+    return {
+      success: false,
+      error:
+        'Formato: /ingrediente editar <id> <nombre> <costo> <unidad>. Opciones: kg, gramos, litros, ml, unidades',
+    };
+  return {
+    success: true,
+    data: {
+      id: Number(match[1]),
+      nombre: match[2],
+      costo: Number(match[3]),
+      unidad: match[4] as UnidadMedidaIngrediente,
+    },
+  };
 }
 
 /**
@@ -109,7 +150,9 @@ export function parseIngredienteEliminar(text: string): ParseResult<{ id: number
 /**
  * Extrae parámetros de /stock set <producto_id> <cantidad>
  */
-export function parseStockSet(text: string): ParseResult<{ producto_id: number; cantidad: number }> {
+export function parseStockSet(
+  text: string,
+): ParseResult<{ producto_id: number; cantidad: number }> {
   const match = text.match(/^\/stock set (\d+) (\d+)$/);
   if (!match) return { success: false, error: 'Formato: /stock set <producto_id> <cantidad>' };
   return { success: true, data: { producto_id: Number(match[1]), cantidad: Number(match[2]) } };
@@ -117,7 +160,13 @@ export function parseStockSet(text: string): ParseResult<{ producto_id: number; 
 
 // ───── recetas ─────
 
-const VALID_CAMPOS_RECETA = ['nombre', 'descripcion', 'instrucciones', 'tiempo_preparacion', 'porciones'];
+const VALID_CAMPOS_RECETA = [
+  'nombre',
+  'descripcion',
+  'instrucciones',
+  'tiempo_preparacion',
+  'porciones',
+];
 
 /**
  * Extrae parámetros de /recetas (listar)
@@ -143,9 +192,18 @@ export function parseRecetaVer(text: string): ParseResult<{ id: number }> {
  */
 export function parseRecetaCrear(
   text: string,
-): ParseResult<{ nombre: string; descripcion: string; tiempo_preparacion: number; porciones: number }> {
+): ParseResult<{
+  nombre: string;
+  descripcion: string;
+  tiempo_preparacion: number;
+  porciones: number;
+}> {
   const match = text.match(/^\/receta crear (\S+) (.+) (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)$/);
-  if (!match) return { success: false, error: 'Formato: /receta crear <nombre> <descripción> <tiempo_preparacion> <porciones>' };
+  if (!match)
+    return {
+      success: false,
+      error: 'Formato: /receta crear <nombre> <descripción> <tiempo_preparacion> <porciones>',
+    };
   return {
     success: true,
     data: {
@@ -160,7 +218,9 @@ export function parseRecetaCrear(
 /**
  * Extrae parámetros de /receta editar <id> <campo> <valor>
  */
-export function parseRecetaEditar(text: string): ParseResult<{ id: number; campo: string; valor: string }> {
+export function parseRecetaEditar(
+  text: string,
+): ParseResult<{ id: number; campo: string; valor: string }> {
   const match = text.match(/^\/receta editar (\d+) (\w+) (.+)$/);
   if (!match) return { success: false, error: 'Formato: /receta editar <id> <campo> <valor>' };
   const campo = match[2];
@@ -189,9 +249,21 @@ const RECETA_UNITS = '(kg|gramos|litros|ml|unidades)';
  */
 export function parseRecetaIngredienteAgregar(
   text: string,
-): ParseResult<{ receta_id: number; ingrediente_id: number; cantidad: number; unidad_medida: string }> {
-  const match = text.match(new RegExp(`^\\/receta ingrediente agregar (\\d+) (\\d+) (\\d+(?:\\.\\d+)?) ${RECETA_UNITS}$`));
-  if (!match) return { success: false, error: 'Formato: /receta ingrediente agregar <receta_id> <ingrediente_id> <cantidad> <unidad>. Opciones: kg, gramos, litros, ml, unidades' };
+): ParseResult<{
+  receta_id: number;
+  ingrediente_id: number;
+  cantidad: number;
+  unidad_medida: string;
+}> {
+  const match = text.match(
+    new RegExp(`^\\/receta ingrediente agregar (\\d+) (\\d+) (\\d+(?:\\.\\d+)?) ${RECETA_UNITS}$`),
+  );
+  if (!match)
+    return {
+      success: false,
+      error:
+        'Formato: /receta ingrediente agregar <receta_id> <ingrediente_id> <cantidad> <unidad>. Opciones: kg, gramos, litros, ml, unidades',
+    };
   return {
     success: true,
     data: {
@@ -210,7 +282,11 @@ export function parseRecetaIngredienteQuitar(
   text: string,
 ): ParseResult<{ receta_id: number; ingrediente_id: number }> {
   const match = text.match(/^\/receta ingrediente quitar (\d+) (\d+)$/);
-  if (!match) return { success: false, error: 'Formato: /receta ingrediente quitar <receta_id> <ingrediente_id>' };
+  if (!match)
+    return {
+      success: false,
+      error: 'Formato: /receta ingrediente quitar <receta_id> <ingrediente_id>',
+    };
   return {
     success: true,
     data: {
@@ -225,9 +301,21 @@ export function parseRecetaIngredienteQuitar(
  */
 export function parseRecetaIngredienteEditar(
   text: string,
-): ParseResult<{ receta_id: number; ingrediente_id: number; cantidad: number; unidad_medida: string }> {
-  const match = text.match(new RegExp(`^\\/receta ingrediente editar (\\d+) (\\d+) (\\d+(?:\\.\\d+)?) ${RECETA_UNITS}$`));
-  if (!match) return { success: false, error: 'Formato: /receta ingrediente editar <receta_id> <ingrediente_id> <cantidad> <unidad>. Opciones: kg, gramos, litros, ml, unidades' };
+): ParseResult<{
+  receta_id: number;
+  ingrediente_id: number;
+  cantidad: number;
+  unidad_medida: string;
+}> {
+  const match = text.match(
+    new RegExp(`^\\/receta ingrediente editar (\\d+) (\\d+) (\\d+(?:\\.\\d+)?) ${RECETA_UNITS}$`),
+  );
+  if (!match)
+    return {
+      success: false,
+      error:
+        'Formato: /receta ingrediente editar <receta_id> <ingrediente_id> <cantidad> <unidad>. Opciones: kg, gramos, litros, ml, unidades',
+    };
   return {
     success: true,
     data: {
@@ -255,7 +343,11 @@ export function parseRecetaProductoVincular(
   text: string,
 ): ParseResult<{ receta_id: number; producto_id: number; cantidad_receta: number }> {
   const match = text.match(/^\/receta producto vincular (\d+) (\d+) (\d+(?:\.\d+)?)$/);
-  if (!match) return { success: false, error: 'Formato: /receta producto vincular <receta_id> <producto_id> <cantidad>' };
+  if (!match)
+    return {
+      success: false,
+      error: 'Formato: /receta producto vincular <receta_id> <producto_id> <cantidad>',
+    };
   return {
     success: true,
     data: {
@@ -269,9 +361,15 @@ export function parseRecetaProductoVincular(
 /**
  * Extrae parámetros de /receta producto desvincular <receta_id> <producto_id>
  */
-export function parseRecetaProductoDesvincular(text: string): ParseResult<{ receta_id: number; producto_id: number }> {
+export function parseRecetaProductoDesvincular(
+  text: string,
+): ParseResult<{ receta_id: number; producto_id: number }> {
   const match = text.match(/^\/receta producto desvincular (\d+) (\d+)$/);
-  if (!match) return { success: false, error: 'Formato: /receta producto desvincular <receta_id> <producto_id>' };
+  if (!match)
+    return {
+      success: false,
+      error: 'Formato: /receta producto desvincular <receta_id> <producto_id>',
+    };
   return { success: true, data: { receta_id: Number(match[1]), producto_id: Number(match[2]) } };
 }
 

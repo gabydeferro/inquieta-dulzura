@@ -9,7 +9,15 @@ export const ventaDetalleSchema = z.object({
 
 export const ventaCreateSchema = z.object({
   cliente_id: z.coerce.number().int().positive().optional(),
-  metodo_pago: z.enum(['efectivo', 'tarjeta', 'transferencia', 'mercado_pago', 'cuenta_dni', 'modo', 'otro']),
+  metodo_pago: z.enum([
+    'efectivo',
+    'tarjeta',
+    'transferencia',
+    'mercado_pago',
+    'cuenta_dni',
+    'modo',
+    'otro',
+  ]),
   descuento: z.coerce.number().min(0).default(0),
   productos: z.array(ventaDetalleSchema).min(1, 'Agrega al menos un producto'),
 });

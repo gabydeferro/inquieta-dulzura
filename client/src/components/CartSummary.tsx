@@ -1,7 +1,14 @@
 import React from 'react';
 import { CartItem } from '../types/Cart';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 
 interface CartSummaryProps {
@@ -57,9 +64,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                       variant="outline"
                       size="icon-xs"
                       aria-label="Disminuir"
-                      onClick={() =>
-                        onUpdateQuantity(item.producto_id, item.cantidad - 1)
-                      }
+                      onClick={() => onUpdateQuantity(item.producto_id, item.cantidad - 1)}
                     >
                       <Minus className="size-3" />
                     </Button>
@@ -69,17 +74,13 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                       variant="outline"
                       size="icon-xs"
                       aria-label="Aumentar"
-                      onClick={() =>
-                        onUpdateQuantity(item.producto_id, item.cantidad + 1)
-                      }
+                      onClick={() => onUpdateQuantity(item.producto_id, item.cantidad + 1)}
                     >
                       <Plus className="size-3" />
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-right text-sm">
-                  ${item.precio.toFixed(2)}
-                </TableCell>
+                <TableCell className="text-right text-sm">${item.precio.toFixed(2)}</TableCell>
                 <TableCell className="text-right text-sm font-semibold">
                   ${(item.precio * item.cantidad).toFixed(2)}
                 </TableCell>
@@ -103,9 +104,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 
       <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
         <span className="text-sm font-bold">Total:</span>
-        <span className="text-lg font-bold text-emerald-600">
-          ${total.toFixed(2)}
-        </span>
+        <span className="text-lg font-bold text-emerald-600">${total.toFixed(2)}</span>
       </div>
     </div>
   );

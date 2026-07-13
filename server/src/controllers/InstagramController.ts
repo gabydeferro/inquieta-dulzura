@@ -21,7 +21,11 @@ export class InstagramController {
    */
   uploadMedia = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { productId, imageUrl, caption } = req.body as { productId?: string; imageUrl?: string; caption?: string };
+      const { productId, imageUrl, caption } = req.body as {
+        productId?: string;
+        imageUrl?: string;
+        caption?: string;
+      };
 
       if (!imageUrl || !caption) {
         res.status(400).json({ success: false, message: 'imageUrl and caption are required' });
@@ -42,7 +46,11 @@ export class InstagramController {
    */
   publishPost = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { productId, containerId, caption } = req.body as { productId?: string; containerId?: string; caption?: string };
+      const { productId, containerId, caption } = req.body as {
+        productId?: string;
+        containerId?: string;
+        caption?: string;
+      };
 
       if (!containerId) {
         res.status(400).json({ success: false, message: 'containerId is required' });
@@ -93,7 +101,9 @@ export class InstagramController {
       // For now, we accept postId via query param for flexibility
       const instagramPostId = req.query.instagramPostId as string;
       if (!instagramPostId) {
-        res.status(400).json({ success: false, message: 'instagramPostId query param is required' });
+        res
+          .status(400)
+          .json({ success: false, message: 'instagramPostId query param is required' });
         return;
       }
 

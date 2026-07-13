@@ -1,12 +1,39 @@
 import { Bot, webhookCallback, Context } from 'grammy';
 import { authGuard } from './auth';
 import { startCommand, ayudaCommand } from './handlers/ayuda';
-import { categoriasCommand, categoriaCrearCommand, categoriaEditarCommand, categoriaEliminarCommand } from './handlers/categorias';
-import { productosCommand, productoCrearCommand, productoEditarCommand, productoEliminarCommand } from './handlers/productos';
-import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from './handlers/ingredientes';
+import {
+  categoriasCommand,
+  categoriaCrearCommand,
+  categoriaEditarCommand,
+  categoriaEliminarCommand,
+} from './handlers/categorias';
+import {
+  productosCommand,
+  productoCrearCommand,
+  productoEditarCommand,
+  productoEliminarCommand,
+} from './handlers/productos';
+import {
+  ingredientesCommand,
+  ingredienteCrearCommand,
+  ingredienteEditarCommand,
+  ingredienteEliminarCommand,
+} from './handlers/ingredientes';
 import { stockCommand, stockSetCommand } from './handlers/stock';
 import { ventaCommand } from './handlers/ventas';
-import { recetasCommand, recetaVerCommand, recetaCrearCommand, recetaEditarCommand, recetaEliminarCommand, recetaIngredienteAgregarCommand, recetaIngredienteQuitarCommand, recetaIngredienteEditarCommand, recetaProductosListarCommand, recetaProductoVincularCommand, recetaProductoDesvincularCommand } from './handlers/recetas';
+import {
+  recetasCommand,
+  recetaVerCommand,
+  recetaCrearCommand,
+  recetaEditarCommand,
+  recetaEliminarCommand,
+  recetaIngredienteAgregarCommand,
+  recetaIngredienteQuitarCommand,
+  recetaIngredienteEditarCommand,
+  recetaProductosListarCommand,
+  recetaProductoVincularCommand,
+  recetaProductoDesvincularCommand,
+} from './handlers/recetas';
 import { fotoHandler } from './handlers/fotos';
 
 let botInstance: Bot | null = null;
@@ -84,7 +111,8 @@ export function setupBot(): Bot {
     const text = ctx.message?.text || '';
     if (text.startsWith('/receta producto listar')) return recetaProductosListarCommand(ctx);
     if (text.startsWith('/receta producto vincular')) return recetaProductoVincularCommand(ctx);
-    if (text.startsWith('/receta producto desvincular')) return recetaProductoDesvincularCommand(ctx);
+    if (text.startsWith('/receta producto desvincular'))
+      return recetaProductoDesvincularCommand(ctx);
     return ctx.reply('❌ Comando no reconocido. Usá /ayuda para ver la sintaxis.');
   });
   bot.hears(/^\/receta (crear|editar|eliminar|\d+)/, (ctx: Context) => {

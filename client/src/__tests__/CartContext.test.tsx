@@ -20,9 +20,7 @@ const mockProduct2: Omit<CartItem, 'cantidad'> = {
 
 const CART_KEY = 'inquieta-dulzura-cart';
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <CartProvider>{children}</CartProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => <CartProvider>{children}</CartProvider>;
 
 describe('CartContext', () => {
   beforeEach(() => {

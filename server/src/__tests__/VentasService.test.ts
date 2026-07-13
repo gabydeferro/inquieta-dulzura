@@ -225,16 +225,8 @@ describe('VentasService', () => {
       // 2 stock checks + 1 INSERT ventas + 2 INSERT detalles + 1 INSERT pago
       expect(mockConn.query).toHaveBeenCalledTimes(6);
       // First stock check uses FOR UPDATE
-      expect(mockConn.query).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining('FOR UPDATE'),
-        [1],
-      );
-      expect(mockConn.query).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining('FOR UPDATE'),
-        [2],
-      );
+      expect(mockConn.query).toHaveBeenNthCalledWith(1, expect.stringContaining('FOR UPDATE'), [1]);
+      expect(mockConn.query).toHaveBeenNthCalledWith(2, expect.stringContaining('FOR UPDATE'), [2]);
       // Pagos insert happens inside the transaction
       expect(mockConn.query).toHaveBeenNthCalledWith(
         6,

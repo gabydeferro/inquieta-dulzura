@@ -14,8 +14,14 @@ describe('bot/index', () => {
     vi.doMock('../../services/IngredienteService', () => ({ IngredienteService: vi.fn() }));
     vi.doMock('../../services/VentasService', () => ({ VentasService: vi.fn() }));
     vi.doMock('../../services/FotoService', () => ({ FotoService: vi.fn() }));
-    vi.doMock('../../dtos/VentasDTO', () => ({ CreateVentaDTO: class {}, VentaDetalleDTO: class {} }));
-    vi.doMock('../telegram-file', () => ({ downloadTelegramFile: vi.fn(), createMulterFile: vi.fn() }));
+    vi.doMock('../../dtos/VentasDTO', () => ({
+      CreateVentaDTO: class {},
+      VentaDetalleDTO: class {},
+    }));
+    vi.doMock('../telegram-file', () => ({
+      downloadTelegramFile: vi.fn(),
+      createMulterFile: vi.fn(),
+    }));
   });
 
   it('setupBot() debe crear una instancia de Bot cuando hay token', async () => {
@@ -27,7 +33,9 @@ describe('bot/index', () => {
 
     vi.doMock('grammy', () => ({
       Bot: class {
-        constructor(token: string) { capturedToken = token; }
+        constructor(token: string) {
+          capturedToken = token;
+        }
         command = mockCommand;
         hears = vi.fn();
         on = mockOn;
@@ -121,7 +129,11 @@ describe('bot/index', () => {
     process.env.TELEGRAM_BOT_TOKEN = '123456:test-token';
     const mockWebhookCallback = vi.fn(() => 'mock-middleware');
     const mockBotInstance = {
-      command: vi.fn(), hears: vi.fn(), on: vi.fn(), use: vi.fn(), api: { setWebhook: vi.fn() },
+      command: vi.fn(),
+      hears: vi.fn(),
+      on: vi.fn(),
+      use: vi.fn(),
+      api: { setWebhook: vi.fn() },
     };
     vi.doMock('grammy', () => ({
       Bot: class {

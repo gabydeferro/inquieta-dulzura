@@ -42,12 +42,11 @@ export const InstagramPublishButton: React.FC<InstagramPublishButtonProps> = ({
       } catch (err: unknown) {
         const message =
           err && typeof err === 'object' && 'response' in err
-            ? String((err as { response: { data: { message?: string } } }).response?.data?.message ?? '')
+            ? String(
+                (err as { response: { data: { message?: string } } }).response?.data?.message ?? '',
+              )
             : '';
-        showNotification(
-          message || 'Error al publicar en Instagram. Intentalo de nuevo.',
-          'error',
-        );
+        showNotification(message || 'Error al publicar en Instagram. Intentalo de nuevo.', 'error');
       } finally {
         setPublishing(false);
       }

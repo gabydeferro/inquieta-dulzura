@@ -2,7 +2,8 @@ import { PagoResponse } from './PagosDTO';
 
 export interface CreateVentaDTO {
   cliente_id?: number;
-  metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
+  metodo_pago:
+    'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
   descuento?: number;
   productos: VentaDetalleDTO[];
 }

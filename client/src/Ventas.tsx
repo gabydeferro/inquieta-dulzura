@@ -9,17 +9,8 @@ import { Producto } from './types/Producto';
 import { VentaResponse } from './types/Venta';
 import { ventaCreateSchema } from './schemas/venta.schema';
 import { useNotification } from './contexts/NotificationContext';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  DollarSign,
-  BarChart3,
-  TrendingUp,
-} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DollarSign, BarChart3, TrendingUp } from 'lucide-react';
 
 const Ventas: React.FC = () => {
   const { items, total, itemCount, dispatch } = useCart();
@@ -105,8 +96,7 @@ const Ventas: React.FC = () => {
       showNotification('Venta registrada exitosamente', 'success');
       cargarVentas();
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Error al registrar la venta';
+      const message = err instanceof Error ? err.message : 'Error al registrar la venta';
       // Handle stock conflict from backend
       if (message.includes('Stock insuficiente') || message.includes('insufficient stock')) {
         setError('Stock insuficiente para uno o más productos');
@@ -221,11 +211,7 @@ const Ventas: React.FC = () => {
       </div>
 
       {/* Payment Selector */}
-      <PaymentSelector
-        total={total}
-        isSubmitting={isSubmitting}
-        onConfirm={handleConfirmSale}
-      />
+      <PaymentSelector total={total} isSubmitting={isSubmitting} onConfirm={handleConfirmSale} />
 
       {/* Sales History */}
       <div className="mt-8">
@@ -236,7 +222,9 @@ const Ventas: React.FC = () => {
               <CardHeader className="flex flex-row items-start justify-between pb-2">
                 <div>
                   <CardTitle className="text-base">Venta #{venta.id}</CardTitle>
-                  <p className="text-xs text-muted-foreground">{formatearFecha(venta.fecha_venta)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatearFecha(venta.fecha_venta)}
+                  </p>
                 </div>
                 <span className="text-xl font-bold text-emerald-600">
                   ${venta.total.toFixed(2)}
@@ -265,13 +253,15 @@ const Ventas: React.FC = () => {
                     <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
                       Estado
                     </p>
-                    <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
-                      venta.estado === 'completada'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                        : venta.estado === 'pendiente'
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                    }`}>
+                    <span
+                      className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
+                        venta.estado === 'completada'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          : venta.estado === 'pendiente'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                      }`}
+                    >
                       {venta.estado}
                     </span>
                   </div>

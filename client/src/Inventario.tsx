@@ -4,12 +4,7 @@ import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { inventarioCreateSchema, inventarioUpdateSchema } from './schemas/inventario.schema';
 import { ProductoReceta } from './types/Producto';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,15 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Package,
-  Plus,
-  Pencil,
-  Trash2,
-  AlertTriangle,
-  Link,
-  X,
-} from 'lucide-react';
+import { Package, Plus, Pencil, Trash2, AlertTriangle, Link, X } from 'lucide-react';
 
 interface Producto {
   id: number;
@@ -317,8 +304,7 @@ const Inventario: React.FC = () => {
             setErrors({});
           }}
         >
-          <Plus className="size-4" />
-          + Nuevo Producto
+          <Plus className="size-4" />+ Nuevo Producto
         </Button>
       </header>
 
@@ -424,9 +410,7 @@ const Inventario: React.FC = () => {
         <DialogContent className="sm:max-w-[550px]">
           <form onSubmit={handleSubmit} noValidate>
             <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
-              </DialogTitle>
+              <DialogTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
@@ -443,9 +427,7 @@ const Inventario: React.FC = () => {
                     className={errors.nombre ? 'border-destructive' : ''}
                     required
                   />
-                  {errors.nombre && (
-                    <p className="text-xs text-destructive">{errors.nombre}</p>
-                  )}
+                  {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
                 </div>
 
                 <div className="grid gap-2">
@@ -509,9 +491,7 @@ const Inventario: React.FC = () => {
                     className={errors.precio ? 'border-destructive' : ''}
                     required
                   />
-                  {errors.precio && (
-                    <p className="text-xs text-destructive">{errors.precio}</p>
-                  )}
+                  {errors.precio && <p className="text-xs text-destructive">{errors.precio}</p>}
                 </div>
 
                 <div className="grid gap-2">
@@ -677,9 +657,7 @@ const Inventario: React.FC = () => {
               >
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingProduct ? 'Actualizar' : 'Crear'}
-              </Button>
+              <Button type="submit">{editingProduct ? 'Actualizar' : 'Crear'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

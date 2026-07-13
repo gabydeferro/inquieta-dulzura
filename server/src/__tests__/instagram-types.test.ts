@@ -33,16 +33,29 @@ describe('Instagram server types', () => {
     const types = await import('../types/instagram');
 
     const draft: types.InstagramPostRecord = {
-      id: 1, productId: 1, instagramPostId: '', status: 'draft',
-      caption: '', mediaUrl: '',
+      id: 1,
+      productId: 1,
+      instagramPostId: '',
+      status: 'draft',
+      caption: '',
+      mediaUrl: '',
     };
     const publishing: types.InstagramPostRecord = {
-      id: 2, productId: 1, instagramPostId: '', status: 'publishing',
-      caption: '', mediaUrl: '',
+      id: 2,
+      productId: 1,
+      instagramPostId: '',
+      status: 'publishing',
+      caption: '',
+      mediaUrl: '',
     };
     const failed: types.InstagramPostRecord = {
-      id: 3, productId: 1, instagramPostId: '', status: 'failed',
-      caption: '', mediaUrl: '', errorMessage: 'API error',
+      id: 3,
+      productId: 1,
+      instagramPostId: '',
+      status: 'failed',
+      caption: '',
+      mediaUrl: '',
+      errorMessage: 'API error',
     };
 
     expect(draft.status).toBe('draft');
@@ -91,7 +104,11 @@ describe('Instagram server types', () => {
     expect(config.configured).toBe(true);
 
     const unconfigured: types.InstagramConfig = {
-      appId: '', appSecret: '', accessToken: '', businessId: '', configured: false,
+      appId: '',
+      appSecret: '',
+      accessToken: '',
+      businessId: '',
+      configured: false,
     };
     expect(unconfigured.configured).toBe(false);
   });

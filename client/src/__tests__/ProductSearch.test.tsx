@@ -28,8 +28,7 @@ describe('ProductSearch Component', () => {
     { id: 2, nombre: 'Torta de Chocolate', precio: 6000, stock: 5 },
   ];
 
-  const renderSearch = () =>
-    render(<ProductSearch onAddToCart={onAddToCart} />);
+  const renderSearch = () => render(<ProductSearch onAddToCart={onAddToCart} />);
 
   it('renders search input', () => {
     renderSearch();

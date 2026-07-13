@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Sun, Moon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-type Theme = "light" | "dark";
+type Theme = 'light' | 'dark';
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -22,23 +22,23 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefine
 
 function ThemeProvider({
   children,
-  defaultTheme = "light",
-  storageKey = "theme",
+  defaultTheme = 'light',
+  storageKey = 'theme',
 }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(storageKey) as Theme | null;
-      if (stored === "light" || stored === "dark") return stored;
+      if (stored === 'light' || stored === 'dark') return stored;
     }
     return defaultTheme;
   });
 
   React.useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
+    if (theme === 'dark') {
+      root.classList.add('dark');
     } else {
-      root.classList.remove("dark");
+      root.classList.remove('dark');
     }
     localStorage.setItem(storageKey, theme);
   }, [theme, storageKey]);
@@ -48,7 +48,7 @@ function ThemeProvider({
   }, []);
 
   const toggleTheme = React.useCallback(() => {
-    setThemeState((prev) => (prev === "light" ? "dark" : "light"));
+    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
   return (
@@ -61,7 +61,7 @@ function ThemeProvider({
 function useTheme(): ThemeContextValue {
   const context = React.useContext(ThemeContext);
   if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
 }
@@ -75,9 +75,9 @@ function ThemeToggle({ className }: { className?: string }) {
       size="icon"
       onClick={toggleTheme}
       className={className}
-      aria-label={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
     >
-      {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
+      {theme === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
     </Button>
   );
 }

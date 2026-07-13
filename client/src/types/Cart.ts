@@ -18,13 +18,7 @@ export type CartAction =
   | { type: 'CLEAR_CART' };
 
 export type MetodoPago =
-  | 'efectivo'
-  | 'tarjeta'
-  | 'transferencia'
-  | 'mercado_pago'
-  | 'cuenta_dni'
-  | 'modo'
-  | 'otro';
+  'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
 
 export const METODOS_PAGO: { value: MetodoPago; label: string }[] = [
   { value: 'efectivo', label: 'Efectivo' },

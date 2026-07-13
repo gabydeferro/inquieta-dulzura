@@ -11,19 +11,13 @@ interface PaymentSelectorProps {
   onConfirm: (metodo: MetodoPago) => void;
 }
 
-const PaymentSelector: React.FC<PaymentSelectorProps> = ({
-  total,
-  isSubmitting,
-  onConfirm,
-}) => {
+const PaymentSelector: React.FC<PaymentSelectorProps> = ({ total, isSubmitting, onConfirm }) => {
   const [selectedMethod, setSelectedMethod] = useState<MetodoPago>('efectivo');
 
   if (total <= 0) {
     return (
       <div className="rounded-lg border border-dashed p-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          Agrega productos al carrito para continuar
-        </p>
+        <p className="text-sm text-muted-foreground">Agrega productos al carrito para continuar</p>
       </div>
     );
   }
@@ -35,9 +29,7 @@ const PaymentSelector: React.FC<PaymentSelectorProps> = ({
           <CreditCard className="size-4" />
           Método de Pago
         </h3>
-        <span className="text-lg font-bold text-emerald-600">
-          ${total.toFixed(2)}
-        </span>
+        <span className="text-lg font-bold text-emerald-600">${total.toFixed(2)}</span>
       </div>
 
       <RadioGroup

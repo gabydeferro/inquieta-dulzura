@@ -1,10 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Camera, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
@@ -22,12 +17,11 @@ export const InstagramSettings: React.FC = () => {
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
-          ? String((err as { response: { data: { message?: string } } }).response?.data?.message ?? '')
+          ? String(
+              (err as { response: { data: { message?: string } } }).response?.data?.message ?? '',
+            )
           : '';
-      showNotification(
-        message || 'Error al refrescar token. Intentalo de nuevo.',
-        'error',
-      );
+      showNotification(message || 'Error al refrescar token. Intentalo de nuevo.', 'error');
     } finally {
       setRefreshing(false);
     }
@@ -40,12 +34,8 @@ export const InstagramSettings: React.FC = () => {
           <Camera className="size-5 text-pink-500" />
         </div>
         <div>
-          <CardTitle className="text-sm font-medium">
-            Configuración de Instagram
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Administrá la conexión con Instagram
-          </p>
+          <CardTitle className="text-sm font-medium">Configuración de Instagram</CardTitle>
+          <p className="text-xs text-muted-foreground">Administrá la conexión con Instagram</p>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 px-5 pb-5">
@@ -61,9 +51,7 @@ export const InstagramSettings: React.FC = () => {
           <AlertCircle className="size-4 text-amber-500" />
           <div className="text-sm">
             <span className="font-medium">Token:</span>{' '}
-            <span className="text-muted-foreground">
-              Vence en 30 días
-            </span>
+            <span className="text-muted-foreground">Vence en 30 días</span>
           </div>
         </div>
 

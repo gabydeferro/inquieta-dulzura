@@ -1,22 +1,13 @@
 import { z } from 'zod';
 
 export const recetaSchema = z.object({
-  nombre: z
-    .string()
-    .trim()
-    .min(2, 'Nombre debe tener al menos 2 caracteres'),
-  descripcion: z
-    .string()
-    .trim()
-    .min(1, 'Descripción es requerida'),
+  nombre: z.string().trim().min(2, 'Nombre debe tener al menos 2 caracteres'),
+  descripcion: z.string().trim().min(1, 'Descripción es requerida'),
   tiempo_preparacion: z
     .number()
     .int('Debe ser un número entero')
     .positive('Debe ser un número positivo'),
-  porciones: z
-    .number()
-    .int('Debe ser un número entero')
-    .positive('Debe ser un número positivo'),
+  porciones: z.number().int('Debe ser un número entero').positive('Debe ser un número positivo'),
   instrucciones: z.string().optional(),
   ingredientes: z
     .array(

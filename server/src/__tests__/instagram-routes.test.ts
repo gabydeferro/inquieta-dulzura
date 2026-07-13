@@ -43,11 +43,9 @@ const mockedGet = vi.mocked(axios.get);
 // ──────────────────────────────────────────────
 
 const AUTH_SECRET = 'secret-key-change-in-production';
-const VALID_TOKEN = jwt.sign(
-  { userId: 1, email: 'admin@test.com', rol: 'admin' },
-  AUTH_SECRET,
-  { expiresIn: '15m' },
-);
+const VALID_TOKEN = jwt.sign({ userId: 1, email: 'admin@test.com', rol: 'admin' }, AUTH_SECRET, {
+  expiresIn: '15m',
+});
 
 // ──────────────────────────────────────────────
 // Helpers
@@ -98,7 +96,10 @@ async function makeRequest(
       };
 
       if (body) {
-        options.headers = { ...options.headers, 'Content-Length': Buffer.byteLength(body).toString() };
+        options.headers = {
+          ...options.headers,
+          'Content-Length': Buffer.byteLength(body).toString(),
+        };
       }
 
       const req = http.request(options, (res) => {
@@ -190,15 +191,10 @@ describe('Instagram Routes — conditional mount integration', () => {
 
     test('4. POST /api/instagram/upload-media is also mounted (non-GET route)', async () => {
       const app = buildApp(true);
-      const res = await makeRequest(
-        app,
-        'POST',
-        '/api/instagram/upload-media',
-        {
-          Authorization: `Bearer ${VALID_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-      );
+      const res = await makeRequest(app, 'POST', '/api/instagram/upload-media', {
+        Authorization: `Bearer ${VALID_TOKEN}`,
+        'Content-Type': 'application/json',
+      });
 
       // Should respond, not 404. Likely 400 (missing body) or 500
       expect(res.status).not.toBe(404);
@@ -215,39 +211,24 @@ describe('Instagram Routes — conditional mount integration', () => {
     test('5. routes are NOT mounted — all endpoints return 404', async () => {
       const app = buildApp(false);
 
-      const res1 = await makeRequest(
-        app,
-        'GET',
-        '/api/instagram/products/1/metrics',
-      );
+      const res1 = await makeRequest(app, 'GET', '/api/instagram/products/1/metrics');
       expect(res1.status).toBe(404);
 
       const res2 = await makeRequest(app, 'POST', '/api/instagram/upload-media');
       expect(res2.status).toBe(404);
 
-      const res3 = await makeRequest(
-        app,
-        'GET',
-        '/api/instagram/products/1/post',
-      );
+      const res3 = await makeRequest(app, 'GET', '/api/instagram/products/1/post');
       expect(res3.status).toBe(404);
 
-      const res4 = await makeRequest(
-        app,
-        'GET',
-        '/api/instagram/posts/ig-test/comments',
-      );
+      const res4 = await makeRequest(app, 'GET', '/api/instagram/posts/ig-test/comments');
       expect(res4.status).toBe(404);
     });
 
     test('6. even with valid auth, routes are still 404 when not configured', async () => {
       const app = buildApp(false);
-      const res = await makeRequest(
-        app,
-        'GET',
-        '/api/instagram/products/1/metrics',
-        { Authorization: `Bearer ${VALID_TOKEN}` },
-      );
+      const res = await makeRequest(app, 'GET', '/api/instagram/products/1/metrics', {
+        Authorization: `Bearer ${VALID_TOKEN}`,
+      });
 
       expect(res.status).toBe(404);
     });
@@ -281,11 +262,7 @@ describe('Instagram Routes — conditional mount integration', () => {
 
     test('GET /api/instagram/webhook rejects missing params', async () => {
       const app = buildApp(true);
-      const res = await makeRequest(
-        app,
-        'GET',
-        '/api/instagram/webhook',
-      );
+      const res = await makeRequest(app, 'GET', '/api/instagram/webhook');
 
       expect(res.status).toBe(400);
     });
@@ -294,18 +271,22 @@ describe('Instagram Routes — conditional mount integration', () => {
       const app = buildApp(true);
       const notificationPayload = {
         object: 'instagram',
-        entry: [{
-          id: '123',
-          time: 1234567890,
-          changes: [{
-            field: 'comments',
-            value: {
-              text: 'Qué rico se ve!',
-              username: 'test_user',
-              media_id: 'ig-media-1',
-            },
-          }],
-        }],
+        entry: [
+          {
+            id: '123',
+            time: 1234567890,
+            changes: [
+              {
+                field: 'comments',
+                value: {
+                  text: 'Qué rico se ve!',
+                  username: 'test_user',
+                  media_id: 'ig-media-1',
+                },
+              },
+            ],
+          },
+        ],
       };
 
       const res = await makeRequest(

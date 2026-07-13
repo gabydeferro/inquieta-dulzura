@@ -65,9 +65,7 @@ describe('MercadoPagoService', () => {
     test('throws when MERCADO_PAGO_ACCESS_TOKEN is missing', () => {
       delete process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
-      expect(() => new MercadoPagoService()).toThrow(
-        'MERCADO_PAGO_ACCESS_TOKEN not configured',
-      );
+      expect(() => new MercadoPagoService()).toThrow('MERCADO_PAGO_ACCESS_TOKEN not configured');
     });
   });
 
@@ -169,9 +167,7 @@ describe('MercadoPagoService', () => {
 
       const service = new MercadoPagoService();
 
-      await expect(service.handleWebhook('INVALID-ID')).rejects.toThrow(
-        'Payment not found',
-      );
+      await expect(service.handleWebhook('INVALID-ID')).rejects.toThrow('Payment not found');
     });
 
     test('handles pending payment status correctly', async () => {

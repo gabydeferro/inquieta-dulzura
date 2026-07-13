@@ -1,6 +1,11 @@
 import { Context } from 'grammy';
 import { ProductoService } from '../../services/ProductoService';
-import { parseProductosListar, parseProductoCrear, parseProductoEditar, parseProductoEliminar } from '../parser';
+import {
+  parseProductosListar,
+  parseProductoCrear,
+  parseProductoEditar,
+  parseProductoEliminar,
+} from '../parser';
 import { connection } from '../../db';
 import { RowDataPacket } from 'mysql2';
 
@@ -85,7 +90,9 @@ export async function productoCrearCommand(ctx: Context): Promise<void> {
       costo: parsed.data.costo,
     });
 
-    await ctx.reply(`✅ Producto #${producto.id} creado: *${producto.nombre}*`, { parse_mode: 'Markdown' });
+    await ctx.reply(`✅ Producto #${producto.id} creado: *${producto.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en productoCrearCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -98,10 +105,16 @@ const VALID_PRODUCTO_FIELDS = ['nombre', 'precio', 'costo', 'categoria_id', 'des
  * Construye el partial update basado en campo:valor.
  * Valida que el campo sea una columna real de productos.
  */
-function buildProductoUpdate(campo: string, valor: string): { ok: true; data: Record<string, any> } | { ok: false; error: string } {
+function buildProductoUpdate(
+  campo: string,
+  valor: string,
+): { ok: true; data: Record<string, any> } | { ok: false; error: string } {
   if (!VALID_PRODUCTO_FIELDS.includes(campo)) {
     const fields = VALID_PRODUCTO_FIELDS.map((f) => `\`${f}\``).join(', ');
-    return { ok: false, error: `Campo inválido: \`${campo}\`. Campos válidos: ${fields}. Ej: \`/producto editar 15 nombre Chocotorta\`` };
+    return {
+      ok: false,
+      error: `Campo inválido: \`${campo}\`. Campos válidos: ${fields}. Ej: \`/producto editar 15 nombre Chocotorta\``,
+    };
   }
 
   const numericFields = ['precio', 'costo', 'categoria_id'];
@@ -137,7 +150,9 @@ export async function productoEditarCommand(ctx: Context): Promise<void> {
       return;
     }
 
-    await ctx.reply(`✅ Producto #${result.id} actualizado: *${result.nombre}*`, { parse_mode: 'Markdown' });
+    await ctx.reply(`✅ Producto #${result.id} actualizado: *${result.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en productoEditarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -165,10 +180,13 @@ export async function productoEliminarCommand(ctx: Context): Promise<void> {
 
     await ctx.reply(`✅ Producto #${parsed.data.id} eliminado.`);
   } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-    if (errMsg.includes('foreign key') ||
-        errMsg.includes('cannot delete') ||
-        errMsg.includes('parent row')) {
+    const errMsg =
+      error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    if (
+      errMsg.includes('foreign key') ||
+      errMsg.includes('cannot delete') ||
+      errMsg.includes('parent row')
+    ) {
       await ctx.reply('❌ No se puede eliminar: tiene stock, fotos o ventas asociadas.');
       return;
     }
