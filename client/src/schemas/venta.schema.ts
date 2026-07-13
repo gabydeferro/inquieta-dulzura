@@ -12,9 +12,10 @@ export const ventaDetalleSchema = z.object({
 });
 
 export const ventaCreateSchema = z.object({
-  metodo_pago: z.enum(['efectivo', 'tarjeta', 'transferencia', 'otro'], {
-    message: 'Método de pago inválido',
-  }),
+  metodo_pago: z.enum(
+    ['efectivo', 'tarjeta', 'transferencia', 'mercado_pago', 'cuenta_dni', 'modo', 'otro'],
+    { message: 'Método de pago inválido' },
+  ),
   descuento: z.coerce.number().min(0, 'El descuento debe ser mayor o igual a 0').default(0),
   productos: z.array(ventaDetalleSchema).min(1, 'Debe agregar al menos un producto'),
   cliente: z.string()

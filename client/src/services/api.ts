@@ -2,7 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
 import { VentaResponse, VentaCreateInput } from '../types/Venta';
-import { ProductoReceta, RecetaProducto } from '../types/Producto';
+import { Producto, ProductoReceta, RecetaProducto } from '../types/Producto';
+import { CreatePagoDTO, PagoResponse } from '../types/Pago';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -226,6 +227,16 @@ class ApiService {
 
   async createVenta(data: VentaCreateInput): Promise<AxiosResponse<VentaResponse>> {
     return this.post<VentaResponse>('/ventas', data);
+  }
+
+  // Productos search
+  async searchProductos(query: string): Promise<AxiosResponse<Producto[]>> {
+    return this.get<Producto[]>('/productos/search', { params: { q: query } });
+  }
+
+  // Pagos
+  async createPago(ventaId: number, data: CreatePagoDTO): Promise<AxiosResponse<PagoResponse>> {
+    return this.post<PagoResponse>(`/ventas/${ventaId}/pagos`, data);
   }
 
   // --- Instagram Integration ---

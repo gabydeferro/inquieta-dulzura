@@ -11,10 +11,13 @@ import ingredientesRoutes from './routes/ingredientes';
 import recetasRoutes from './routes/recetas';
 import contenidoDigitalRouter from './controllers/ContenidoDigitalController';
 import ventasRoutes from './routes/ventas';
+import pagosRoutes from './routes/pagos';
 import { authenticateToken } from './middleware/auth';
 import { setupBot, configureWebhook } from './bot';
 import instagramRouter from './routes/instagram';
 import { verificarConfiguracion as verificarConfiguracionInstagram } from './config/instagram';
+import { verificarConfiguracion as verificarConfiguracionMP } from './config/mercado-pago';
+import mercadoPagoRoutes from './routes/mercado-pago';
 
 // Inicializar Express
 const app = express();
@@ -66,6 +69,7 @@ app.use('/api/ingredientes', ingredientesRoutes);
 app.use('/api/recetas', recetasRoutes);
 app.use('/api/contenido-digital', contenidoDigitalRouter);
 app.use('/api/ventas', ventasRoutes);
+app.use('/api/ventas', pagosRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
 
 // ============================================
@@ -97,6 +101,17 @@ if (verificarConfiguracionInstagram()) {
   console.log('✅ Rutas de Instagram montadas');
 } else {
   console.log('ℹ️  Instagram no configurado — rutas desactivadas');
+}
+
+// ============================================
+// MERCADO PAGO (OPTIONAL)
+// ============================================
+
+if (verificarConfiguracionMP()) {
+  app.use('/api/mercado-pago', mercadoPagoRoutes);
+  console.log('✅ Mercado Pago routes mounted');
+} else {
+  console.log('ℹ️  Mercado Pago not configured — routes disabled');
 }
 
 app.use((req: Request, res: Response) => {

@@ -1,6 +1,8 @@
 import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { pool } from '../config/database';
 import { CreateVentaDTO, VentaResponse, VentaDetalleResponse } from '../dtos/VentasDTO';
+import { PagoResponse } from '../dtos/PagosDTO';
+import { InsufficientStockError } from '../errors/InsufficientStockError';
 
 interface VentaJoinedRow {
   venta_id: number;
@@ -54,14 +56,59 @@ export class VentasService {
       ORDER BY v.fecha_venta DESC, vd.id`,
     );
 
-    return this.aggregateVentas(rows as VentaJoinedRow[]);
+    const ventas = this.aggregateVentas(rows as VentaJoinedRow[]);
+
+    // Fetch pagos for each venta
+    if (ventas.length > 0) {
+      const ventaIds = ventas.map((v) => v.id);
+      const placeholders = ventaIds.map(() => '?').join(',');
+      const [pagoRows] = await pool.query<RowDataPacket[]>(
+        `SELECT id, venta_id, metodo_pago, monto, referencia_externa, estado, datos_json, created_at
+         FROM pagos
+         WHERE venta_id IN (${placeholders})
+         ORDER BY created_at ASC`,
+        ventaIds,
+      );
+      const pagosByVentaId = new Map<number, PagoResponse[]>();
+      for (const pago of pagoRows as PagoResponse[]) {
+        const arr = pagosByVentaId.get(pago.venta_id) ?? [];
+        arr.push(pago);
+        pagosByVentaId.set(pago.venta_id, arr);
+      }
+      for (const venta of ventas) {
+        venta.pagos = pagosByVentaId.get(venta.id) ?? [];
+      }
+    }
+
+    return ventas;
   }
+
+  METODO_PAGO_DEFAULTS: Record<string, string> = {
+    efectivo: 'aprobado',
+    tarjeta: 'aprobado',
+    transferencia: 'aprobado',
+    cuenta_dni: 'aprobado',
+    modo: 'aprobado',
+    otro: 'aprobado',
+    mercado_pago: 'pendiente',
+  };
 
   async createVenta(data: CreateVentaDTO): Promise<VentaResponse> {
     const conn = await pool.getConnection();
 
     try {
       await conn.beginTransaction();
+
+      // 1. Validate stock for ALL items with SELECT FOR UPDATE
+      for (const prod of data.productos) {
+        const [rows] = await conn.query<RowDataPacket[]>(
+          'SELECT cantidad_disponible FROM stock WHERE producto_id = ? FOR UPDATE',
+          [prod.producto_id],
+        );
+        if (rows.length === 0 || Number(rows[0].cantidad_disponible) < prod.cantidad) {
+          throw new InsufficientStockError(prod.producto_id);
+        }
+      }
 
       const subtotal = data.productos.reduce((sum, p) => sum + p.subtotal, 0);
       const descuento = data.descuento ?? 0;
@@ -90,6 +137,14 @@ export class VentasService {
         );
       }
 
+      // 2. Insert pago row (1 pago per venta for now)
+      const estado = this.METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
+      await conn.query(
+        `INSERT INTO pagos (venta_id, metodo_pago, monto, estado, referencia_externa, datos_json)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [ventaId, data.metodo_pago, total, estado, null, null],
+      );
+
       await conn.commit();
 
       // Fetch the created venta to return
@@ -102,7 +157,7 @@ export class VentasService {
     }
   }
 
-  private async getVentaById(id: number): Promise<VentaResponse> {
+  async getVentaById(id: number): Promise<VentaResponse> {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
         v.id AS venta_id,
@@ -134,7 +189,20 @@ export class VentasService {
     );
 
     const ventas = this.aggregateVentas(rows as VentaJoinedRow[]);
-    return ventas[0];
+    const venta = ventas[0];
+
+    if (venta) {
+      const [pagoRows] = await pool.query<RowDataPacket[]>(
+        `SELECT id, venta_id, metodo_pago, monto, referencia_externa, estado, datos_json, created_at
+         FROM pagos
+         WHERE venta_id = ?
+         ORDER BY created_at ASC`,
+        [id],
+      );
+      venta.pagos = pagoRows as PagoResponse[];
+    }
+
+    return venta;
   }
 
   private aggregateVentas(rows: VentaJoinedRow[]): VentaResponse[] {

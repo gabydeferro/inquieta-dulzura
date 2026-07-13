@@ -95,6 +95,17 @@ export class ProductoController {
     }
   }
 
+  public async search(req: Request, res: Response): Promise<void> {
+    try {
+      const query = (req.query.q as string) ?? '';
+      const productos = await this.productoService.search(query);
+      res.status(200).json(productos);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error searching productos';
+      res.status(500).json({ success: false, error: message });
+    }
+  }
+
   // --- Vinculación handlers ---
 
   public async getRecetasByProducto(req: Request, res: Response): Promise<void> {

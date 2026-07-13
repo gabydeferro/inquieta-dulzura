@@ -8,6 +8,7 @@ const router = Router();
 const productoController = new ProductoController();
 
 // Rutas públicas
+router.get('/search', productoController.search.bind(productoController));
 router.get('/', productoController.getAll.bind(productoController));
 router.get('/categoria/:categoriaId', productoController.getByCategoriaId.bind(productoController));
 router.get('/:id', productoController.getById.bind(productoController));

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { getVentas, createVenta } from '../controllers/VentasController';
 import { VentasService } from '../services/VentasService';
+import { InsufficientStockError } from '../errors/InsufficientStockError';
 
 const { mockGetVentas, mockCreateVenta } = vi.hoisted(() => ({
   mockGetVentas: vi.fn(),
@@ -72,7 +73,20 @@ describe('VentasController', () => {
       expect(mockJson).toHaveBeenCalledWith(createdVenta);
     });
 
-    it('should return 500 on service error', async () => {
+    it('should return 409 on InsufficientStockError', async () => {
+      mockRequest.body = { metodo_pago: 'efectivo', productos: [{ producto_id: 1, cantidad: 99 }] };
+      mockCreateVenta.mockRejectedValue(new InsufficientStockError(1));
+
+      await createVenta(mockRequest as Request, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(409);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: 'Stock insuficiente para el producto 1',
+      });
+    });
+
+    it('should return 500 on generic service error', async () => {
       mockRequest.body = { metodo_pago: 'efectivo', productos: [] };
       mockCreateVenta.mockRejectedValue(new Error('FK violation'));
 

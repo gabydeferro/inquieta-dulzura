@@ -1,6 +1,8 @@
+import { PagoResponse } from './PagosDTO';
+
 export interface CreateVentaDTO {
   cliente_id?: number;
-  metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'otro';
+  metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'mercado_pago' | 'cuenta_dni' | 'modo' | 'otro';
   descuento?: number;
   productos: VentaDetalleDTO[];
 }
@@ -25,6 +27,7 @@ export interface VentaResponse {
   estado: string;
   notas?: string;
   productos: VentaDetalleResponse[];
+  pagos?: PagoResponse[];
 }
 
 export interface VentaDetalleResponse {

@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -27,7 +28,8 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <ConfirmProvider>
-            <BrowserRouter>
+            <CartProvider>
+              <BrowserRouter>
               <ScrollToTop />
               <div className="flex min-h-screen flex-col">
                 <Navbar />
@@ -109,6 +111,7 @@ function App() {
                 </main>
               </div>
             </BrowserRouter>
+            </CartProvider>
           </ConfirmProvider>
         </NotificationProvider>
       </AuthProvider>
