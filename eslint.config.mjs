@@ -1,10 +1,9 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports — CJS config file */
-const tseslint = require('typescript-eslint');
-const reactHooks = require('eslint-plugin-react-hooks');
-const reactRefresh = require('eslint-plugin-react-refresh').default;
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 
-module.exports = tseslint.config(
+export default tseslint.config(
   { ignores: ['build/', 'node_modules/', '**/*.js', '**/*.cjs', '**/*.mjs'] },
 
   // Shared base: recommended rules for all TypeScript files
@@ -20,7 +19,7 @@ module.exports = tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: __dirname,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
