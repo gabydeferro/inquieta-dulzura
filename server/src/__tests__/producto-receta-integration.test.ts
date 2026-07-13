@@ -32,7 +32,7 @@ import productoRouter from '../routes/productos';
 // Constants
 // ──────────────────────────────────────────────
 
-const JWT_SECRET = 'secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'secret-key-change-in-production';
 const ADMIN_TOKEN = jwt.sign({ userId: 1, email: 'admin@test.com', rol: 'admin' }, JWT_SECRET, {
   expiresIn: '15m',
 });
