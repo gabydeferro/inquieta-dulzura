@@ -1,6 +1,7 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 
 export interface MPItem {
+  id?: string;
   title: string;
   quantity: number;
   unit_price: number;
@@ -50,7 +51,8 @@ export class MercadoPagoService {
 
     const result = await this.preference.create({
       body: {
-        items: items.map((item) => ({
+        items: items.map((item, index) => ({
+          id: item.id ?? String(index + 1),
           ...item,
           currency_id: 'ARS' as const,
         })),
