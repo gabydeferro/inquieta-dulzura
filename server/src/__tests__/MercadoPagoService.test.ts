@@ -92,7 +92,13 @@ describe('MercadoPagoService', () => {
       expect(mockPreferenceCreate).toHaveBeenCalledWith({
         body: {
           items: [
-            { id: '1', title: 'Torta Red Velvet', quantity: 2, unit_price: 5000, currency_id: 'ARS' },
+            {
+              id: '1',
+              title: 'Torta Red Velvet',
+              quantity: 2,
+              unit_price: 5000,
+              currency_id: 'ARS',
+            },
             { id: '2', title: 'Alfajor x6', quantity: 1, unit_price: 3000, currency_id: 'ARS' },
           ],
           external_reference: '42',
