@@ -1,6 +1,6 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 
-interface MPItem {
+export interface MPItem {
   title: string;
   quantity: number;
   unit_price: number;
@@ -16,6 +16,18 @@ interface WebhookResult {
   external_reference: string;
   payment_id: string;
   transaction_amount: number;
+}
+
+// MercadoPago SDK response types (untyped in the SDK)
+interface MPPreferenceResponse {
+  init_point?: string;
+  id?: string;
+}
+
+interface MPPaymentResponse {
+  status?: string;
+  external_reference?: string;
+  transaction_amount?: number;
 }
 
 export class MercadoPagoService {
@@ -52,20 +64,22 @@ export class MercadoPagoService {
       },
     });
 
+    const typedResult = result as MPPreferenceResponse;
     return {
-      url: (result as any).init_point,
-      preference_id: (result as any).id,
+      url: typedResult.init_point ?? '',
+      preference_id: typedResult.id ?? '',
     };
   }
 
   async handleWebhook(paymentId: string): Promise<WebhookResult> {
     const payment = await this.payment.get({ id: paymentId });
 
+    const typedPayment = payment as MPPaymentResponse;
     return {
-      status: (payment as any).status,
-      external_reference: (payment as any).external_reference,
+      status: typedPayment.status ?? 'unknown',
+      external_reference: typedPayment.external_reference ?? '',
       payment_id: paymentId,
-      transaction_amount: (payment as any).transaction_amount,
+      transaction_amount: typedPayment.transaction_amount ?? 0,
     };
   }
 }

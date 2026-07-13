@@ -13,8 +13,8 @@ const METODO_PAGO_DEFAULTS: Record<string, string> = {
 };
 
 export class PagosService {
-  async create(data: CreatePagoDTO): Promise<PagoResponse> {
-    const estado = data.estado ?? METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
+  async create(data: CreatePagoDTO & { estado?: string }): Promise<PagoResponse> {
+    const estado: string = data.estado ?? METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
 
     const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO pagos (venta_id, metodo_pago, monto, estado, referencia_externa, datos_json)
@@ -29,8 +29,9 @@ export class PagosService {
       ],
     );
 
+    const insertId: number = result.insertId;
     return {
-      id: result.insertId,
+      id: insertId,
       venta_id: data.venta_id,
       metodo_pago: data.metodo_pago,
       monto: data.monto,

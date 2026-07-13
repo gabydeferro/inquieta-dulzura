@@ -1,7 +1,17 @@
 import { Router, Request, Response } from 'express';
-import { MercadoPagoService } from '../services/MercadoPagoService';
+import { MercadoPagoService, MPItem } from '../services/MercadoPagoService';
 
 const router = Router();
+
+interface PreferenciaBody {
+  ventaId?: number;
+  items?: MPItem[];
+}
+
+interface WebhookBody {
+  type?: string;
+  data?: { id?: string };
+}
 
 /**
  * @route   POST /api/mercado-pago/preferencia
@@ -10,7 +20,8 @@ const router = Router();
  */
 router.post('/preferencia', async (req: Request, res: Response) => {
   try {
-    const { ventaId, items } = req.body;
+    const body = req.body as PreferenciaBody;
+    const { ventaId, items } = body;
 
     if (!ventaId || !items || !Array.isArray(items) || items.length === 0) {
       res.status(400).json({
@@ -21,7 +32,7 @@ router.post('/preferencia', async (req: Request, res: Response) => {
     }
 
     const service = new MercadoPagoService();
-    const result = await service.createPreference(ventaId, items);
+    const result = await service.createPreference(Number(ventaId), items);
 
     res.json({
       success: true,
@@ -50,7 +61,8 @@ router.post('/webhook', async (req: Request, res: Response) => {
       console.log('MP webhook received with signature:', signature);
     }
 
-    const { type, data } = req.body;
+    const body = req.body as WebhookBody;
+    const { type, data } = body;
 
     if (type === 'payment' && data?.id) {
       const service = new MercadoPagoService();

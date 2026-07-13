@@ -123,8 +123,13 @@ export class ProductoController {
   public async vincularReceta(req: Request, res: Response): Promise<void> {
     try {
       const productoId = parseInt(req.params.id, 10);
-      const { receta_id, cantidad_receta } = req.body;
-      const vinculo = await this.productoService.vincular(productoId, receta_id, cantidad_receta);
+      const body = req.body as { receta_id?: number; cantidad_receta?: number };
+      const { receta_id, cantidad_receta } = body;
+      const vinculo = await this.productoService.vincular(
+        productoId,
+        Number(receta_id),
+        Number(cantidad_receta),
+      );
       res.status(201).json(vinculo);
     } catch (error: unknown) {
       if (handleDuplicateError(error, res, 'Este producto ya está vinculado a esta receta.'))

@@ -407,9 +407,9 @@ export class InstagramService {
 
         switch (change.field) {
           case 'comments': {
-            const text = (value as any)?.text as string | undefined;
-            const username = (value as any)?.username as string | undefined;
-            const mediaId = (value as any)?.media_id as string | undefined;
+            const text = value.text as string | undefined;
+            const username = value.username as string | undefined;
+            const mediaId = value.media_id as string | undefined;
 
             if (text && username) {
               messages.push(
@@ -422,8 +422,8 @@ export class InstagramService {
           }
 
           case 'messaging': {
-            const messageText = (value as any)?.message as string | undefined;
-            const senderName = (value as any)?.sender_name as string | undefined;
+            const messageText = value.message as string | undefined;
+            const senderName = value.sender_name as string | undefined;
 
             if (messageText && senderName) {
               messages.push(
