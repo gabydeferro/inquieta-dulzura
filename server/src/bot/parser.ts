@@ -190,9 +190,7 @@ export function parseRecetaVer(text: string): ParseResult<{ id: number }> {
  * Extrae parámetros de /receta crear <nombre> <descripcion> <tiempo_preparacion> <porciones>
  * Primera palabra = nombre, resto antes de los 2 últimos números = descripción
  */
-export function parseRecetaCrear(
-  text: string,
-): ParseResult<{
+export function parseRecetaCrear(text: string): ParseResult<{
   nombre: string;
   descripcion: string;
   tiempo_preparacion: number;
@@ -247,9 +245,7 @@ const RECETA_UNITS = '(kg|gramos|litros|ml|unidades)';
 /**
  * Extrae parámetros de /receta ingrediente agregar <receta_id> <ingrediente_id> <cantidad> <unidad>
  */
-export function parseRecetaIngredienteAgregar(
-  text: string,
-): ParseResult<{
+export function parseRecetaIngredienteAgregar(text: string): ParseResult<{
   receta_id: number;
   ingrediente_id: number;
   cantidad: number;
@@ -299,9 +295,7 @@ export function parseRecetaIngredienteQuitar(
 /**
  * Extrae parámetros de /receta ingrediente editar <receta_id> <ingrediente_id> <cantidad> <unidad>
  */
-export function parseRecetaIngredienteEditar(
-  text: string,
-): ParseResult<{
+export function parseRecetaIngredienteEditar(text: string): ParseResult<{
   receta_id: number;
   ingrediente_id: number;
   cantidad: number;
