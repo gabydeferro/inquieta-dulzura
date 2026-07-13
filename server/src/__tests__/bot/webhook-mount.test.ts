@@ -17,6 +17,9 @@ describe('Bot webhook mounting in index.ts', () => {
         execute: vi.fn(),
       },
     }));
+    vi.doMock('../config/init-config', () => ({
+      initConfig: vi.fn(),
+    }));
     vi.doMock('../db', () => ({ connection: { execute: vi.fn(), query: vi.fn() } }));
     vi.doMock('mysql2', () => ({ RowDataPacket: class {}, ResultSetHeader: class {} }));
     vi.doMock('./bot', () => ({
