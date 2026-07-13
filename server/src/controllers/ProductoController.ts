@@ -95,6 +95,17 @@ export class ProductoController {
     }
   }
 
+  public async search(req: Request, res: Response): Promise<void> {
+    try {
+      const query = (req.query.q as string) ?? '';
+      const productos = await this.productoService.search(query);
+      res.status(200).json(productos);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error searching productos';
+      res.status(500).json({ success: false, error: message });
+    }
+  }
+
   // --- Vinculación handlers ---
 
   public async getRecetasByProducto(req: Request, res: Response): Promise<void> {
@@ -103,7 +114,8 @@ export class ProductoController {
       const recetas = await this.productoService.getRecetasByProducto(id);
       res.status(200).json(recetas);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al obtener recetas del producto';
+      const message =
+        error instanceof Error ? error.message : 'Error al obtener recetas del producto';
       res.status(500).json({ success: false, error: message });
     }
   }
@@ -115,7 +127,8 @@ export class ProductoController {
       const vinculo = await this.productoService.vincular(productoId, receta_id, cantidad_receta);
       res.status(201).json(vinculo);
     } catch (error: unknown) {
-      if (handleDuplicateError(error, res, 'Este producto ya está vinculado a esta receta.')) return;
+      if (handleDuplicateError(error, res, 'Este producto ya está vinculado a esta receta.'))
+        return;
       const message = error instanceof Error ? error.message : 'Error al vincular receta';
       res.status(500).json({ success: false, error: message });
     }

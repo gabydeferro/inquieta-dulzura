@@ -23,12 +23,21 @@ describe('Instagram client types', () => {
   test('InstagramPost supports all statuses', async () => {
     await import('../types/instagram');
     const draft: InstagramPost = {
-      id: 1, productId: 1, instagramPostId: '', status: 'draft',
-      caption: '', mediaUrl: '',
+      id: 1,
+      productId: 1,
+      instagramPostId: '',
+      status: 'draft',
+      caption: '',
+      mediaUrl: '',
     };
     const failed: InstagramPost = {
-      id: 2, productId: 1, instagramPostId: '', status: 'failed',
-      caption: '', mediaUrl: '', errorMessage: 'API error',
+      id: 2,
+      productId: 1,
+      instagramPostId: '',
+      status: 'failed',
+      caption: '',
+      mediaUrl: '',
+      errorMessage: 'API error',
     };
     expect(draft.status).toBe('draft');
     expect(failed.status).toBe('failed');

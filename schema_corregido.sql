@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS ventas (
   descuento DECIMAL(10, 2) DEFAULT 0,
   impuestos DECIMAL(10, 2) DEFAULT 0,
   total DECIMAL(10, 2) NOT NULL,
-  metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia', 'otro') NOT NULL,
+  metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia', 'mercado_pago', 'cuenta_dni', 'modo', 'otro') NOT NULL,
   estado ENUM('pendiente', 'completada', 'cancelada') NOT NULL DEFAULT 'completada',
   notas TEXT,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -280,6 +280,23 @@ CREATE TABLE IF NOT EXISTS venta_detalle (
   INDEX idx_producto (producto_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Detalle de productos vendidos en cada venta';
+
+-- 11.1 PAGOS (registro de pagos por venta)
+CREATE TABLE IF NOT EXISTS pagos (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  venta_id BIGINT UNSIGNED NOT NULL,
+  metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia', 'mercado_pago', 'cuenta_dni', 'modo', 'otro') NOT NULL,
+  monto DECIMAL(10, 2) NOT NULL,
+  referencia_externa VARCHAR(255) NULL COMMENT 'ID de transaccion externa (MP, transferencia, etc.)',
+  estado ENUM('pendiente', 'aprobado', 'rechazado', 'reembolsado') NOT NULL DEFAULT 'aprobado',
+  datos_json JSON NULL COMMENT 'Payload completo de respuesta externa (MP, etc.)',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  INDEX idx_venta (venta_id),
+  INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Registro de pagos asociados a cada venta';
 
 -- 12. USUARIOS (para autenticacion)
 CREATE TABLE IF NOT EXISTS usuarios (

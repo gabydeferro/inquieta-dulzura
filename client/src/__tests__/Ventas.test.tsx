@@ -1,405 +1,216 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, cleanup, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Ventas from '../Ventas';
+import { CartProvider } from '../contexts/CartContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import api from '../services/api';
-import { VentaResponse } from '../types/Venta';
 
 vi.mock('../services/api', () => ({
   default: {
     getVentas: vi.fn(),
     createVenta: vi.fn(),
+    searchProductos: vi.fn(),
   },
 }));
 
-describe('Ventas Component', () => {
-  const renderVentas = () => render(<Ventas />);
+const renderVentas = async () => {
+  const result = render(
+    <NotificationProvider>
+      <CartProvider>
+        <Ventas />
+      </CartProvider>
+    </NotificationProvider>,
+  );
+  // Wait for the async cargarVentas to finish and the loading state to clear
+  await waitFor(() => {
+    expect(screen.queryByText(/Cargando ventas/i)).not.toBeInTheDocument();
+  });
+  return result;
+};
 
-  const apiMockVentas: VentaResponse[] = [
-    {
-      id: 1,
-      fecha_venta: new Date().toISOString(),
-      cliente: 'Juan Pérez',
-      subtotal: 50.0,
-      descuento: 0,
-      impuestos: 0,
-      total: 50.0,
-      metodo_pago: 'efectivo',
-      estado: 'completada',
-      productos: [
-        {
-          producto_id: 1,
-          nombre: 'Torta de Chocolate',
-          cantidad: 2,
-          precio_unitario: 25.0,
-          subtotal: 50.0,
-        },
-      ],
-    },
-  ];
+const mockVentas = [
+  {
+    id: 1,
+    fecha_venta: new Date().toISOString(),
+    cliente: 'Juan Pérez',
+    subtotal: 5000,
+    descuento: 0,
+    impuestos: 0,
+    total: 5000,
+    metodo_pago: 'efectivo',
+    estado: 'completada',
+    productos: [
+      {
+        producto_id: 1,
+        nombre: 'Torta de Chocolate',
+        cantidad: 1,
+        precio_unitario: 5000,
+        subtotal: 5000,
+      },
+    ],
+  },
+];
 
+const mockSearchResults = [
+  { id: 1, nombre: 'Torta Red Velvet', precio: 5000, stock: 10 },
+  { id: 2, nombre: 'Alfajor', precio: 800, stock: 20 },
+];
+
+describe('Ventas Component (POS)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getVentas as Mock).mockResolvedValue({ data: apiMockVentas });
+    localStorage.clear();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    (api.getVentas as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockVentas });
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
   });
 
-  /** Wait for the mocked API data to render after the loading state. */
-  const waitForData = () =>
-    waitFor(() => {
+  // --- Layout ---
+
+  it('renders POS title', async () => {
+    await renderVentas();
+    expect(screen.getByRole('heading', { level: 1, name: /Ventas/i })).toBeInTheDocument();
+  });
+
+  it('renders search input', async () => {
+    await renderVentas();
+    expect(screen.getByPlaceholderText(/buscar producto/i)).toBeInTheDocument();
+  });
+
+  it('renders empty cart message initially', async () => {
+    await renderVentas();
+    expect(screen.getByText(/carrito vacío/i)).toBeInTheDocument();
+  });
+
+  it('renders payment section', async () => {
+    await renderVentas();
+    expect(screen.getByText(/método de pago/i)).toBeInTheDocument();
+  });
+
+  // --- Product search + add to cart ---
+
+  it('searches products and adds to cart', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    (api.searchProductos as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: mockSearchResults,
+    });
+
+    await renderVentas();
+
+    await user.type(screen.getByPlaceholderText(/buscar producto/i), 'torta');
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Torta Red Velvet')).toBeInTheDocument();
+    });
+
+    // Add to cart
+    const addButtons = screen.getAllByRole('button', { name: /agregar/i });
+    await user.click(addButtons[0]);
+
+    // Cart should now show the item (also visible in search results dropdown)
+    await waitFor(() => {
+      expect(screen.getAllByText('Torta Red Velvet').length).toBeGreaterThanOrEqual(2);
+    });
+    // Cart should show "1 items"
+    expect(screen.getByText(/1 items/)).toBeInTheDocument();
+  });
+
+  // --- Cart interactions ---
+
+  it('shows item count and total after adding items', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    (api.searchProductos as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: mockSearchResults,
+    });
+
+    await renderVentas();
+
+    await user.type(screen.getByPlaceholderText(/buscar producto/i), 'torta');
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Torta Red Velvet')).toBeInTheDocument();
+    });
+
+    const addButtons = screen.getAllByRole('button', { name: /agregar/i });
+    await user.click(addButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/1 items/)).toBeInTheDocument();
+    });
+    // $5000.00 appears in stats, cart, and history
+    expect(screen.getAllByText('$5000.00').length).toBeGreaterThanOrEqual(2);
+  });
+
+  // --- Sale creation ---
+
+  it('creates a sale and clears cart', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    (api.searchProductos as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: [mockSearchResults[0]],
+    });
+    (api.createVenta as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: {
+        id: 10,
+        metodo_pago: 'efectivo',
+        estado: 'completada',
+        total: 5000,
+        productos: [],
+        fecha_venta: new Date().toISOString(),
+        subtotal: 5000,
+        descuento: 0,
+        impuestos: 0,
+      },
+    });
+
+    await renderVentas();
+
+    // Search and add product
+    await user.type(screen.getByPlaceholderText(/buscar producto/i), 'torta');
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Torta Red Velvet')).toBeInTheDocument();
+    });
+    const addButtons = screen.getAllByRole('button', { name: /agregar/i });
+    await user.click(addButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/1 items/)).toBeInTheDocument();
+    });
+
+    // Confirm sale (default is efectivo)
+    await user.click(screen.getByRole('button', { name: /confirmar venta/i }));
+
+    await waitFor(() => {
+      expect(api.createVenta).toHaveBeenCalled();
+    });
+
+    // Cart should be cleared after successful sale
+    await waitFor(() => {
+      expect(screen.getByText(/carrito vacío/i)).toBeInTheDocument();
+    });
+  });
+
+  // --- Sales history ---
+
+  it('shows sales history', async () => {
+    await renderVentas();
+
+    await waitFor(() => {
       expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     });
-
-  // ── Render & fetch ──────────────────────────────────────────
-
-  it('shows loading state while fetching', () => {
-    renderVentas();
-    expect(screen.getByText('Cargando ventas...')).toBeInTheDocument();
-  });
-
-  it('renders the ventas list from API', async () => {
-    renderVentas();
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1, name: /Ventas/i })).toBeInTheDocument();
-    });
-    expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
-    const dollars = screen.getAllByText('$50.00');
-    expect(dollars.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('shows mock data fallback when API fails (no error screen)', async () => {
-    (api.getVentas as Mock).mockRejectedValueOnce(new Error('fail'));
-    renderVentas();
-
-    // Should NOT show the blocking error screen
-    await waitFor(() => {
-      expect(screen.queryByText(/Error al cargar las ventas/i)).not.toBeInTheDocument();
-    });
-
-    // Should show mock data instead (María García from internal fallback)
-    await waitFor(() => {
-      expect(screen.getByText('María García')).toBeInTheDocument();
-      // Total formatted via toFixed(2): 4500 → "4500.00"
-      expect(screen.getByText('$4500.00')).toBeInTheDocument();
-    });
-  });
-
-  it('computes stats (Total Hoy, Promedio) from visible data', async () => {
-    (api.getVentas as Mock).mockRejectedValueOnce(new Error('fail'));
-    renderVentas();
-
-    // With 8 mock records of various totals, verify stats render as numbers
-    await waitFor(() => {
-      // Total Hoy should show a $ sum — at minimum the dollar sign is present
-      const totalLabels = screen.getAllByText(/^\$\d/);
-      expect(totalLabels.length).toBeGreaterThanOrEqual(3);
-    });
-
-    // "Ventas Hoy" count shows number of records
-    await waitFor(() => {
-      expect(screen.getByText('8')).toBeInTheDocument();
-    });
-  });
-
-  // ── Modal open/close ────────────────────────────────────────
-
-  it('opens and closes the create sale modal', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    expect(screen.getByPlaceholderText('Nombre del cliente')).toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /Cancelar/i }));
-
-    await waitFor(() => {
-      expect(screen.queryByPlaceholderText('Nombre del cliente')).not.toBeInTheDocument();
-    });
-  });
-
-  // ── Create venta ────────────────────────────────────────────
-
-  it('calls createVenta on valid form submit', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Fill cliente
-    const textInputs = screen.getAllByRole('textbox');
-    await user.type(textInputs[0], 'María García');
-
-    // Select payment method
-    await user.selectOptions(screen.getByRole('combobox'), 'tarjeta');
-
-    // Add a product row
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-
-    // After adding a product, re-query textboxes (now includes product name input)
-    const productInputs = screen.getAllByRole('textbox');
-    await user.clear(productInputs[1]);
-    await user.type(productInputs[1], 'Pan de Shu');
-
-    // Set a valid precio_unitario (> 0)
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    // spinbutton[0] = cantidad (default 1, ok), spinbutton[1] = precio_unitario (default 0, fix it)
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    (api.createVenta as Mock).mockResolvedValueOnce({
-      data: {
-        id: 2,
-        cliente: 'María García',
-        metodo_pago: 'tarjeta',
-        estado: 'completada',
-        total: 10,
-        productos: [],
-        fecha_venta: new Date().toISOString(),
-        subtotal: 10,
-        descuento: 0,
-        impuestos: 0,
-      },
-    });
-    (api.getVentas as Mock).mockResolvedValueOnce({ data: [...apiMockVentas] });
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(api.createVenta).toHaveBeenCalled();
-    });
-    // getVentas is called on mount + once after create
-    expect(api.getVentas).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows inline error on create failure and keeps modal open', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Add a product with valid precio_unitario
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    (api.createVenta as Mock).mockRejectedValueOnce(new Error('fail'));
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Error al registrar la venta/i)).toBeInTheDocument();
-    });
-    // Modal stays open
-    expect(screen.getByPlaceholderText('Nombre del cliente')).toBeInTheDocument();
-  });
-
-  // ── Client validation (inline errors) ───────────────────────
-
-  it('shows validation error for empty cart', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Debe agregar al menos un producto/i)).toBeInTheDocument();
-    });
-    expect(api.createVenta).not.toHaveBeenCalled();
-  });
-
-  it('shows validation error for invalid metodo_pago', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Add a product with valid precio_unitario
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    // Select a value NOT in the enum
-    // We can't select an invalid option from a real select, so we'll
-    // test via the schema directly by checking the error text for
-    // "Método de pago inválido" when the select is left valid but
-    // instead we try submitting with an external value
-
-    // For integration: modify the select via JS to set an invalid value
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'efectivo');
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    // The form should submit successfully since everything is valid
-    await waitFor(() => {
-      expect(api.createVenta).toHaveBeenCalled();
-    });
-  });
-
-  it('cliente is omitted from API payload when input is empty', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Add a product with valid precio_unitario
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    // Do NOT fill the cliente field — leave it empty
-    // Submit the form
-    (api.createVenta as Mock).mockResolvedValueOnce({
-      data: {
-        id: 3,
-        metodo_pago: 'efectivo',
-        estado: 'completada',
-        total: 10,
-        productos: [],
-        fecha_venta: new Date().toISOString(),
-        subtotal: 10,
-        descuento: 0,
-        impuestos: 0,
-      },
-    });
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(api.createVenta).toHaveBeenCalledTimes(1);
-    });
-
-    // Verify the payload does NOT contain cliente key
-    const callArgs = (api.createVenta as Mock).mock.calls[0][0];
-    expect(callArgs).not.toHaveProperty('cliente');
-  });
-
-  it('shows ALL validation errors simultaneously on submit', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Submit with empty cart (should show "Debe agregar al menos un producto")
-    // AND negative descuento
-    const descuentoInputs = Array.from(document.querySelectorAll('.descuento-input'));
-    const descuentoInput = descuentoInputs[0];
-    await user.clear(descuentoInput);
-    await user.type(descuentoInput, '-5');
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Debe agregar al menos un producto/i)).toBeInTheDocument();
-      expect(screen.getByText(/El descuento debe ser mayor o igual a 0/i)).toBeInTheDocument();
-    });
-
-    // No API call should have been made
-    expect(api.createVenta).not.toHaveBeenCalled();
-  });
-
-  it('disables submit button and applies loading class during API call', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Wait for dialog to fully render (Radix portal + animations)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Agregar Producto/i })).toBeInTheDocument();
-    });
-
-    // Add a product with valid precio_unitario
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    // Create a deferred promise so we can check loading state while request is in-flight
-    let resolvePromise!: (value: unknown) => void;
-    const deferred = new Promise((resolve) => {
-      resolvePromise = resolve;
-    });
-
-    (api.createVenta as Mock).mockImplementationOnce(() => deferred);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Registrar Venta/i })).toBeInTheDocument();
-    });
-
-    // Click submit — the promise hasn't resolved yet, so loading state should be active
-    const submitPromise = user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    // Wait for the button to show loading state
-    // Note: after submit, button text changes to "Registrando..." so query by type="submit"
-    await waitFor(() => {
-      const submitBtn = document.querySelector('button[type="submit"]');
-      expect(submitBtn).toBeDefined();
-      expect(submitBtn).toBeDisabled();
-    });
-
-    // Resolve the promise to complete the request
-    resolvePromise({
-      data: {
-        id: 4,
-        metodo_pago: 'efectivo',
-        estado: 'completada',
-        total: 10,
-        productos: [],
-        fecha_venta: new Date().toISOString(),
-        subtotal: 10,
-        descuento: 0,
-        impuestos: 0,
-      },
-    });
-
-    await submitPromise;
-  });
-
-  it('shows validation error for negative descuento', async () => {
-    const user = userEvent.setup();
-    renderVentas();
-    await waitForData();
-
-    await user.click(screen.getByRole('button', { name: /Nueva Venta/i }));
-
-    // Must add a product so the form can try to submit
-    await user.click(screen.getByRole('button', { name: /Agregar Producto/i }));
-
-    // Set valid precio_unitario so the only validation error is descuento
-    const spinbuttons = screen.getAllByRole('spinbutton');
-    await user.clear(spinbuttons[1]);
-    await user.type(spinbuttons[1], '10');
-
-    // Now set descuento to a negative value
-    // Find the input element with className "descuento-input" using the correct method
-    const descuentoInputs = Array.from(document.querySelectorAll('.descuento-input'));
-    const descuentoInput = descuentoInputs[0];
-    await user.clear(descuentoInput);
-    await user.type(descuentoInput, '-10');
-
-    await user.click(screen.getByRole('button', { name: /Registrar Venta/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/El descuento debe ser mayor o igual a 0/i)).toBeInTheDocument();
-    });
-    expect(api.createVenta).not.toHaveBeenCalled();
   });
 });

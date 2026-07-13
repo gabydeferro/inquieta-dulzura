@@ -60,9 +60,7 @@ describe('InstagramCommentManager', () => {
   });
 
   it('should show loading state initially', () => {
-    vi.mocked(api.instagramGetComments).mockImplementation(
-      () => new Promise(() => {}),
-    );
+    vi.mocked(api.instagramGetComments).mockImplementation(() => new Promise(() => {}));
 
     render(<InstagramCommentManager postId="post123" />);
 
@@ -121,10 +119,7 @@ describe('InstagramCommentManager', () => {
     await user.click(screen.getByText('Enviar'));
 
     await waitFor(() => {
-      expect(api.instagramReplyToComment).toHaveBeenCalledWith(
-        'comment1',
-        '¡Gracias!',
-      );
+      expect(api.instagramReplyToComment).toHaveBeenCalledWith('comment1', '¡Gracias!');
     });
 
     expect(mockShowNotification).toHaveBeenCalledWith(

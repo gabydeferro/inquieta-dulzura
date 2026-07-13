@@ -33,16 +33,12 @@ import productoRouter from '../routes/productos';
 // ──────────────────────────────────────────────
 
 const JWT_SECRET = 'secret-key-change-in-production';
-const ADMIN_TOKEN = jwt.sign(
-  { userId: 1, email: 'admin@test.com', rol: 'admin' },
-  JWT_SECRET,
-  { expiresIn: '15m' },
-);
-const USER_TOKEN = jwt.sign(
-  { userId: 2, email: 'user@test.com', rol: 'usuario' },
-  JWT_SECRET,
-  { expiresIn: '15m' },
-);
+const ADMIN_TOKEN = jwt.sign({ userId: 1, email: 'admin@test.com', rol: 'admin' }, JWT_SECRET, {
+  expiresIn: '15m',
+});
+const USER_TOKEN = jwt.sign({ userId: 2, email: 'user@test.com', rol: 'usuario' }, JWT_SECRET, {
+  expiresIn: '15m',
+});
 
 // ──────────────────────────────────────────────
 // Helpers
@@ -193,23 +189,16 @@ describe('Producto-Receta vinculación — integración HTTP', () => {
     test('debe eliminar vinculación y responder 204', async () => {
       mockDesvincular.mockResolvedValueOnce(true);
 
-      const res = await makeRequest(
-        app,
-        'DELETE',
-        '/api/productos/5/recetas/3',
-        { Authorization: `Bearer ${ADMIN_TOKEN}` },
-      );
+      const res = await makeRequest(app, 'DELETE', '/api/productos/5/recetas/3', {
+        Authorization: `Bearer ${ADMIN_TOKEN}`,
+      });
 
       expect(res.status).toBe(204);
       expect(mockDesvincular).toHaveBeenCalledWith(5, 3);
     });
 
     test('debe rechazar sin token (401)', async () => {
-      const res = await makeRequest(
-        app,
-        'DELETE',
-        '/api/productos/5/recetas/3',
-      );
+      const res = await makeRequest(app, 'DELETE', '/api/productos/5/recetas/3');
 
       expect(res.status).toBe(401);
     });
@@ -221,12 +210,9 @@ describe('Producto-Receta vinculación — integración HTTP', () => {
         { receta_id: 3, nombre: 'Bizcochuelo', cantidad_receta: 1 },
       ]);
 
-      const res = await makeRequest(
-        app,
-        'GET',
-        '/api/productos/5/recetas',
-        { Authorization: `Bearer ${ADMIN_TOKEN}` },
-      );
+      const res = await makeRequest(app, 'GET', '/api/productos/5/recetas', {
+        Authorization: `Bearer ${ADMIN_TOKEN}`,
+      });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);

@@ -30,10 +30,7 @@ describe('ProductoService — Vinculación Recetas', () => {
       const result = await service.getRecetasByProducto(5);
 
       expect(result).toEqual(mockRows);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('producto_receta'),
-        [5],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('producto_receta'), [5]);
     });
 
     test('debe retornar array vacío si no hay recetas vinculadas', async () => {
@@ -64,7 +61,10 @@ describe('ProductoService — Vinculación Recetas', () => {
     });
 
     test('debe lanzar error en caso de duplicado (UNIQUE constraint)', async () => {
-      const duplicateError = new Error('Duplicate entry') as Error & { code: string; errno: number };
+      const duplicateError = new Error('Duplicate entry') as Error & {
+        code: string;
+        errno: number;
+      };
       duplicateError.code = 'ER_DUP_ENTRY';
       duplicateError.errno = 1062;
       mockQuery.mockRejectedValueOnce(duplicateError);
@@ -100,9 +100,7 @@ describe('ProductoService — Vinculación Recetas', () => {
       const mockProducto = { id: 5, nombre: 'Pastel', precio: 100 };
       const mockRecetas = [{ receta_id: 3, nombre: 'Torta Chocolate', cantidad_receta: 2 }];
 
-      mockQuery
-        .mockResolvedValueOnce([[mockProducto]])
-        .mockResolvedValueOnce([mockRecetas]);
+      mockQuery.mockResolvedValueOnce([[mockProducto]]).mockResolvedValueOnce([mockRecetas]);
 
       const result = await service.getById(5);
 
@@ -116,9 +114,7 @@ describe('ProductoService — Vinculación Recetas', () => {
     test('debe incluir recetas vacías si no hay vinculaciones', async () => {
       const mockProducto = { id: 99, nombre: 'Sin Recetas', precio: 50 };
 
-      mockQuery
-        .mockResolvedValueOnce([[mockProducto]])
-        .mockResolvedValueOnce([[]]);
+      mockQuery.mockResolvedValueOnce([[mockProducto]]).mockResolvedValueOnce([[]]);
 
       const result = await service.getById(99);
 
@@ -157,10 +153,7 @@ describe('RecetaService — Vinculación Productos', () => {
       const result = await service.getProductosByReceta(3);
 
       expect(result).toEqual(mockRows);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('producto_receta'),
-        [3],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('producto_receta'), [3]);
     });
 
     test('debe retornar array vacío si no hay productos vinculados', async () => {
@@ -178,9 +171,7 @@ describe('RecetaService — Vinculación Productos', () => {
       const mockIngredientes = [
         { ingrediente_id: 1, cantidad: 2, unidad_medida: 'kg', notas: null, nombre: 'Harina' },
       ];
-      const mockProductos = [
-        { producto_id: 5, nombre: 'Pastel', cantidad_receta: 2 },
-      ];
+      const mockProductos = [{ producto_id: 5, nombre: 'Pastel', cantidad_receta: 2 }];
 
       mockQuery
         .mockResolvedValueOnce([[mockReceta]])

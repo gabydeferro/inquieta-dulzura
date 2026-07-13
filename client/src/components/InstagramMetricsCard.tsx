@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Eye, BarChart3 } from 'lucide-react';
 import api from '../services/api';
@@ -22,9 +17,7 @@ function formatNumber(n: number): string {
   return n.toLocaleString('es-AR');
 }
 
-export const InstagramMetricsCard: React.FC<InstagramMetricsCardProps> = ({
-  productId,
-}) => {
+export const InstagramMetricsCard: React.FC<InstagramMetricsCardProps> = ({ productId }) => {
   const [metrics, setMetrics] = useState<InstagramMetrics | null>(null);
   const [period, setPeriod] = useState<Period>('30d');
   const [loading, setLoading] = useState(false);
@@ -45,7 +38,9 @@ export const InstagramMetricsCard: React.FC<InstagramMetricsCardProps> = ({
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'response' in err
-          ? String((err as { response: { data: { message?: string } } }).response?.data?.message ?? '')
+          ? String(
+              (err as { response: { data: { message?: string } } }).response?.data?.message ?? '',
+            )
           : 'Error al cargar métricas';
       setError(message);
     } finally {
@@ -69,10 +64,30 @@ export const InstagramMetricsCard: React.FC<InstagramMetricsCardProps> = ({
 
   const metricCards = metrics
     ? [
-        { label: 'Me gusta', value: formatNumber(metrics.likeCount), icon: Heart, color: 'text-red-500' },
-        { label: 'Comentarios', value: formatNumber(metrics.commentCount), icon: MessageCircle, color: 'text-blue-500' },
-        { label: 'Alcance', value: formatNumber(metrics.reach), icon: Eye, color: 'text-green-500' },
-        { label: 'Impresiones', value: formatNumber(metrics.impressions), icon: BarChart3, color: 'text-purple-500' },
+        {
+          label: 'Me gusta',
+          value: formatNumber(metrics.likeCount),
+          icon: Heart,
+          color: 'text-red-500',
+        },
+        {
+          label: 'Comentarios',
+          value: formatNumber(metrics.commentCount),
+          icon: MessageCircle,
+          color: 'text-blue-500',
+        },
+        {
+          label: 'Alcance',
+          value: formatNumber(metrics.reach),
+          icon: Eye,
+          color: 'text-green-500',
+        },
+        {
+          label: 'Impresiones',
+          value: formatNumber(metrics.impressions),
+          icon: BarChart3,
+          color: 'text-purple-500',
+        },
       ]
     : [];
 

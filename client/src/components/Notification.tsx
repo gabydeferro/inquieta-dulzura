@@ -1,4 +1,4 @@
-import { Toaster } from "sonner";
+import { Toaster } from 'sonner';
 
 function Notification() {
   return (
@@ -8,7 +8,7 @@ function Notification() {
       closeButton
       duration={5000}
       toastOptions={{
-        className: "font-sans text-sm",
+        className: 'font-sans text-sm',
       }}
     />
   );

@@ -5,7 +5,25 @@ import { authenticateToken } from '../middleware/auth';
 const router = Router();
 const instagramController = new InstagramController();
 
-// All Instagram routes require authentication
+// ─── Webhook routes (PUBLIC — Meta needs to call these) ───
+
+/**
+ * @route   GET /api/instagram/webhook
+ * @desc    Meta webhook verification handshake
+ * @access  Public
+ */
+router.get('/webhook', instagramController.handleWebhookVerification);
+
+/**
+ * @route   POST /api/instagram/webhook
+ * @desc    Receive real-time Instagram notifications (comments, messages)
+ * @access  Public
+ */
+router.post('/webhook', instagramController.handleWebhookNotification);
+
+// ─── Authenticated routes ───
+
+// All Instagram routes below require authentication
 router.use(authenticateToken);
 
 /**

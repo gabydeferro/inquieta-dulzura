@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { ThemeProvider } from './components/ThemeProvider';
@@ -27,88 +28,90 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <ConfirmProvider>
-            <BrowserRouter>
-              <ScrollToTop />
-              <div className="flex min-h-screen flex-col">
-                <Navbar />
-                <Notification />
-                <ConfirmModal />
-                <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-                  <Routes>
-                    {/* Ruta pública de inicio */}
-                    <Route path="/" element={<LandingPage />} />
+            <CartProvider>
+              <BrowserRouter>
+                <ScrollToTop />
+                <div className="flex min-h-screen flex-col">
+                  <Navbar />
+                  <Notification />
+                  <ConfirmModal />
+                  <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+                    <Routes>
+                      {/* Ruta pública de inicio */}
+                      <Route path="/" element={<LandingPage />} />
 
-                    {/* Ruta pública de catálogo */}
-                    <Route path="/catalogo" element={<Catalogo />} />
+                      {/* Ruta pública de catálogo */}
+                      <Route path="/catalogo" element={<Catalogo />} />
 
-                    {/* Rutas públicas de autenticación */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                      {/* Rutas públicas de autenticación */}
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
 
-                    {/* Rutas protegidas */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <PrivateRoute>
-                          <Dashboard />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/inventario"
-                      element={
-                        <PrivateRoute>
-                          <Inventario />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/recetas"
-                      element={
-                        <PrivateRoute>
-                          <Recetas />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/ventas"
-                      element={
-                        <PrivateRoute>
-                          <Ventas />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/contenido-digital"
-                      element={
-                        <PrivateRoute>
-                          <ContenidoDigital />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/categorias"
-                      element={
-                        <PrivateRoute>
-                          <Categorias />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/ingredientes"
-                      element={
-                        <PrivateRoute>
-                          <Ingredientes />
-                        </PrivateRoute>
-                      }
-                    />
+                      {/* Rutas protegidas */}
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <PrivateRoute>
+                            <Dashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/inventario"
+                        element={
+                          <PrivateRoute>
+                            <Inventario />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/recetas"
+                        element={
+                          <PrivateRoute>
+                            <Recetas />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/ventas"
+                        element={
+                          <PrivateRoute>
+                            <Ventas />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/contenido-digital"
+                        element={
+                          <PrivateRoute>
+                            <ContenidoDigital />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/categorias"
+                        element={
+                          <PrivateRoute>
+                            <Categorias />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/ingredientes"
+                        element={
+                          <PrivateRoute>
+                            <Ingredientes />
+                          </PrivateRoute>
+                        }
+                      />
 
-                    {/* Redirección para rutas no encontradas */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </main>
-              </div>
-            </BrowserRouter>
+                      {/* Redirección para rutas no encontradas */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </main>
+                </div>
+              </BrowserRouter>
+            </CartProvider>
           </ConfirmProvider>
         </NotificationProvider>
       </AuthProvider>

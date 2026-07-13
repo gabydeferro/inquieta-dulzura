@@ -10,9 +10,7 @@ interface InstagramCommentManagerProps {
   postId: string;
 }
 
-export const InstagramCommentManager: React.FC<InstagramCommentManagerProps> = ({
-  postId,
-}) => {
+export const InstagramCommentManager: React.FC<InstagramCommentManagerProps> = ({ postId }) => {
   const [comments, setComments] = useState<InstagramComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -67,26 +65,17 @@ export const InstagramCommentManager: React.FC<InstagramCommentManagerProps> = (
       </div>
 
       {loading && comments.length === 0 && (
-        <div className="py-8 text-center text-muted-foreground">
-          Cargando comentarios...
-        </div>
+        <div className="py-8 text-center text-muted-foreground">Cargando comentarios...</div>
       )}
 
       {!loading && comments.length === 0 && (
-        <div className="py-8 text-center text-muted-foreground">
-          Sin comentarios todavía.
-        </div>
+        <div className="py-8 text-center text-muted-foreground">Sin comentarios todavía.</div>
       )}
 
       {comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="rounded-lg border border-border bg-card p-3"
-        >
+        <div key={comment.id} className="rounded-lg border border-border bg-card p-3">
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-xs font-medium text-foreground">
-              {comment.username}
-            </span>
+            <span className="text-xs font-medium text-foreground">{comment.username}</span>
             <span className="text-xs text-muted-foreground">
               {new Date(comment.timestamp).toLocaleDateString('es-AR', {
                 day: 'numeric',

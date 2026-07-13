@@ -48,13 +48,25 @@ const mockRecetas: RecetaDTO[] = [
         ingrediente_id: 1,
         cantidad: 300,
         unidad_medida: 'gramos' as const,
-        ingrediente: { id: 1, nombre: 'Harina', unidad_medida: 'gramos', costo_unitario: 1.2, activo: true },
+        ingrediente: {
+          id: 1,
+          nombre: 'Harina',
+          unidad_medida: 'gramos',
+          costo_unitario: 1.2,
+          activo: true,
+        },
       },
       {
         ingrediente_id: 2,
         cantidad: 200,
         unidad_medida: 'gramos' as const,
-        ingrediente: { id: 2, nombre: 'Azúcar', unidad_medida: 'gramos', costo_unitario: 0.8, activo: true },
+        ingrediente: {
+          id: 2,
+          nombre: 'Azúcar',
+          unidad_medida: 'gramos',
+          costo_unitario: 0.8,
+          activo: true,
+        },
       },
     ],
   },
@@ -71,7 +83,13 @@ const mockRecetas: RecetaDTO[] = [
         ingrediente_id: 3,
         cantidad: 500,
         unidad_medida: 'gramos' as const,
-        ingrediente: { id: 3, nombre: 'Harina Integral', unidad_medida: 'gramos', costo_unitario: 0.9, activo: true },
+        ingrediente: {
+          id: 3,
+          nombre: 'Harina Integral',
+          unidad_medida: 'gramos',
+          costo_unitario: 0.9,
+          activo: true,
+        },
       },
     ],
   },
@@ -203,7 +221,9 @@ describe('Recetas Component', () => {
     await user.click(editButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Deliciosa torta de chocolate con cobertura')).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue('Deliciosa torta de chocolate con cobertura'),
+      ).toBeInTheDocument();
       expect(screen.getByDisplayValue('60')).toBeInTheDocument();
     });
   });
@@ -256,17 +276,37 @@ describe('Recetas Component', () => {
     await user.type(porcionesInput, '4');
 
     vi.mocked(api.createReceta).mockResolvedValueOnce({
-      data: { id: 3, nombre: 'Nueva Receta Test', descripcion: 'Descripción de prueba', tiempo_preparacion: 30, porciones: 4, activo: true },
+      data: {
+        id: 3,
+        nombre: 'Nueva Receta Test',
+        descripcion: 'Descripción de prueba',
+        tiempo_preparacion: 30,
+        porciones: 4,
+        activo: true,
+      },
     } as never);
     vi.mocked(api.getRecetas).mockResolvedValueOnce({
-      data: [...mockRecetas, { id: 3, nombre: 'Nueva Receta Test', descripcion: 'Descripción de prueba', tiempo_preparacion: 30, porciones: 4, activo: true }],
+      data: [
+        ...mockRecetas,
+        {
+          id: 3,
+          nombre: 'Nueva Receta Test',
+          descripcion: 'Descripción de prueba',
+          tiempo_preparacion: 30,
+          porciones: 4,
+          activo: true,
+        },
+      ],
     } as never);
 
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
     await waitFor(() => {
       expect(api.createReceta).toHaveBeenCalledWith(
-        expect.objectContaining({ nombre: 'Nueva Receta Test', descripcion: 'Descripción de prueba' }),
+        expect.objectContaining({
+          nombre: 'Nueva Receta Test',
+          descripcion: 'Descripción de prueba',
+        }),
       );
       expect(mockShowNotification).toHaveBeenCalledWith('Receta creada con éxito', 'success');
       expect(screen.getByText('Nueva Receta Test')).toBeInTheDocument();
@@ -338,7 +378,10 @@ describe('Recetas Component', () => {
     await user.click(screen.getByRole('button', { name: /Guardar Receta/i }));
 
     await waitFor(() => {
-      expect(api.updateReceta).toHaveBeenCalledWith(1, expect.objectContaining({ nombre: 'Torta de Chocolate Editada' }));
+      expect(api.updateReceta).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ nombre: 'Torta de Chocolate Editada' }),
+      );
       expect(mockShowNotification).toHaveBeenCalledWith('Receta actualizada con éxito', 'success');
       expect(screen.getByText('Torta de Chocolate Editada')).toBeInTheDocument();
     });

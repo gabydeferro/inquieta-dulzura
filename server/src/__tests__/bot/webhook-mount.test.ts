@@ -21,7 +21,10 @@ describe('Bot webhook mounting in index.ts', () => {
     vi.doMock('mysql2', () => ({ RowDataPacket: class {}, ResultSetHeader: class {} }));
     vi.doMock('./bot', () => ({
       setupBot: vi.fn(() => ({
-        command: vi.fn(), hears: vi.fn(), on: vi.fn(), use: vi.fn(),
+        command: vi.fn(),
+        hears: vi.fn(),
+        on: vi.fn(),
+        use: vi.fn(),
         api: { setWebhook: vi.fn() },
       })),
       configureWebhook: vi.fn(() => vi.fn()),

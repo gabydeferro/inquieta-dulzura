@@ -36,7 +36,9 @@ describe('IngredienteService', () => {
 
       const result = await ingredienteService.getAll();
       expect(result).toEqual(mockIngredientes);
-      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM ingredientes WHERE activo = TRUE ORDER BY nombre ASC');
+      expect(mockQuery).toHaveBeenCalledWith(
+        'SELECT * FROM ingredientes WHERE activo = TRUE ORDER BY nombre ASC',
+      );
     });
 
     it('should return an empty array if no ingredients are found', async () => {

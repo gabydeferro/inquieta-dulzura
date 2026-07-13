@@ -1,4 +1,4 @@
-import { useConfirmModal } from "../contexts/ConfirmContext";
+import { useConfirmModal } from '../contexts/ConfirmContext';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
-import { AlertTriangle, Trash2, Info } from "lucide-react";
+} from '@/components/ui/alert-dialog';
+import { AlertTriangle, Trash2, Info } from 'lucide-react';
 
 function ConfirmModal() {
   const { state, onConfirm, onCancel } = useConfirmModal();
@@ -26,21 +26,19 @@ function ConfirmModal() {
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
-          <AlertDialogMedia>
-            {options.type ? iconMap[options.type] : iconMap.info}
-          </AlertDialogMedia>
-          <AlertDialogTitle>{options.title || "Confirmar"}</AlertDialogTitle>
+          <AlertDialogMedia>{options.type ? iconMap[options.type] : iconMap.info}</AlertDialogMedia>
+          <AlertDialogTitle>{options.title || 'Confirmar'}</AlertDialogTitle>
           <AlertDialogDescription>{options.message}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel}>
-            {options.cancelText || "Cancelar"}
+            {options.cancelText || 'Cancelar'}
           </AlertDialogCancel>
           <AlertDialogAction
-            variant={options.type === "danger" ? "destructive" : "default"}
+            variant={options.type === 'danger' ? 'destructive' : 'default'}
             onClick={onConfirm}
           >
-            {options.confirmText || "Aceptar"}
+            {options.confirmText || 'Aceptar'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

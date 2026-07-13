@@ -106,7 +106,9 @@ describe('InstagramService', () => {
       mockedGet.mockRejectedValueOnce({
         isAxiosError: true,
         response: {
-          data: { error: { message: 'Invalid OAuth 2.0 Access Token', type: 'OAuthException', code: 190 } },
+          data: {
+            error: { message: 'Invalid OAuth 2.0 Access Token', type: 'OAuthException', code: 190 },
+          },
         },
       });
 
@@ -140,7 +142,9 @@ describe('InstagramService', () => {
   describe('uploadMedia', () => {
     test('uploads media and returns container ID', async () => {
       // Token refresh (token at epoch) + media POST
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockResolvedValueOnce({ data: { id: 'container-abc-123' } });
 
       const result = await service.uploadMedia('https://example.com/photo.jpg', 'Test caption');
@@ -148,14 +152,19 @@ describe('InstagramService', () => {
       expect(result).toBe('container-abc-123');
       expect(mockedPost).toHaveBeenCalledWith(
         'https://graph.facebook.com/v21.0/test-business-id/media',
-        expect.objectContaining({ image_url: 'https://example.com/photo.jpg', caption: 'Test caption' }),
+        expect.objectContaining({
+          image_url: 'https://example.com/photo.jpg',
+          caption: 'Test caption',
+        }),
       );
     });
   });
 
   describe('publishPost', () => {
     test('publishes media container and returns post ID', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockResolvedValueOnce({ data: { id: 'ig-post-987' } });
 
       const result = await service.publishPost('container-abc-123');
@@ -168,7 +177,9 @@ describe('InstagramService', () => {
     });
 
     test('throws RateLimitError on rate limit', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockRejectedValueOnce({
         isAxiosError: true,
         response: { data: { error: { message: 'Rate limit reached', code: 4 } } },
@@ -180,11 +191,17 @@ describe('InstagramService', () => {
 
   describe('getMetrics', () => {
     const mockMetricsData = {
-      like_count: 42, comments_count: 7, reach: 1200, impressions: 3400, id: 'ig-post-123',
+      like_count: 42,
+      comments_count: 7,
+      reach: 1200,
+      impressions: 3400,
+      id: 'ig-post-123',
     };
 
     test('fetches and returns metrics from API', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockResolvedValueOnce({ data: mockMetricsData });
 
       const result = await service.getMetrics('ig-post-123');
@@ -197,7 +214,9 @@ describe('InstagramService', () => {
 
     test('returns cached metrics when cache is fresh (< 15 min)', async () => {
       // First call: fetch from API (refresh + metrics GET)
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockResolvedValueOnce({ data: mockMetricsData });
       await service.getMetrics('ig-post-123');
 
@@ -211,7 +230,9 @@ describe('InstagramService', () => {
 
     test('fetches fresh metrics when cache is stale (> 15 min)', async () => {
       // First call: fetch from API (token at epoch → refresh + metrics GET)
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockResolvedValueOnce({ data: mockMetricsData });
       await service.getMetrics('ig-post-123');
 
@@ -232,7 +253,9 @@ describe('InstagramService', () => {
 
     test('throws NotFoundError when post is deleted', async () => {
       // Token at epoch → needs refresh first
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockRejectedValueOnce({
         isAxiosError: true,
         response: { data: { error: { message: 'Unsupported get request', code: 100 } } },
@@ -244,12 +267,24 @@ describe('InstagramService', () => {
 
   describe('getComments', () => {
     test('fetches and returns comments array', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockResolvedValueOnce({
         data: {
           data: [
-            { id: 'comment-1', text: 'Great photo!', username: 'test_user', timestamp: '2026-07-06T12:00:00+0000' },
-            { id: 'comment-2', text: 'Looks delicious', username: 'food_lover', timestamp: '2026-07-06T13:00:00+0000' },
+            {
+              id: 'comment-1',
+              text: 'Great photo!',
+              username: 'test_user',
+              timestamp: '2026-07-06T12:00:00+0000',
+            },
+            {
+              id: 'comment-2',
+              text: 'Looks delicious',
+              username: 'food_lover',
+              timestamp: '2026-07-06T13:00:00+0000',
+            },
           ],
         },
       });
@@ -264,7 +299,9 @@ describe('InstagramService', () => {
     });
 
     test('returns empty array when no comments', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedGet.mockResolvedValueOnce({ data: { data: [] } });
 
       const result = await service.getComments('ig-post-123');
@@ -275,7 +312,9 @@ describe('InstagramService', () => {
 
   describe('replyToComment', () => {
     test('posts a reply to a comment', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockResolvedValueOnce({ data: { id: 'reply-123' } });
 
       await service.replyToComment('comment-1', 'Thanks!');
@@ -287,19 +326,25 @@ describe('InstagramService', () => {
     });
 
     test('throws NotFoundError when comment was deleted', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockRejectedValueOnce({
         isAxiosError: true,
         response: { data: { error: { message: 'Comment not found', code: 100 } } },
       });
 
-      await expect(service.replyToComment('deleted-comment', 'hi')).rejects.toThrow('NotFoundError');
+      await expect(service.replyToComment('deleted-comment', 'hi')).rejects.toThrow(
+        'NotFoundError',
+      );
     });
   });
 
   describe('hideComment / unhideComment', () => {
     test('hides a comment', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockResolvedValueOnce({ data: { success: true } });
 
       await service.hideComment('comment-1');
@@ -311,7 +356,9 @@ describe('InstagramService', () => {
     });
 
     test('unhides a comment', async () => {
-      mockedGet.mockResolvedValueOnce({ data: { access_token: 'valid-token', expires_in: 5177249 } });
+      mockedGet.mockResolvedValueOnce({
+        data: { access_token: 'valid-token', expires_in: 5177249 },
+      });
       mockedPost.mockResolvedValueOnce({ data: { success: true } });
 
       await service.unhideComment('comment-1');

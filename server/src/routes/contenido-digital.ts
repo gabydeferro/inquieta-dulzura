@@ -27,7 +27,11 @@ const upload = multer({
     if (tiposPermitidos.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Tipo de archivo no permitido. Solo imágenes (GIF, JPEG, PNG, WebP) y videos (MP4, WebM).'));
+      cb(
+        new Error(
+          'Tipo de archivo no permitido. Solo imágenes (GIF, JPEG, PNG, WebP) y videos (MP4, WebM).',
+        ),
+      );
     }
   },
 });
@@ -51,7 +55,13 @@ router.post(
         return;
       }
 
-      const body = req.body as { productoId?: string; titulo?: string; descripcion?: string; tipo?: string; etiquetas?: string };
+      const body = req.body as {
+        productoId?: string;
+        titulo?: string;
+        descripcion?: string;
+        tipo?: string;
+        etiquetas?: string;
+      };
       const { productoId, titulo, descripcion, tipo, etiquetas } = body;
 
       if (!productoId || !titulo || !tipo) {
@@ -71,7 +81,7 @@ router.post(
         tipo,
         url: '',
         fechaSubida: new Date(),
-        etiquetas: etiquetas ? JSON.parse(etiquetas) as string[] : [],
+        etiquetas: etiquetas ? (JSON.parse(etiquetas) as string[]) : [],
       });
 
       res.status(201).json(result);
@@ -188,28 +198,23 @@ router.put(
  * Delete an entry (destroys Cloudinary resource when applicable).
  * @access  Admin
  */
-router.delete(
-  '/:id',
-  authenticateToken,
-  requireAdmin,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const exists = await contenidoDigitalService.obtenerImagenPorId(id);
-      if (!exists) {
-        res.status(404).json({ error: 'Contenido digital no encontrado' });
-        return;
-      }
-
-      await contenidoDigitalService.eliminarImagen(id);
-
-      res.status(204).send();
-    } catch (error: unknown) {
-      console.error('Error en DELETE /api/contenido-digital/:id:', error);
-      const message = error instanceof Error ? error.message : 'Error interno del servidor';
-      res.status(500).json({ error: message });
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const exists = await contenidoDigitalService.obtenerImagenPorId(id);
+    if (!exists) {
+      res.status(404).json({ error: 'Contenido digital no encontrado' });
+      return;
     }
-  },
-);
+
+    await contenidoDigitalService.eliminarImagen(id);
+
+    res.status(204).send();
+  } catch (error: unknown) {
+    console.error('Error en DELETE /api/contenido-digital/:id:', error);
+    const message = error instanceof Error ? error.message : 'Error interno del servidor';
+    res.status(500).json({ error: message });
+  }
+});
 
 export default router;

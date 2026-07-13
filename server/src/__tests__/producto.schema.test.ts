@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { productoSchema, productoUpdateSchema, productoIdSchema, vinculoSchema } from '../schemas/producto.schema';
+import {
+  productoSchema,
+  productoUpdateSchema,
+  productoIdSchema,
+  vinculoSchema,
+} from '../schemas/producto.schema';
 
 describe('productoSchema', () => {
   it('should accept valid product data', () => {

@@ -93,7 +93,9 @@ export async function recetaVerCommand(ctx: Context): Promise<void> {
     const tiempo = receta.tiempo_preparacion ? `${receta.tiempo_preparacion} min` : '—';
     const porciones = receta.porciones ? `${receta.porciones}` : '—';
     const descripcion = receta.descripcion ? `\n_${receta.descripcion}_` : '';
-    const instrucciones = receta.instrucciones ? `\n\n📝 *Instrucciones:*\n${receta.instrucciones}` : '';
+    const instrucciones = receta.instrucciones
+      ? `\n\n📝 *Instrucciones:*\n${receta.instrucciones}`
+      : '';
 
     let ingredientesText = '';
     if (receta.ingredientes && receta.ingredientes.length > 0) {
@@ -134,10 +136,9 @@ export async function recetaCrearCommand(ctx: Context): Promise<void> {
       porciones: parsed.data.porciones,
     });
 
-    await ctx.reply(
-      `✅ Receta #${receta.id} creada: *${receta.nombre}*`,
-      { parse_mode: 'Markdown' },
-    );
+    await ctx.reply(`✅ Receta #${receta.id} creada: *${receta.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en recetaCrearCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -165,10 +166,9 @@ export async function recetaEditarCommand(ctx: Context): Promise<void> {
       return;
     }
 
-    await ctx.reply(
-      `✅ Receta #${result.id} actualizada: *${result.nombre}*`,
-      { parse_mode: 'Markdown' },
-    );
+    await ctx.reply(`✅ Receta #${result.id} actualizada: *${result.nombre}*`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en recetaEditarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -250,7 +250,9 @@ export async function recetaIngredienteAgregarCommand(ctx: Context): Promise<voi
     );
 
     if (existing.length > 0) {
-      await ctx.reply(`❌ El ingrediente #${ingrediente_id} ya está vinculado a la receta #${receta_id}. Usá "editar" para modificar cantidad.`);
+      await ctx.reply(
+        `❌ El ingrediente #${ingrediente_id} ya está vinculado a la receta #${receta_id}. Usá "editar" para modificar cantidad.`,
+      );
       return;
     }
 
@@ -259,7 +261,9 @@ export async function recetaIngredienteAgregarCommand(ctx: Context): Promise<voi
       [receta_id, ingrediente_id, cantidad, unidad_medida],
     );
 
-    await ctx.reply(`✅ Ingrediente #${ingrediente_id} agregado a receta #${receta_id} (${cantidad} ${unidad_medida}).`);
+    await ctx.reply(
+      `✅ Ingrediente #${ingrediente_id} agregado a receta #${receta_id} (${cantidad} ${unidad_medida}).`,
+    );
   } catch (error) {
     console.error('Error en recetaIngredienteAgregarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -286,7 +290,9 @@ export async function recetaIngredienteQuitarCommand(ctx: Context): Promise<void
     );
 
     if (result.affectedRows === 0) {
-      await ctx.reply(`❌ Vínculo entre receta #${receta_id} e ingrediente #${ingrediente_id} no encontrado.`);
+      await ctx.reply(
+        `❌ Vínculo entre receta #${receta_id} e ingrediente #${ingrediente_id} no encontrado.`,
+      );
       return;
     }
 
@@ -317,11 +323,15 @@ export async function recetaIngredienteEditarCommand(ctx: Context): Promise<void
     );
 
     if (result.affectedRows === 0) {
-      await ctx.reply(`❌ Vínculo entre receta #${receta_id} e ingrediente #${ingrediente_id} no encontrado.`);
+      await ctx.reply(
+        `❌ Vínculo entre receta #${receta_id} e ingrediente #${ingrediente_id} no encontrado.`,
+      );
       return;
     }
 
-    await ctx.reply(`✅ Ingrediente #${ingrediente_id} actualizado en receta #${receta_id} (${cantidad} ${unidad_medida}).`);
+    await ctx.reply(
+      `✅ Ingrediente #${ingrediente_id} actualizado en receta #${receta_id} (${cantidad} ${unidad_medida}).`,
+    );
   } catch (error) {
     console.error('Error en recetaIngredienteEditarCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -374,7 +384,9 @@ export async function recetaProductoVincularCommand(ctx: Context): Promise<void>
     const { receta_id, producto_id, cantidad_receta } = parsed.data;
     await productoService.vincular(producto_id, receta_id, cantidad_receta);
 
-    await ctx.reply(`✅ Producto #${producto_id} vinculado a receta #${receta_id} (${cantidad_receta} uds.).`);
+    await ctx.reply(
+      `✅ Producto #${producto_id} vinculado a receta #${receta_id} (${cantidad_receta} uds.).`,
+    );
   } catch (error) {
     console.error('Error en recetaProductoVincularCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
@@ -398,7 +410,9 @@ export async function recetaProductoDesvincularCommand(ctx: Context): Promise<vo
     const deleted = await productoService.desvincular(producto_id, receta_id);
 
     if (!deleted) {
-      await ctx.reply(`❌ Vínculo entre producto #${producto_id} y receta #${receta_id} no encontrado.`);
+      await ctx.reply(
+        `❌ Vínculo entre producto #${producto_id} y receta #${receta_id} no encontrado.`,
+      );
       return;
     }
 

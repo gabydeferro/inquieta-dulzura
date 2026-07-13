@@ -2,11 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Package,
   DollarSign,
@@ -38,7 +34,9 @@ export const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const [fotosRes] = await Promise.all([api.get<{ total_fotos: number }>('/fotos/estadisticas')]);
+      const [fotosRes] = await Promise.all([
+        api.get<{ total_fotos: number }>('/fotos/estadisticas'),
+      ]);
 
       setStats({
         totalProductos: 0,
@@ -73,10 +71,30 @@ export const Dashboard: React.FC = () => {
   ];
 
   const quickActions = [
-    { to: '/inventario', label: 'Gestionar Inventario', desc: 'Ver y actualizar productos', icon: ClipboardList },
-    { to: '/recetas', label: 'Ver Recetas', desc: 'Consultar recetas de productos', icon: BookOpen },
-    { to: '/ventas', label: 'Registrar Venta', desc: 'Nueva venta de productos', icon: ShoppingCart },
-    { to: '/contenido-digital', label: 'Contenido Digital', desc: 'Gestionar fotos de productos', icon: Image },
+    {
+      to: '/inventario',
+      label: 'Gestionar Inventario',
+      desc: 'Ver y actualizar productos',
+      icon: ClipboardList,
+    },
+    {
+      to: '/recetas',
+      label: 'Ver Recetas',
+      desc: 'Consultar recetas de productos',
+      icon: BookOpen,
+    },
+    {
+      to: '/ventas',
+      label: 'Registrar Venta',
+      desc: 'Nueva venta de productos',
+      icon: ShoppingCart,
+    },
+    {
+      to: '/contenido-digital',
+      label: 'Contenido Digital',
+      desc: 'Gestionar fotos de productos',
+      icon: Image,
+    },
     { to: '/categorias', label: 'Categorías', desc: 'Organizar tipos de productos', icon: Tags },
   ];
 
@@ -132,9 +150,7 @@ export const Dashboard: React.FC = () => {
               <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet transition-colors group-hover/card:bg-brand-violet group-hover/card:text-white dark:bg-brand-violet/20">
                 <action.icon className="size-6" />
               </div>
-              <h3 className="mb-1 text-base font-semibold text-foreground">
-                {action.label}
-              </h3>
+              <h3 className="mb-1 text-base font-semibold text-foreground">{action.label}</h3>
               <p className="text-sm text-muted-foreground">{action.desc}</p>
             </Link>
           ))}

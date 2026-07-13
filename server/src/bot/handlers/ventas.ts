@@ -116,10 +116,10 @@ export async function ventaCommand(ctx: Context): Promise<void> {
 
     // Update stock for each product
     for (const item of items) {
-      await connection.query(
-        'UPDATE stock SET cantidad = cantidad - ? WHERE producto_id = ?',
-        [item.cantidad, item.producto_id],
-      );
+      await connection.query('UPDATE stock SET cantidad = cantidad - ? WHERE producto_id = ?', [
+        item.cantidad,
+        item.producto_id,
+      ]);
     }
 
     const productosResumen = venta.productos

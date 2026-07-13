@@ -15,6 +15,8 @@ export interface Producto {
   activo: boolean;
   created_at?: string;
   recetas?: ProductoReceta[];
+  stock?: number;
+  imagen_url?: string;
 }
 
 export interface RecetaProducto {

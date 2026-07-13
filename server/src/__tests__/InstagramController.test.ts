@@ -47,7 +47,11 @@ describe('InstagramController', () => {
 
   describe('uploadMedia', () => {
     test('returns 201 with containerId on success', async () => {
-      req.body = { productId: 1, imageUrl: 'https://example.com/photo.jpg', caption: 'Test caption' };
+      req.body = {
+        productId: 1,
+        imageUrl: 'https://example.com/photo.jpg',
+        caption: 'Test caption',
+      };
       mockService.uploadMedia.mockResolvedValue('container-abc-123');
 
       await controller.uploadMedia(req, res);
@@ -105,9 +109,7 @@ describe('InstagramController', () => {
 
       await controller.getPostStatus(req, res);
 
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true }),
-      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
     });
   });
 
@@ -116,14 +118,24 @@ describe('InstagramController', () => {
       req.params = { productId: '5' };
       req.query = { period: '7d', instagramPostId: 'ig-post-123' };
       mockService.getMetrics.mockResolvedValue({
-        likeCount: 42, commentCount: 7, reach: 1200, impressions: 3400,
+        likeCount: 42,
+        commentCount: 7,
+        reach: 1200,
+        impressions: 3400,
       });
 
       await controller.getMetrics(req, res);
 
       expect(res.json).toHaveBeenCalledWith({
         success: true,
-        data: { likeCount: 42, commentCount: 7, reach: 1200, impressions: 3400, productId: 5, period: '7d' },
+        data: {
+          likeCount: 42,
+          commentCount: 7,
+          reach: 1200,
+          impressions: 3400,
+          productId: 5,
+          period: '7d',
+        },
       });
     });
 
@@ -151,9 +163,7 @@ describe('InstagramController', () => {
     test('returns 500 on unknown error', async () => {
       req.params = { productId: '5' };
       req.query = { instagramPostId: 'ig-post-123' };
-      mockService.getMetrics.mockRejectedValue(
-        new Error('Something unexpected'),
-      );
+      mockService.getMetrics.mockRejectedValue(new Error('Something unexpected'));
 
       await controller.getMetrics(req, res);
 
@@ -198,9 +208,7 @@ describe('InstagramController', () => {
     test('returns 404 when comment is not found', async () => {
       req.params = { commentId: 'deleted-comment' };
       req.body = { text: 'hi' };
-      mockService.replyToComment.mockRejectedValue(
-        new Error('NotFoundError: Comment not found'),
-      );
+      mockService.replyToComment.mockRejectedValue(new Error('NotFoundError: Comment not found'));
 
       await controller.replyToComment(req, res);
 

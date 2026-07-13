@@ -35,9 +35,7 @@ describe('LandingPage Component', () => {
 
   it('renders hero description text', () => {
     renderLandingPage();
-    expect(
-      screen.getByText(/Endulzando momentos, creando recuerdos/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Endulzando momentos, creando recuerdos/)).toBeInTheDocument();
   });
 
   it('renders "Ver Catálogo" CTA button linked to /catalogo', () => {

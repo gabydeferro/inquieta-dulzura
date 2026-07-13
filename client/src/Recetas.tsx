@@ -5,12 +5,7 @@ import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from './types/Receta';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { recetaSchema } from './schemas/receta.schema';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -176,8 +171,7 @@ const Recetas: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value,
+      [name]: name === 'tiempo_preparacion' || name === 'porciones' ? parseInt(value) || 0 : value,
     }));
     if (errors[name]) {
       setErrors((prev) => {
@@ -292,7 +286,14 @@ const Recetas: React.FC = () => {
           </h1>
           <p className="text-muted-foreground">Recetas de productos de la pastelería</p>
         </div>
-        <Button onClick={() => { setEditingReceta(null); resetForm(); setErrors({}); setShowModal(true); }}>
+        <Button
+          onClick={() => {
+            setEditingReceta(null);
+            resetForm();
+            setErrors({});
+            setShowModal(true);
+          }}
+        >
           <Plus className="size-4" />
           Nueva Receta
         </Button>
@@ -302,7 +303,14 @@ const Recetas: React.FC = () => {
         <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-muted-foreground">
           <BookOpen className="size-12 opacity-40" />
           <p className="text-lg">No hay recetas disponibles</p>
-          <Button onClick={() => { setEditingReceta(null); resetForm(); setErrors({}); setShowModal(true); }}>
+          <Button
+            onClick={() => {
+              setEditingReceta(null);
+              resetForm();
+              setErrors({});
+              setShowModal(true);
+            }}
+          >
             <Plus className="size-4" />
             Crear primera receta
           </Button>
@@ -342,7 +350,10 @@ const Recetas: React.FC = () => {
                   </h4>
                   <ul className="space-y-1">
                     {receta.ingredientes?.slice(0, 3).map((ing) => (
-                      <li key={ing.ingrediente_id} className="text-xs text-amber-900 dark:text-amber-200">
+                      <li
+                        key={ing.ingrediente_id}
+                        className="text-xs text-amber-900 dark:text-amber-200"
+                      >
                         {getIngredientName(ing)} — {ing.cantidad} {ing.unidad_medida}
                       </li>
                     ))}
@@ -436,9 +447,7 @@ const Recetas: React.FC = () => {
                     <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
                       Porciones
                     </p>
-                    <p className="text-lg font-bold text-foreground">
-                      {selectedReceta.porciones}
-                    </p>
+                    <p className="text-lg font-bold text-foreground">{selectedReceta.porciones}</p>
                   </div>
                 </div>
               </div>
@@ -474,7 +483,10 @@ const Recetas: React.FC = () => {
                 </h3>
                 <div className="space-y-2 rounded-lg bg-emerald-50 p-4 dark:bg-emerald-950/30">
                   {selectedReceta.instrucciones?.split('\n').map((paso, index) => (
-                    <div key={index} className="flex gap-3 border-b border-emerald-200/50 py-3 last:border-0 dark:border-emerald-800/30">
+                    <div
+                      key={index}
+                      className="flex gap-3 border-b border-emerald-200/50 py-3 last:border-0 dark:border-emerald-800/30"
+                    >
                       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
                         {index + 1}
                       </span>
@@ -518,16 +530,11 @@ const Recetas: React.FC = () => {
               </div>
 
               <DialogFooter className="!mt-6">
-                <Button
-                  variant="secondary"
-                  onClick={() => handlePrint(selectedReceta)}
-                >
+                <Button variant="secondary" onClick={() => handlePrint(selectedReceta)}>
                   <Printer className="size-4" />
                   Imprimir Receta
                 </Button>
-                <Button onClick={() => setShowDetailModal(false)}>
-                  Cerrar
-                </Button>
+                <Button onClick={() => setShowDetailModal(false)}>Cerrar</Button>
               </DialogFooter>
             </div>
           )}
@@ -535,7 +542,12 @@ const Recetas: React.FC = () => {
       </Dialog>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={showModal} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
+      <Dialog
+        open={showModal}
+        onOpenChange={(open) => {
+          if (!open) handleCloseModal();
+        }}
+      >
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -585,9 +597,7 @@ const Recetas: React.FC = () => {
                   onChange={handleFormChange}
                   className={errors.porciones ? 'border-destructive' : ''}
                 />
-                {errors.porciones && (
-                  <p className="text-xs text-destructive">{errors.porciones}</p>
-                )}
+                {errors.porciones && <p className="text-xs text-destructive">{errors.porciones}</p>}
               </div>
             </div>
 
@@ -630,11 +640,7 @@ const Recetas: React.FC = () => {
                   onChange={(e) => setCantidad(parseFloat(e.target.value) || 0)}
                   className="w-28"
                 />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleAgregarIngrediente}
-                >
+                <Button type="button" variant="secondary" onClick={handleAgregarIngrediente}>
                   <Plus className="size-4" />
                   Agregar
                 </Button>
@@ -686,11 +692,7 @@ const Recetas: React.FC = () => {
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseModal}
-            >
+            <Button type="button" variant="outline" onClick={handleCloseModal}>
               Cancelar
             </Button>
             <Button onClick={handleGuardarReceta}>

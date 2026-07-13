@@ -94,9 +94,19 @@ export class ProductoService {
     return result.affectedRows > 0;
   }
 
+  async search(query: string): Promise<ProductoDTO[]> {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      'SELECT id, categoria_id, nombre, descripcion, precio, costo, sku, activo FROM productos WHERE nombre LIKE ? AND activo = true ORDER BY nombre ASC',
+      [`%${query}%`],
+    );
+    return rows as ProductoDTO[];
+  }
+
   // --- Vinculación methods ---
 
-  async getRecetasByProducto(productoId: number): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
+  async getRecetasByProducto(
+    productoId: number,
+  ): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
     const [rows] = await connection.query<RowDataPacket[]>(
       `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
        FROM producto_receta pr

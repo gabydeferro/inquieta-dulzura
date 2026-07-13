@@ -47,7 +47,12 @@ describe('stockCommand', () => {
   it('debe usar el limite personalizado si se pasa como argumento', async () => {
     mockQuery.mockResolvedValueOnce([
       [
-        { producto_id: 9, cantidad: 8, producto_nombre: 'Medialuna', categoria_nombre: 'Panadería' },
+        {
+          producto_id: 9,
+          cantidad: 8,
+          producto_nombre: 'Medialuna',
+          categoria_nombre: 'Panadería',
+        },
       ],
     ]);
 

@@ -75,7 +75,8 @@ export const getProductosByReceta = async (req: Request, res: Response) => {
     const productos = await recetaService.getProductosByReceta(id);
     res.status(200).json(productos);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error al obtener productos de la receta';
+    const message =
+      error instanceof Error ? error.message : 'Error al obtener productos de la receta';
     res.status(500).json({ success: false, error: message });
   }
 };

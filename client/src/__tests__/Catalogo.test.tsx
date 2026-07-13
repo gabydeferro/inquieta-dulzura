@@ -4,8 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import Catalogo from '../Catalogo';
 
 const mockProductos = vi.hoisted(() => [
-  { id: 1, categoria_id: 1, nombre: 'Torta de Chocolate', descripcion: 'Deliciosa torta', precio: 2500, categoriaNombre: 'Tortas' },
-  { id: 2, categoria_id: 2, nombre: 'Pan Artesanal', descripcion: 'Pan de masa madre', precio: 800, categoriaNombre: 'Panes' },
+  {
+    id: 1,
+    categoria_id: 1,
+    nombre: 'Torta de Chocolate',
+    descripcion: 'Deliciosa torta',
+    precio: 2500,
+    categoriaNombre: 'Tortas',
+  },
+  {
+    id: 2,
+    categoria_id: 2,
+    nombre: 'Pan Artesanal',
+    descripcion: 'Pan de masa madre',
+    precio: 800,
+    categoriaNombre: 'Panes',
+  },
 ]);
 
 const mockCategorias = vi.hoisted(() => [

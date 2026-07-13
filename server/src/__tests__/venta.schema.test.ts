@@ -58,4 +58,37 @@ describe('ventaCreateSchema', () => {
       expect(result.data.descuento).toBe(10);
     }
   });
+
+  it('should accept mercado_pago as metodo_pago', () => {
+    const result = ventaCreateSchema.safeParse({
+      metodo_pago: 'mercado_pago',
+      productos: [{ producto_id: 1, cantidad: 1, precio_unitario: 10, subtotal: 10 }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.metodo_pago).toBe('mercado_pago');
+    }
+  });
+
+  it('should accept cuenta_dni as metodo_pago', () => {
+    const result = ventaCreateSchema.safeParse({
+      metodo_pago: 'cuenta_dni',
+      productos: [{ producto_id: 1, cantidad: 1, precio_unitario: 10, subtotal: 10 }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.metodo_pago).toBe('cuenta_dni');
+    }
+  });
+
+  it('should accept modo as metodo_pago', () => {
+    const result = ventaCreateSchema.safeParse({
+      metodo_pago: 'modo',
+      productos: [{ producto_id: 1, cantidad: 1, precio_unitario: 10, subtotal: 10 }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.metodo_pago).toBe('modo');
+    }
+  });
 });

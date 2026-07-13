@@ -139,9 +139,7 @@ const Catalogo: React.FC = () => {
       <section className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {loading ? (
-            <div className="py-16 text-center text-muted-foreground">
-              Cargando catálogo...
-            </div>
+            <div className="py-16 text-center text-muted-foreground">Cargando catálogo...</div>
           ) : error ? (
             <div className="py-16 text-center text-destructive">{error}</div>
           ) : (
@@ -162,9 +160,7 @@ const Catalogo: React.FC = () => {
                       >
                         {producto.categoriaNombre}
                       </Badge>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {producto.nombre}
-                      </h3>
+                      <h3 className="text-lg font-semibold text-foreground">{producto.nombre}</h3>
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                         {producto.descripcion}
                       </p>
@@ -172,7 +168,10 @@ const Catalogo: React.FC = () => {
                         <span className="font-[var(--font-titles)] text-xl font-bold text-foreground">
                           ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
                         </span>
-                        <Button size="sm" className="bg-brand-violet text-white hover:bg-brand-violet/90">
+                        <Button
+                          size="sm"
+                          className="bg-brand-violet text-white hover:bg-brand-violet/90"
+                        >
                           Consultar
                         </Button>
                       </div>

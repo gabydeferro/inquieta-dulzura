@@ -91,7 +91,10 @@ export class ContenidoDigitalService {
     return nueva!;
   }
 
-  async actualizarImagen(id: number, data: Partial<ContenidoDigitalDTO>): Promise<ContenidoDigitalDTO> {
+  async actualizarImagen(
+    id: number,
+    data: Partial<ContenidoDigitalDTO>,
+  ): Promise<ContenidoDigitalDTO> {
     const imagen = await this.obtenerImagenPorId(id);
     if (!imagen) {
       throw new Error('Imagen no encontrada');
@@ -164,10 +167,10 @@ export class ContenidoDigitalService {
     }
     if (!imagen.etiquetas.includes(etiqueta)) {
       imagen.etiquetas.push(etiqueta);
-      await connection.query(
-        'UPDATE contenido_digital SET etiquetas = ? WHERE id = ?',
-        [JSON.stringify(imagen.etiquetas), id],
-      );
+      await connection.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
+        JSON.stringify(imagen.etiquetas),
+        id,
+      ]);
     }
     return imagen;
   }
@@ -178,10 +181,10 @@ export class ContenidoDigitalService {
       throw new Error('Imagen no encontrada');
     }
     imagen.etiquetas = imagen.etiquetas.filter((e) => e !== etiqueta);
-    await connection.query(
-      'UPDATE contenido_digital SET etiquetas = ? WHERE id = ?',
-      [JSON.stringify(imagen.etiquetas), id],
-    );
+    await connection.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
+      JSON.stringify(imagen.etiquetas),
+      id,
+    ]);
     return imagen;
   }
 }

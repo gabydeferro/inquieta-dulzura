@@ -18,7 +18,12 @@ vi.mock('../../services/IngredienteService', () => ({
   },
 }));
 
-import { ingredientesCommand, ingredienteCrearCommand, ingredienteEditarCommand, ingredienteEliminarCommand } from '../../bot/handlers/ingredientes';
+import {
+  ingredientesCommand,
+  ingredienteCrearCommand,
+  ingredienteEditarCommand,
+  ingredienteEliminarCommand,
+} from '../../bot/handlers/ingredientes';
 
 function createMockCtx() {
   return {
@@ -76,17 +81,25 @@ describe('ingredienteCrearCommand', () => {
   });
 
   it('debe crear ingrediente con unidad y confirmar', async () => {
-    mockCreate.mockResolvedValue({ id: 10, nombre: 'Harina', costo_unitario: 2500, unidad_medida: 'kg', activo: true });
+    mockCreate.mockResolvedValue({
+      id: 10,
+      nombre: 'Harina',
+      costo_unitario: 2500,
+      unidad_medida: 'kg',
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/ingrediente crear Harina 2500 kg';
     await ingredienteCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: 'Harina',
-      costo_unitario: 2500,
-      unidad_medida: 'kg',
-    }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: 'Harina',
+        costo_unitario: 2500,
+        unidad_medida: 'kg',
+      }),
+    );
     expect(ctx.reply).toHaveBeenCalledOnce();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#10');
@@ -96,17 +109,25 @@ describe('ingredienteCrearCommand', () => {
   });
 
   it('debe crear ingrediente con nombre compuesto y unidad gramos', async () => {
-    mockCreate.mockResolvedValue({ id: 11, nombre: 'Azucar impalpable', costo_unitario: 1200.5, unidad_medida: 'gramos', activo: true });
+    mockCreate.mockResolvedValue({
+      id: 11,
+      nombre: 'Azucar impalpable',
+      costo_unitario: 1200.5,
+      unidad_medida: 'gramos',
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/ingrediente crear Azucar impalpable 1200.50 gramos';
     await ingredienteCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: 'Azucar impalpable',
-      costo_unitario: 1200.5,
-      unidad_medida: 'gramos',
-    }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: 'Azucar impalpable',
+        costo_unitario: 1200.5,
+        unidad_medida: 'gramos',
+      }),
+    );
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('$1200.5');
   });
@@ -139,18 +160,27 @@ describe('ingredienteEditarCommand', () => {
   });
 
   it('debe editar ingrediente con unidad y confirmar', async () => {
-    mockUpdate.mockResolvedValue({ id: 3, nombre: 'Harina integral', costo_unitario: 1800, unidad_medida: 'kg', activo: true });
+    mockUpdate.mockResolvedValue({
+      id: 3,
+      nombre: 'Harina integral',
+      costo_unitario: 1800,
+      unidad_medida: 'kg',
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/ingrediente editar 3 Harina integral 1800 kg';
     await ingredienteEditarCommand(ctx);
 
-    expect(mockUpdate).toHaveBeenCalledWith(3, expect.objectContaining({
-      nombre: 'Harina integral',
-      costo_unitario: 1800,
-      unidad_medida: 'kg',
-      activo: true,
-    }));
+    expect(mockUpdate).toHaveBeenCalledWith(
+      3,
+      expect.objectContaining({
+        nombre: 'Harina integral',
+        costo_unitario: 1800,
+        unidad_medida: 'kg',
+        activo: true,
+      }),
+    );
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#3');
     expect(replyText.toLowerCase()).toContain('actualizado');

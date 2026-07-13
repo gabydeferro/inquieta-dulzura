@@ -114,7 +114,12 @@ describe('parseProductoCrear', () => {
     const result = parseProductoCrear('/producto crear 2 Torta CH 2500 1500');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ categoria_id: 2, nombre: 'Torta CH', precio: 2500, costo: 1500 });
+      expect(result.data).toEqual({
+        categoria_id: 2,
+        nombre: 'Torta CH',
+        precio: 2500,
+        costo: 1500,
+      });
     }
   });
 
@@ -122,7 +127,12 @@ describe('parseProductoCrear', () => {
     const result = parseProductoCrear('/producto crear 1 Alfajor 800');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ categoria_id: 1, nombre: 'Alfajor', precio: 800, costo: undefined });
+      expect(result.data).toEqual({
+        categoria_id: 1,
+        nombre: 'Alfajor',
+        precio: 800,
+        costo: undefined,
+      });
     }
   });
 
@@ -130,7 +140,12 @@ describe('parseProductoCrear', () => {
     const result = parseProductoCrear('/producto crear 3 Brownie 450.50 200.75');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ categoria_id: 3, nombre: 'Brownie', precio: 450.5, costo: 200.75 });
+      expect(result.data).toEqual({
+        categoria_id: 3,
+        nombre: 'Brownie',
+        precio: 450.5,
+        costo: 200.75,
+      });
     }
   });
 
@@ -217,7 +232,12 @@ describe('parseIngredienteEditar', () => {
     const result = parseIngredienteEditar('/ingrediente editar 7 Azucar impalpable 1200.50 litros');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ id: 7, nombre: 'Azucar impalpable', costo: 1200.5, unidad: 'litros' });
+      expect(result.data).toEqual({
+        id: 7,
+        nombre: 'Azucar impalpable',
+        costo: 1200.5,
+        unidad: 'litros',
+      });
     }
   });
 
@@ -358,7 +378,9 @@ describe('parseRecetaVer', () => {
 
 describe('parseRecetaCrear', () => {
   it('debe extraer nombre (primer palabra), descripcion y ultimos dos numeros', () => {
-    const result = parseRecetaCrear('/receta crear Pastel de Chocolate Delicioso pastel con cobertura 45 8');
+    const result = parseRecetaCrear(
+      '/receta crear Pastel de Chocolate Delicioso pastel con cobertura 45 8',
+    );
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({
@@ -456,7 +478,12 @@ describe('parseRecetaIngredienteAgregar', () => {
     const result = parseRecetaIngredienteAgregar('/receta ingrediente agregar 5 3 200 gramos');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ receta_id: 5, ingrediente_id: 3, cantidad: 200, unidad_medida: 'gramos' });
+      expect(result.data).toEqual({
+        receta_id: 5,
+        ingrediente_id: 3,
+        cantidad: 200,
+        unidad_medida: 'gramos',
+      });
     }
   });
 
@@ -512,7 +539,12 @@ describe('parseRecetaIngredienteEditar', () => {
     const result = parseRecetaIngredienteEditar('/receta ingrediente editar 5 3 500 ml');
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data).toEqual({ receta_id: 5, ingrediente_id: 3, cantidad: 500, unidad_medida: 'ml' });
+      expect(result.data).toEqual({
+        receta_id: 5,
+        ingrediente_id: 3,
+        cantidad: 500,
+        unidad_medida: 'ml',
+      });
     }
   });
 

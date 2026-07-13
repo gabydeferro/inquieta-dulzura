@@ -21,7 +21,11 @@ describe('Instagram API methods', () => {
       const mockResponse = { data: { containerId: 'media-123' } };
       postSpy.mockResolvedValue(mockResponse as never);
 
-      const result = await api.instagramUploadMedia(42, 'https://example.com/img.jpg', 'Test caption');
+      const result = await api.instagramUploadMedia(
+        42,
+        'https://example.com/img.jpg',
+        'Test caption',
+      );
 
       expect(postSpy).toHaveBeenCalledWith('/instagram/upload-media', {
         productId: 42,
@@ -62,7 +66,9 @@ describe('Instagram API methods', () => {
 
   describe('instagramGetMetrics', () => {
     it('should GET /instagram/products/:productId/metrics with default period 30d', async () => {
-      const mockResponse = { data: { likeCount: 42, commentCount: 5, reach: 1200, impressions: 3400 } };
+      const mockResponse = {
+        data: { likeCount: 42, commentCount: 5, reach: 1200, impressions: 3400 },
+      };
       getSpy.mockResolvedValue(mockResponse as never);
 
       const result = await api.instagramGetMetrics(42);
@@ -79,7 +85,9 @@ describe('Instagram API methods', () => {
 
   describe('instagramGetComments', () => {
     it('should GET /instagram/posts/:postId/comments', async () => {
-      const mockResponse = { data: [{ id: 'c1', text: 'Great!', username: 'user1', timestamp: '2026-01-01T00:00:00Z' }] };
+      const mockResponse = {
+        data: [{ id: 'c1', text: 'Great!', username: 'user1', timestamp: '2026-01-01T00:00:00Z' }],
+      };
       getSpy.mockResolvedValue(mockResponse as never);
 
       const result = await api.instagramGetComments('ig-post-456');
@@ -96,7 +104,9 @@ describe('Instagram API methods', () => {
 
       const result = await api.instagramReplyToComment('comment-abc', 'Thank you!');
 
-      expect(postSpy).toHaveBeenCalledWith('/instagram/comments/comment-abc/reply', { text: 'Thank you!' });
+      expect(postSpy).toHaveBeenCalledWith('/instagram/comments/comment-abc/reply', {
+        text: 'Thank you!',
+      });
       expect(result).toEqual(mockResponse);
     });
   });

@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockGetProductosByReceta, mockVincular, mockDesvincular, mockQuery } = vi.hoisted(() => ({
+const {
+  mockGetAll,
+  mockGetById,
+  mockCreate,
+  mockUpdate,
+  mockGetProductosByReceta,
+  mockVincular,
+  mockDesvincular,
+  mockQuery,
+} = vi.hoisted(() => ({
   mockGetAll: vi.fn(),
   mockGetById: vi.fn(),
   mockCreate: vi.fn(),
@@ -60,8 +69,22 @@ describe('recetasCommand', () => {
 
   it('debe listar recetas si existen', async () => {
     mockGetAll.mockResolvedValue([
-      { id: 1, nombre: 'Pastel de Chocolate', descripcion: 'pastel con cobertura', tiempo_preparacion: 45, porciones: 8, activo: true },
-      { id: 2, nombre: 'Torta de Zanahoria', descripcion: 'torta clasica', tiempo_preparacion: 60, porciones: 12, activo: true },
+      {
+        id: 1,
+        nombre: 'Pastel de Chocolate',
+        descripcion: 'pastel con cobertura',
+        tiempo_preparacion: 45,
+        porciones: 8,
+        activo: true,
+      },
+      {
+        id: 2,
+        nombre: 'Torta de Zanahoria',
+        descripcion: 'torta clasica',
+        tiempo_preparacion: 60,
+        porciones: 12,
+        activo: true,
+      },
     ]);
 
     const ctx = createMockCtx() as any;
@@ -114,8 +137,18 @@ describe('recetaVerCommand', () => {
       porciones: 8,
       activo: true,
       ingredientes: [
-        { ingrediente_id: 1, cantidad: 200, unidad_medida: 'gramos', ingrediente: { id: 1, nombre: 'Harina' } },
-        { ingrediente_id: 2, cantidad: 3, unidad_medida: 'unidades', ingrediente: { id: 2, nombre: 'Huevos' } },
+        {
+          ingrediente_id: 1,
+          cantidad: 200,
+          unidad_medida: 'gramos',
+          ingrediente: { id: 1, nombre: 'Harina' },
+        },
+        {
+          ingrediente_id: 2,
+          cantidad: 3,
+          unidad_medida: 'unidades',
+          ingrediente: { id: 2, nombre: 'Huevos' },
+        },
       ],
     });
 
@@ -162,18 +195,27 @@ describe('recetaCrearCommand', () => {
   });
 
   it('debe crear receta y confirmar', async () => {
-    mockCreate.mockResolvedValue({ id: 10, nombre: 'Pastel de Chocolate', descripcion: 'pastel con cobertura', tiempo_preparacion: 45, porciones: 8, activo: true });
+    mockCreate.mockResolvedValue({
+      id: 10,
+      nombre: 'Pastel de Chocolate',
+      descripcion: 'pastel con cobertura',
+      tiempo_preparacion: 45,
+      porciones: 8,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta crear Pastel de Chocolate Delicioso pastel con cobertura 45 8';
     await recetaCrearCommand(ctx);
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      nombre: 'Pastel',
-      descripcion: 'de Chocolate Delicioso pastel con cobertura',
-      tiempo_preparacion: 45,
-      porciones: 8,
-    }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: 'Pastel',
+        descripcion: 'de Chocolate Delicioso pastel con cobertura',
+        tiempo_preparacion: 45,
+        porciones: 8,
+      }),
+    );
     expect(ctx.reply).toHaveBeenCalledOnce();
     const replyText: string = ctx.reply.mock.calls[0][0];
     expect(replyText).toContain('#10');
@@ -197,7 +239,14 @@ describe('recetaEditarCommand', () => {
   });
 
   it('debe editar receta y confirmar', async () => {
-    mockUpdate.mockResolvedValue({ id: 5, nombre: 'New Name', descripcion: 'desc', tiempo_preparacion: 30, porciones: 8, activo: true });
+    mockUpdate.mockResolvedValue({
+      id: 5,
+      nombre: 'New Name',
+      descripcion: 'desc',
+      tiempo_preparacion: 30,
+      porciones: 8,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta editar 5 nombre New Name';
@@ -211,7 +260,14 @@ describe('recetaEditarCommand', () => {
   });
 
   it('debe editar campo numerico tiempo_preparacion', async () => {
-    mockUpdate.mockResolvedValue({ id: 5, nombre: 'Pastel', descripcion: 'desc', tiempo_preparacion: 45, porciones: 8, activo: true });
+    mockUpdate.mockResolvedValue({
+      id: 5,
+      nombre: 'Pastel',
+      descripcion: 'desc',
+      tiempo_preparacion: 45,
+      porciones: 8,
+      activo: true,
+    });
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta editar 5 tiempo_preparacion 45';
@@ -312,10 +368,10 @@ describe('recetaIngredienteAgregarCommand', () => {
   it('debe agregar ingrediente a receta y confirmar', async () => {
     // Mock: recipe exists, ingredient exists, not yet linked
     mockQuery
-      .mockResolvedValueOnce([[{ id: 5 }]])      // recipe exists
-      .mockResolvedValueOnce([[{ id: 3 }]])      // ingredient exists
-      .mockResolvedValueOnce([[]])                // no existing link
-      .mockResolvedValueOnce([{ affectedRows: 1 }] as any);  // INSERT
+      .mockResolvedValueOnce([[{ id: 5 }]]) // recipe exists
+      .mockResolvedValueOnce([[{ id: 3 }]]) // ingredient exists
+      .mockResolvedValueOnce([[]]) // no existing link
+      .mockResolvedValueOnce([{ affectedRows: 1 }] as any); // INSERT
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta ingrediente agregar 5 3 200 gramos';
@@ -331,9 +387,9 @@ describe('recetaIngredienteAgregarCommand', () => {
   it('debe rechazar si el ingrediente ya esta vinculado', async () => {
     // Mock: recipe exists, ingredient exists, existing link
     mockQuery
-      .mockResolvedValueOnce([[{ id: 5 }]])      // recipe exists
-      .mockResolvedValueOnce([[{ id: 3 }]])      // ingredient exists
-      .mockResolvedValueOnce([[{ receta_id: 5, ingrediente_id: 3 }]]);  // existing link
+      .mockResolvedValueOnce([[{ id: 5 }]]) // recipe exists
+      .mockResolvedValueOnce([[{ id: 3 }]]) // ingredient exists
+      .mockResolvedValueOnce([[{ receta_id: 5, ingrediente_id: 3 }]]); // existing link
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta ingrediente agregar 5 3 100 ml';
@@ -346,7 +402,7 @@ describe('recetaIngredienteAgregarCommand', () => {
   });
 
   it('debe responder si la receta no existe', async () => {
-    mockQuery.mockResolvedValueOnce([[]]);  // recipe not found
+    mockQuery.mockResolvedValueOnce([[]]); // recipe not found
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta ingrediente agregar 999 3 200 gramos';
@@ -360,8 +416,8 @@ describe('recetaIngredienteAgregarCommand', () => {
 
   it('debe responder si el ingrediente no existe', async () => {
     mockQuery
-      .mockResolvedValueOnce([[{ id: 5 }]])      // recipe exists
-      .mockResolvedValueOnce([[]]);               // ingredient not found
+      .mockResolvedValueOnce([[{ id: 5 }]]) // recipe exists
+      .mockResolvedValueOnce([[]]); // ingredient not found
 
     const ctx = createMockCtx() as any;
     ctx.message.text = '/receta ingrediente agregar 5 999 200 gramos';

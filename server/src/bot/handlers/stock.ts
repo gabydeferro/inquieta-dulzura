@@ -41,10 +41,13 @@ export async function stockCommand(ctx: Context): Promise<void> {
     }
 
     const lines = stockRows.map(
-      (r) => `\`${r.producto_id}\` • *${r.producto_nombre}* — ${r.categoria_nombre} | Stock: ${r.cantidad_disponible}`,
+      (r) =>
+        `\`${r.producto_id}\` • *${r.producto_nombre}* — ${r.categoria_nombre} | Stock: ${r.cantidad_disponible}`,
     );
 
-    await ctx.reply(`📦 *Stock bajo* (< ${limite})\n\n${lines.join('\n')}`, { parse_mode: 'Markdown' });
+    await ctx.reply(`📦 *Stock bajo* (< ${limite})\n\n${lines.join('\n')}`, {
+      parse_mode: 'Markdown',
+    });
   } catch (error) {
     console.error('Error en stockCommand:', error);
     await ctx.reply('Error interno. Intentalo de nuevo.');
