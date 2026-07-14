@@ -6,6 +6,7 @@ interface DashboardStats {
   ventasHoy: { cantidad: number; total: number };
   ventasSemana: { cantidad: number; total: number };
   ventasMes: { cantidad: number; total: number };
+  ingresosMes: number;
   totalIngresos: number;
   totalVentas: number;
   totalClientes: number;
@@ -28,6 +29,7 @@ interface DashboardStats {
     unidad_medida: string;
   }>;
   stockBajoCount: number;
+  partial_failures: string[];
 }
 
 export class DashboardService {
@@ -47,23 +49,8 @@ export class DashboardService {
     const thresholdStr = await this.configService.get('stock_bajo_threshold');
     const stockThreshold = thresholdStr ? parseInt(thresholdStr, 10) : 10;
 
-    // Execute all queries in parallel
-    const [
-      ventasHoy,
-      ventasSemana,
-      ventasMes,
-      totalIngresos,
-      totalVentas,
-      totalClientes,
-      productosActivos,
-      categoriasCount,
-      ingredientesCount,
-      recetasCount,
-      ventasPorDia,
-      metodosPago,
-      topProductos,
-      stockBajo,
-    ] = await Promise.all([
+    // Execute all queries in parallel with partial failure tolerance
+    const results = await Promise.allSettled([
       // 1. Ventas hoy
       pool
         .query<RowDataPacket[]>(
@@ -227,10 +214,49 @@ export class DashboardService {
         ),
     ]);
 
+    // Helper to extract value from settled result or return default
+    const queryNames = [
+      'ventasHoy', 'ventasSemana', 'ventasMes', 'totalIngresos',
+      'totalVentas', 'totalClientes', 'productosActivos', 'categoriasCount',
+      'ingredientesCount', 'recetasCount', 'ventasPorDia', 'metodosPago',
+      'topProductos', 'stockBajo',
+    ];
+
+    const partial_failures: string[] = [];
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        partial_failures.push(queryNames[index]);
+      }
+    });
+
+    // Fail only if ALL queries failed
+    if (partial_failures.length === results.length) {
+      throw new Error('All dashboard queries failed');
+    }
+
+    const unwrap = <T>(result: PromiseSettledResult<T>, defaultValue: T): T =>
+      result.status === 'fulfilled' ? result.value : defaultValue;
+
+    const ventasHoy = unwrap(results[0], { cantidad: 0, total: 0 });
+    const ventasSemana = unwrap(results[1], { cantidad: 0, total: 0 });
+    const ventasMes = unwrap(results[2], { cantidad: 0, total: 0 });
+    const totalIngresos = unwrap(results[3], 0);
+    const totalVentas = unwrap(results[4], 0);
+    const totalClientes = unwrap(results[5], 0);
+    const productosActivos = unwrap(results[6], 0);
+    const categoriasCount = unwrap(results[7], 0);
+    const ingredientesCount = unwrap(results[8], 0);
+    const recetasCount = unwrap(results[9], 0);
+    const ventasPorDia = unwrap(results[10], []);
+    const metodosPago = unwrap(results[11], []);
+    const topProductos = unwrap(results[12], []);
+    const stockBajo = unwrap(results[13], []);
+
     return {
       ventasHoy,
       ventasSemana,
       ventasMes,
+      ingresosMes: ventasMes.total,
       totalIngresos,
       totalVentas,
       totalClientes,
@@ -243,6 +269,7 @@ export class DashboardService {
       topProductos,
       stockBajo,
       stockBajoCount: stockBajo.length,
+      partial_failures,
     };
   }
 }

@@ -33,6 +33,7 @@ describe('DashboardController', () => {
         ventasHoy: { cantidad: 5, total: 1500 },
         ventasSemana: { cantidad: 20, total: 6000 },
         ventasMes: { cantidad: 100, total: 30000 },
+        ingresosMes: 30000,
         totalIngresos: 50000,
         totalVentas: 200,
         totalClientes: 50,
@@ -45,6 +46,7 @@ describe('DashboardController', () => {
         topProductos: [],
         stockBajo: [],
         stockBajoCount: 0,
+        partial_failures: [],
       };
       mockGetStats.mockResolvedValue(mockStats);
 

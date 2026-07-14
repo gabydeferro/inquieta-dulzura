@@ -86,6 +86,7 @@ describe('DashboardService', () => {
       expect(result).toHaveProperty('ventasHoy');
       expect(result).toHaveProperty('ventasSemana');
       expect(result).toHaveProperty('ventasMes');
+      expect(result).toHaveProperty('ingresosMes');
       expect(result).toHaveProperty('totalIngresos');
       expect(result).toHaveProperty('totalVentas');
       expect(result).toHaveProperty('totalClientes');
@@ -98,12 +99,14 @@ describe('DashboardService', () => {
       expect(result).toHaveProperty('topProductos');
       expect(result).toHaveProperty('stockBajo');
       expect(result).toHaveProperty('stockBajoCount');
+      expect(result).toHaveProperty('partial_failures');
 
       // Verify values
       expect(result.ventasHoy.cantidad).toBe(5);
       expect(result.ventasHoy.total).toBe(1500);
       expect(result.ventasSemana.cantidad).toBe(20);
       expect(result.ventasMes.cantidad).toBe(100);
+      expect(result.ingresosMes).toBe(30000);
       expect(result.totalIngresos).toBe(50000);
       expect(result.totalVentas).toBe(200);
       expect(result.totalClientes).toBe(50);
@@ -116,6 +119,7 @@ describe('DashboardService', () => {
       expect(result.topProductos).toHaveLength(2);
       expect(result.stockBajo).toHaveLength(1);
       expect(result.stockBajoCount).toBe(1);
+      expect(result.partial_failures).toEqual([]);
 
       // Verify 14 queries executed
       expect(mockQuery).toHaveBeenCalledTimes(14);
@@ -171,7 +175,7 @@ describe('DashboardService', () => {
       expect(result.stockBajo).toEqual([]);
     });
 
-    it('should execute all queries in parallel via Promise.all', async () => {
+    it('should execute all queries in parallel via Promise.allSettled', async () => {
       mockQuery
         .mockResolvedValueOnce([[{ cantidad: 0, total: 0 }]])
         .mockResolvedValueOnce([[{ cantidad: 0, total: 0 }]])
@@ -192,6 +196,91 @@ describe('DashboardService', () => {
 
       // All 14 queries should have been called
       expect(mockQuery).toHaveBeenCalledTimes(14);
+    });
+
+    it('should return ingresosMes as alias for ventasMes.total', async () => {
+      mockQuery
+        .mockResolvedValueOnce([[{ cantidad: 5, total: 1500 }]])
+        .mockResolvedValueOnce([[{ cantidad: 20, total: 6000 }]])
+        .mockResolvedValueOnce([[{ cantidad: 100, total: 30000 }]])
+        .mockResolvedValueOnce([[{ total: 50000 }]])
+        .mockResolvedValueOnce([[{ total: 200 }]])
+        .mockResolvedValueOnce([[{ total: 50 }]])
+        .mockResolvedValueOnce([[{ total: 30 }]])
+        .mockResolvedValueOnce([[{ total: 8 }]])
+        .mockResolvedValueOnce([[{ total: 25 }]])
+        .mockResolvedValueOnce([[{ total: 15 }]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]]);
+
+      const result = await dashboardService.getStats();
+
+      expect(result.ingresosMes).toBe(30000);
+      expect(result.ingresosMes).toBe(result.ventasMes.total);
+    });
+
+    it('should return partial_failures when some queries fail', async () => {
+      mockQuery
+        .mockResolvedValueOnce([[{ cantidad: 5, total: 1500 }]])
+        .mockResolvedValueOnce([[{ cantidad: 20, total: 6000 }]])
+        .mockResolvedValueOnce([[{ cantidad: 100, total: 30000 }]])
+        .mockResolvedValueOnce(Promise.reject(new Error('DB connection lost')))
+        .mockResolvedValueOnce([[{ total: 200 }]])
+        .mockResolvedValueOnce([[{ total: 50 }]])
+        .mockResolvedValueOnce([[{ total: 30 }]])
+        .mockResolvedValueOnce([[{ total: 8 }]])
+        .mockResolvedValueOnce([[{ total: 25 }]])
+        .mockResolvedValueOnce([[{ total: 15 }]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]]);
+
+      const result = await dashboardService.getStats();
+
+      expect(result.partial_failures).toContain('totalIngresos');
+      expect(result.totalIngresos).toBe(0);
+      expect(result.ventasHoy.cantidad).toBe(5);
+      expect(result.totalVentas).toBe(200);
+    });
+
+    it('should throw when ALL queries fail', async () => {
+      mockQuery
+        .mockRejectedValue(new Error('Database down'));
+
+      await expect(dashboardService.getStats()).rejects.toThrow('All dashboard queries failed');
+    });
+
+    it('should return defaults for failed array queries', async () => {
+      mockQuery
+        .mockResolvedValueOnce([[{ cantidad: 0, total: 0 }]])
+        .mockResolvedValueOnce([[{ cantidad: 0, total: 0 }]])
+        .mockResolvedValueOnce([[{ cantidad: 0, total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockResolvedValueOnce([[{ total: 0 }]])
+        .mockRejectedValue(new Error('Query failed'))
+        .mockRejectedValue(new Error('Query failed'))
+        .mockRejectedValue(new Error('Query failed'))
+        .mockRejectedValue(new Error('Query failed'));
+
+      const result = await dashboardService.getStats();
+
+      expect(result.partial_failures).toHaveLength(4);
+      expect(result.partial_failures).toEqual([
+        'ventasPorDia', 'metodosPago', 'topProductos', 'stockBajo',
+      ]);
+      expect(result.ventasPorDia).toEqual([]);
+      expect(result.metodosPago).toEqual([]);
+      expect(result.topProductos).toEqual([]);
+      expect(result.stockBajo).toEqual([]);
+      expect(result.stockBajoCount).toBe(0);
     });
   });
 });

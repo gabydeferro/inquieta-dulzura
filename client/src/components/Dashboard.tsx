@@ -36,6 +36,7 @@ interface DashboardStats {
   ventasHoy: { cantidad: number; total: number };
   ventasSemana: { cantidad: number; total: number };
   ventasMes: { cantidad: number; total: number };
+  ingresosMes: number;
   totalIngresos: number;
   totalVentas: number;
   totalClientes: number;
@@ -58,6 +59,7 @@ interface DashboardStats {
     unidad_medida: string;
   }>;
   stockBajoCount: number;
+  partial_failures: string[];
 }
 
 const COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ef4444'];
@@ -116,7 +118,7 @@ export const Dashboard: React.FC = () => {
     {
       label: 'Ventas Mes',
       value: stats.ventasMes.cantidad,
-      subtitle: `$${stats.ventasMes.total.toLocaleString()}`,
+      subtitle: `$${stats.ingresosMes.toLocaleString()}`,
       icon: TrendingUp,
     },
     {
