@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CartItem } from '../types/Cart';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,50 +55,60 @@ const CartSummary: React.FC<CartSummaryProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.producto_id}>
-                <TableCell className="text-sm font-medium">{item.nombre}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => (
+                <motion.tr
+                  key={item.producto_id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="border-b last:border-0"
+                >
+                  <TableCell className="text-sm font-medium">{item.nombre}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-xs"
+                        aria-label="Disminuir"
+                        onClick={() => onUpdateQuantity(item.producto_id, item.cantidad - 1)}
+                      >
+                        <Minus className="size-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm">{item.cantidad}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-xs"
+                        aria-label="Aumentar"
+                        onClick={() => onUpdateQuantity(item.producto_id, item.cantidad + 1)}
+                      >
+                        <Plus className="size-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right text-sm">${item.precio.toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-sm font-semibold">
+                    ${(item.precio * item.cantidad).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="icon-xs"
-                      aria-label="Disminuir"
-                      onClick={() => onUpdateQuantity(item.producto_id, item.cantidad - 1)}
+                      aria-label="Eliminar"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => onRemove(item.producto_id)}
                     >
-                      <Minus className="size-3" />
+                      <Trash2 className="size-3.5" />
                     </Button>
-                    <span className="w-8 text-center text-sm">{item.cantidad}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon-xs"
-                      aria-label="Aumentar"
-                      onClick={() => onUpdateQuantity(item.producto_id, item.cantidad + 1)}
-                    >
-                      <Plus className="size-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right text-sm">${item.precio.toFixed(2)}</TableCell>
-                <TableCell className="text-right text-sm font-semibold">
-                  ${(item.precio * item.cantidad).toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="Eliminar"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => onRemove(item.producto_id)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           </TableBody>
         </Table>
       </div>

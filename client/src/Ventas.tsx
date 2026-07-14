@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
 import { useCart } from './contexts/CartContext';
+import { useReducedMotion } from './lib/animations';
 import { MetodoPago } from './types/Cart';
 import ProductSearch from './components/ProductSearch';
 import CartSummary from './components/CartSummary';
@@ -15,6 +17,7 @@ import { DollarSign, BarChart3, TrendingUp } from 'lucide-react';
 const Ventas: React.FC = () => {
   const { items, total, itemCount, dispatch } = useCart();
   const { showNotification } = useNotification();
+  const { fadeUp, staggerContainer } = useReducedMotion();
   const [ventas, setVentas] = useState<VentaResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,48 +149,59 @@ const Ventas: React.FC = () => {
       )}
 
       {/* Stats */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2">
-            <BarChart3 className="size-8 text-muted-foreground" />
-            <div>
-              <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                Ventas Hoy
-              </p>
-              <p className="text-2xl font-bold text-foreground">{ventas.length}</p>
-            </div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2">
-            <DollarSign className="size-8 text-muted-foreground" />
-            <div>
-              <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                Total Hoy
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                ${ventas.reduce((sum, v) => sum + v.total, 0).toFixed(2)}
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2">
-            <TrendingUp className="size-8 text-muted-foreground" />
-            <div>
-              <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                Promedio
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                $
-                {ventas.length > 0
-                  ? (ventas.reduce((sum, v) => sum + v.total, 0) / ventas.length).toFixed(2)
-                  : '0.00'}
-              </p>
-            </div>
-          </CardHeader>
-        </Card>
-      </div>
+      <motion.div
+        className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+              <BarChart3 className="size-8 text-muted-foreground" />
+              <div>
+                <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                  Ventas Hoy
+                </p>
+                <p className="text-2xl font-bold text-foreground">{ventas.length}</p>
+              </div>
+            </CardHeader>
+          </Card>
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+              <DollarSign className="size-8 text-muted-foreground" />
+              <div>
+                <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                  Total Hoy
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  ${ventas.reduce((sum, v) => sum + v.total, 0).toFixed(2)}
+                </p>
+              </div>
+            </CardHeader>
+          </Card>
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+              <TrendingUp className="size-8 text-muted-foreground" />
+              <div>
+                <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                  Promedio
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  $
+                  {ventas.length > 0
+                    ? (ventas.reduce((sum, v) => sum + v.total, 0) / ventas.length).toFixed(2)
+                    : '0.00'}
+                </p>
+              </div>
+            </CardHeader>
+          </Card>
+        </motion.div>
+      </motion.div>
 
       {/* POS Layout: Search + Cart */}
       <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
