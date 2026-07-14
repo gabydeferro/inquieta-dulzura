@@ -1,18 +1,26 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
+import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
 import { Cake, Cookie, Croissant, Candy, Truck, ShieldCheck, CreditCard } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   return (
     <div className="bg-background">
       {/* Hero Section */}
       <section className="flex min-h-[90vh] items-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             <p className="mb-2 font-[var(--font-script)] text-2xl text-foreground/80">
               Pastelería Boutique
             </p>
@@ -37,66 +45,103 @@ const LandingPage: React.FC = () => {
                 </Link>
               )}
             </div>
-          </div>
-          <div className="overflow-hidden rounded-2xl shadow-2xl">
+          </motion.div>
+          <motion.div
+            className="overflow-hidden rounded-2xl shadow-2xl"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+          >
             <img
               src="/hero_pastel_cake.png"
               alt="Luxury Pastel Cake"
               className="w-full transition-transform duration-1000 hover:scale-105"
             />
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Categories Section */}
       <section className="bg-card py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-[var(--font-titles)] mb-16 text-center text-4xl font-bold uppercase tracking-[6px] text-foreground sm:text-5xl">
+          <motion.h2
+            className="font-[var(--font-titles)] mb-16 text-center text-4xl font-bold uppercase tracking-[6px] text-foreground sm:text-5xl"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             Nuestras Especialidades
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          </motion.h2>
+          <motion.div
+            className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {/* Tortas */}
-            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+            <motion.div
+              className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5"
+              variants={fadeUp}
+            >
               <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-primary transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-primary/30">
                 <Cake className="size-20 text-foreground/60" />
               </div>
               <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
                 Tortas
               </h3>
-            </div>
+            </motion.div>
             {/* Panes */}
-            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+            <motion.div
+              className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5"
+              variants={fadeUp}
+            >
               <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-secondary transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-secondary/30">
                 <Croissant className="size-20 text-foreground/60" />
               </div>
               <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
                 Panes
               </h3>
-            </div>
+            </motion.div>
             {/* Cookies */}
-            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+            <motion.div
+              className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5"
+              variants={fadeUp}
+            >
               <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-accent transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-accent/30">
                 <Cookie className="size-20 text-foreground/60" />
               </div>
               <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
                 Cookies
               </h3>
-            </div>
+            </motion.div>
             {/* Postres */}
-            <div className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5">
+            <motion.div
+              className="group cursor-pointer text-center transition-transform duration-500 hover:-translate-y-5"
+              variants={fadeUp}
+            >
               <div className="mx-auto mb-6 flex h-80 w-full items-center justify-center rounded-2xl bg-brand-highlight transition-all duration-500 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:bg-brand-highlight/30">
                 <Candy className="size-20 text-foreground/60" />
               </div>
               <h3 className="font-[var(--font-titles)] text-sm font-bold uppercase tracking-[3px] text-foreground">
                 Postres
               </h3>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Info Bar */}
-      <section className="bg-brand-dark py-16 text-white">
+      <motion.section
+        className="bg-brand-dark py-16 text-white"
+        variants={fadeIn}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+      >
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
           <div className="flex items-center gap-6 border-b border-white/10 pb-8 last:border-none lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
             <Truck className="size-12 shrink-0" />
@@ -126,10 +171,16 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA Section */}
-      <section className="bg-background px-4 py-32 text-center sm:px-6 lg:px-8">
+      <motion.section
+        className="bg-background px-4 py-32 text-center sm:px-6 lg:px-8"
+        variants={fadeIn}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+      >
         <div className="mx-auto max-w-7xl">
           <h2 className="font-[var(--font-titles)] mb-6 text-4xl font-bold uppercase tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             ¿Listo para comenzar?
@@ -152,10 +203,16 @@ const LandingPage: React.FC = () => {
             </div>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
-      <footer className="bg-black px-4 pb-0 pt-24 text-white sm:px-6 lg:px-8">
+      <motion.footer
+        className="bg-black px-4 pb-0 pt-24 text-white sm:px-6 lg:px-8"
+        variants={fadeIn}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+      >
         <div className="mx-auto mb-16 grid max-w-7xl gap-16 lg:grid-cols-[2fr_1fr_1.5fr_1.2fr]">
           <div>
             <div className="mb-8 flex items-center gap-4">
@@ -222,7 +279,7 @@ const LandingPage: React.FC = () => {
             &copy; 2024 Inquieta Dulzura. Todos los derechos reservados. | Diseñado con ❤️
           </p>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import api from '../services/api';
 import { Producto } from '../types/Producto';
+import { useReducedMotion } from '../lib/animations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
@@ -10,6 +12,7 @@ interface ProductSearchProps {
 }
 
 const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
+  const { fadeUp, staggerContainer } = useReducedMotion();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,11 +68,17 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
       )}
 
       {!loading && results.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <motion.div
+          className="flex flex-col gap-2"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {results.map((product) => (
-            <div
+            <motion.div
               key={product.id}
               className="flex items-center justify-between rounded-lg border p-3"
+              variants={fadeUp}
             >
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{product.nombre}</span>
@@ -87,9 +96,9 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
                 <Plus className="mr-1 size-3.5" />
                 Agregar
               </Button>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
