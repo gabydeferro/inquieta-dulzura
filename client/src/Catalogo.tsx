@@ -130,7 +130,7 @@ const Catalogo: React.FC = () => {
             {categoriasFiltro.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => handleFiltroClick(Number(cat.id))}
+                onClick={() => handleFiltroClick(cat.id === 'todas' ? 'todas' : Number(cat.id))}
                 className={`rounded-full border-2 px-4 py-1.5 text-sm font-semibold transition-all ${
                   categoriaSeleccionada === cat.id
                     ? 'border-transparent bg-brand-violet text-white'
