@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-floating-promises, @typescript-eslint/no-require-imports */
-const bcrypt = require('bcrypt');
-const path = require('path');
-const dotenv = require('dotenv');
+import bcrypt from 'bcrypt';
+import path from 'path';
+import dotenv from 'dotenv';
 
 // Cargar variables de entorno antes de importar el pool
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
-const { pool } = require('../config/database');
+import { pool } from '../config/database';
 
 const createAdmin = async () => {
   const email = 'gabydeferro@gmail.com';
