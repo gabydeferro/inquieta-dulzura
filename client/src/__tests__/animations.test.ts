@@ -61,7 +61,7 @@ describe('staggerContainer variant', () => {
   it('has visible state with staggerChildren in transition', () => {
     const visible = staggerContainer.visible as Record<string, unknown>;
     const transition = visible.transition as Record<string, unknown>;
-    expect(transition.staggerChildren).toBe(0.05);
+    expect(transition.staggerChildren).toBe(0.08);
   });
 });
 
