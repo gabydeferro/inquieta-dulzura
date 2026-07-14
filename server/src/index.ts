@@ -18,6 +18,9 @@ import instagramRouter from './routes/instagram';
 import { verificarConfiguracion as verificarConfiguracionInstagram } from './config/instagram';
 import { verificarConfiguracion as verificarConfiguracionMP } from './config/mercado-pago';
 import mercadoPagoRoutes from './routes/mercado-pago';
+import { initConfig } from './config/init-config';
+import dashboardRoutes from './routes/dashboard';
+import { requireAdmin } from './middleware/auth';
 
 // Inicializar Express
 const app = express();
@@ -70,6 +73,7 @@ app.use('/api/recetas', recetasRoutes);
 app.use('/api/contenido-digital', contenidoDigitalRouter);
 app.use('/api/ventas', ventasRoutes);
 app.use('/api/ventas', pagosRoutes);
+app.use('/api/dashboard', authenticateToken, requireAdmin, dashboardRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
 
 // ============================================
@@ -144,6 +148,9 @@ app.use((err: CustomError, req: Request, res: Response, _next: NextFunction) => 
 
 const startServer = async () => {
   try {
+    // Initialize configuration table
+    await initConfig();
+
     const connection = await pool.getConnection();
     console.log('✅ Conexión a MySQL verificada');
     connection.release();

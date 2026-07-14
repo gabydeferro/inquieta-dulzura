@@ -284,6 +284,11 @@ class ApiService {
     return this.post('/instagram/auth/refresh');
   }
 
+  // Dashboard
+  async getDashboardStats<T = unknown>(): Promise<AxiosResponse<T>> {
+    return this.get<T>('/dashboard/stats');
+  }
+
   // Método especial para subir archivos
   async uploadFile<T = unknown>(url: string, formData: FormData): Promise<AxiosResponse<T>> {
     return this.api.post<T>(url, formData, {

@@ -3,14 +3,50 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Dashboard from '../components/Dashboard';
 
-// Mock the API service
+const mockDashboardStats = {
+  ventasHoy: { cantidad: 5, total: 1500 },
+  ventasSemana: { cantidad: 20, total: 6000 },
+  ventasMes: { cantidad: 100, total: 30000 },
+  ingresosMes: 30000,
+  totalIngresos: 50000,
+  totalVentas: 200,
+  totalClientes: 50,
+  productosActivos: 30,
+  categoriasCount: 8,
+  ingredientesCount: 25,
+  recetasCount: 15,
+  ventasPorDia: [
+    { fecha: '2026-07-01', cantidad: 3, total: 900 },
+    { fecha: '2026-07-02', cantidad: 2, total: 600 },
+  ],
+  metodosPago: [
+    { metodo: 'efectivo', cantidad: 60, total: 18000 },
+    { metodo: 'tarjeta', cantidad: 40, total: 12000 },
+  ],
+    topProductos: [
+    { producto_id: 1, nombre: 'Torta Chocolate', cantidad: 45, total: 12500 },
+    { producto_id: 2, nombre: 'Galletas', cantidad: 25, total: 4500 },
+  ],
+  stockBajo: [
+    {
+      producto_id: 3,
+      nombre: 'Harina',
+      cantidad_disponible: 3,
+      unidad_medida: 'kg',
+    },
+  ],
+  stockBajoCount: 1,
+  partial_failures: [],
+};
+
+const mockGetDashboardStats = vi.fn();
+
 vi.mock('../services/api', () => ({
   default: {
-    get: vi.fn().mockRejectedValue(new Error('API not available')),
+    getDashboardStats: (...args: unknown[]) => mockGetDashboardStats(...args),
   },
 }));
 
-// Mock AuthContext
 const mockUser = { id: 1, email: 'test@example.com', nombre: 'María', rol: 'admin' as const };
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: mockUser, isAuthenticated: true, loading: false }),
@@ -20,6 +56,7 @@ vi.mock('../contexts/AuthContext', () => ({
 describe('Dashboard Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetDashboardStats.mockResolvedValue({ data: mockDashboardStats });
   });
 
   afterEach(() => {
@@ -49,13 +86,71 @@ describe('Dashboard Component', () => {
     });
   });
 
-  it('should render stat cards with correct labels', async () => {
+  it('should render KPI cards with real data from API', async () => {
     renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('Productos')).toBeInTheDocument();
-      expect(screen.getByText('Ventas')).toBeInTheDocument();
-      expect(screen.getByText('Fotos')).toBeInTheDocument();
+      expect(screen.getByText('Ventas Hoy')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
+      expect(screen.getByText(/\$1[,.]?500/)).toBeInTheDocument();
+
+      expect(screen.getByText('Ventas Semana')).toBeInTheDocument();
+      expect(screen.getByText('20')).toBeInTheDocument();
+
+      expect(screen.getByText('Ventas Mes')).toBeInTheDocument();
+      expect(screen.getByText('100')).toBeInTheDocument();
+
+      expect(screen.getByText('Ingresos Totales')).toBeInTheDocument();
+      expect(screen.getByText(/\$50[,.]?000/)).toBeInTheDocument();
+
+      expect(screen.getByText('Total Ventas')).toBeInTheDocument();
+      expect(screen.getByText('200')).toBeInTheDocument();
+
+      expect(screen.getByText('Clientes')).toBeInTheDocument();
+      expect(screen.getByText('50')).toBeInTheDocument();
+
+      expect(screen.getByText('Productos Activos')).toBeInTheDocument();
+      expect(screen.getByText('30')).toBeInTheDocument();
+
       expect(screen.getByText('Stock Bajo')).toBeInTheDocument();
+      expect(screen.getByText('1')).toBeInTheDocument();
+    });
+  });
+
+  it('should render sales trend chart', async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText('Tendencia de Ventas (30 días)')).toBeInTheDocument();
+      // Recharts renders SVG elements
+      const chartContainer = document.querySelector('.recharts-responsive-container');
+      expect(chartContainer).toBeInTheDocument();
+    });
+  });
+
+  it('should render payment methods chart', async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText('Métodos de Pago')).toBeInTheDocument();
+    });
+  });
+
+  it('should render top products table', async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText('Top 5 Productos (30 días)')).toBeInTheDocument();
+      expect(screen.getByText('Torta Chocolate')).toBeInTheDocument();
+      expect(screen.getByText('45')).toBeInTheDocument();
+      expect(screen.getByText('Galletas')).toBeInTheDocument();
+      expect(screen.getByText('25')).toBeInTheDocument();
+    });
+  });
+
+  it('should render stock alerts list', async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText('Alertas de Stock Bajo')).toBeInTheDocument();
+      expect(screen.getByText('Harina')).toBeInTheDocument();
+      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getByText('kg')).toBeInTheDocument();
     });
   });
 
@@ -97,12 +192,18 @@ describe('Dashboard Component', () => {
     });
   });
 
-  it('should show stat values as numbers', async () => {
+  it('should show error message when API fails', async () => {
+    mockGetDashboardStats.mockRejectedValue(new Error('API error'));
     renderDashboard();
     await waitFor(() => {
-      // With mock rejection, all 4 stat cards show 0
-      const zeroElements = screen.getAllByText('0');
-      expect(zeroElements.length).toBeGreaterThanOrEqual(4);
+      expect(screen.getByText('Error al cargar datos del dashboard')).toBeInTheDocument();
+    });
+  });
+
+  it('should call getDashboardStats on mount', async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(mockGetDashboardStats).toHaveBeenCalledOnce();
     });
   });
 });
