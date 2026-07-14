@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +29,7 @@ interface ProductoDTO {
 }
 
 const Catalogo: React.FC = () => {
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
   const [productos, setProductos] = useState<ProductoDTO[]>([]);
   const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | 'todas'>('todas');
@@ -97,7 +100,12 @@ const Catalogo: React.FC = () => {
 
   return (
     <div className="bg-background">
-      <header className="bg-background px-4 py-16 text-center sm:px-6 lg:px-8">
+      <motion.header
+        className="bg-background px-4 py-16 text-center sm:px-6 lg:px-8"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="mx-auto max-w-7xl">
           <Link
             to="/"
@@ -114,7 +122,7 @@ const Catalogo: React.FC = () => {
             Descubre todos nuestros productos artesanales
           </p>
         </div>
-      </header>
+      </motion.header>
 
       <section className="sticky top-0 z-30 border-b bg-card px-4 py-4 shadow-sm sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -144,53 +152,73 @@ const Catalogo: React.FC = () => {
             <div className="py-16 text-center text-destructive">{error}</div>
           ) : (
             <>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <motion.div
+                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {productos.map((producto) => (
-                  <Card
+                  <motion.div
                     key={producto.id}
-                    className="overflow-hidden transition-transform duration-500 hover:-translate-y-3 hover:shadow-xl"
+                    variants={fadeUp}
+                    layout
                   >
-                    <div className="flex h-48 items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30">
-                      <Cake className="size-16 text-foreground/20" />
-                    </div>
-                    <CardContent className="p-4">
-                      <Badge
-                        variant="secondary"
-                        className="mb-2 bg-brand-accent text-xs font-semibold uppercase text-foreground dark:bg-brand-accent/40"
-                      >
-                        {producto.categoriaNombre}
-                      </Badge>
-                      <h3 className="text-lg font-semibold text-foreground">{producto.nombre}</h3>
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                        {producto.descripcion}
-                      </p>
-                      <div className="mt-4 flex items-center justify-between border-t pt-4 dark:border-border">
-                        <span className="font-[var(--font-titles)] text-xl font-bold text-foreground">
-                          ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
-                        </span>
-                        <Button
-                          size="sm"
-                          className="bg-brand-violet text-white hover:bg-brand-violet/90"
-                        >
-                          Consultar
-                        </Button>
+                    <Card className="overflow-hidden transition-transform duration-500 hover:-translate-y-3 hover:shadow-xl">
+                      <div className="flex h-48 items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30">
+                        <Cake className="size-16 text-foreground/20" />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <CardContent className="p-4">
+                        <Badge
+                          variant="secondary"
+                          className="mb-2 bg-brand-accent text-xs font-semibold uppercase text-foreground dark:bg-brand-accent/40"
+                        >
+                          {producto.categoriaNombre}
+                        </Badge>
+                        <h3 className="text-lg font-semibold text-foreground">{producto.nombre}</h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {producto.descripcion}
+                        </p>
+                        <div className="mt-4 flex items-center justify-between border-t pt-4 dark:border-border">
+                          <span className="font-[var(--font-titles)] text-xl font-bold text-foreground">
+                            ${producto.precio ? Number(producto.precio).toFixed(2) : '0.00'}
+                          </span>
+                          <Button
+                            size="sm"
+                            className="bg-brand-violet text-white hover:bg-brand-violet/90"
+                          >
+                            Consultar
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
-              </div>
-              {productos.length === 0 && (
-                <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-                  <PackageOpen className="size-12" />
-                  <p className="text-lg">No hay productos en esta categoría</p>
-                </div>
-              )}
+              </motion.div>
+              <motion.div
+                variants={fadeIn}
+                initial="hidden"
+                animate={productos.length === 0 ? 'visible' : 'hidden'}
+              >
+                {productos.length === 0 && (
+                  <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+                    <PackageOpen className="size-12" />
+                    <p className="text-lg">No hay productos en esta categoría</p>
+                  </div>
+                )}
+              </motion.div>
             </>
           )}
         </div>
       </section>
 
-      <section className="bg-gradient-to-br from-brand-violet to-purple-900 px-4 py-16 text-center text-white sm:px-6 lg:px-8">
+      <motion.section
+        className="bg-gradient-to-br from-brand-violet to-purple-900 px-4 py-16 text-center text-white sm:px-6 lg:px-8"
+        variants={fadeIn}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="mx-auto max-w-7xl">
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
             ¿Quieres gestionar tu propia pastelería?
@@ -215,7 +243,7 @@ const Catalogo: React.FC = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };
