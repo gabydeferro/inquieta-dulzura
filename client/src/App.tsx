@@ -19,6 +19,7 @@ import Ventas from './Ventas';
 import ContenidoDigital from './ContenidoDigital';
 import Categorias from './Categorias';
 import Ingredientes from './Ingredientes';
+import Clientes from './Clientes';
 import ScrollToTop from './components/ScrollToTop';
 import './styles.css';
 
@@ -101,6 +102,14 @@ function App() {
                         element={
                           <PrivateRoute>
                             <Ingredientes />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/clientes"
+                        element={
+                          <PrivateRoute>
+                            <Clientes />
                           </PrivateRoute>
                         }
                       />

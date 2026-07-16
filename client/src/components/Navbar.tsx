@@ -19,6 +19,7 @@ import {
   BookOpen,
   Wheat,
   ShoppingCart,
+  Users,
   Image,
   Tags,
   LogOut,
@@ -48,6 +49,7 @@ const Navbar: React.FC = () => {
         { to: '/recetas', label: 'Recetas', icon: BookOpen },
         { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
         { to: '/ventas', label: 'Ventas', icon: ShoppingCart },
+        { to: '/clientes', label: 'Clientes', icon: Users },
         { to: '/contenido-digital', label: 'Contenido Digital', icon: Image },
       ]
     : [{ to: '/catalogo', label: 'Catálogo', icon: Tags }];
