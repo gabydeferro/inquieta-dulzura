@@ -9,7 +9,8 @@ export interface VentaDetalleResponse {
 export interface VentaResponse {
   id: number;
   fecha_venta: string;
-  cliente?: string;
+  cliente_id?: number;
+  cliente_nombre?: string;
   subtotal: number;
   descuento: number;
   impuestos: number;
@@ -27,7 +28,7 @@ export interface VentaDetalleInput {
 }
 
 export interface VentaCreateInput {
-  cliente?: string;
+  cliente_id?: number;
   metodo_pago: string;
   descuento: number;
   productos: VentaDetalleInput[];

@@ -20,6 +20,7 @@ import { verificarConfiguracion as verificarConfiguracionMP } from './config/mer
 import mercadoPagoRoutes from './routes/mercado-pago';
 import { initConfig } from './config/init-config';
 import dashboardRoutes from './routes/dashboard';
+import clientesRoutes from './routes/clientes';
 import { requireAdmin } from './middleware/auth';
 
 // Inicializar Express
@@ -73,6 +74,7 @@ app.use('/api/recetas', recetasRoutes);
 app.use('/api/contenido-digital', contenidoDigitalRouter);
 app.use('/api/ventas', ventasRoutes);
 app.use('/api/ventas', pagosRoutes);
+app.use('/api/clientes', clientesRoutes);
 app.use('/api/dashboard', authenticateToken, requireAdmin, dashboardRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
 
