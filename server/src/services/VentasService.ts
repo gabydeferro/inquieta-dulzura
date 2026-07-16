@@ -4,6 +4,31 @@ import { CreateVentaDTO, VentaResponse, VentaDetalleResponse } from '../dtos/Ven
 import { PagoResponse } from '../dtos/PagosDTO';
 import { InsufficientStockError } from '../errors/InsufficientStockError';
 
+export interface HistorialFilters {
+  fecha_desde?: string;
+  fecha_hasta?: string;
+  metodo_pago?: string;
+  cliente_id?: number;
+}
+
+export interface VentaHistorial {
+  id: number;
+  fecha_venta: string;
+  cliente_id: number | null;
+  cliente_nombre: string | null;
+  productos: string;
+  total: number;
+  metodo_pago: string;
+}
+
+export interface HistorialResult {
+  data: VentaHistorial[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 interface VentaJoinedRow {
   venta_id: number;
   cliente_id: number | null;
@@ -81,6 +106,97 @@ export class VentasService {
     }
 
     return ventas;
+  }
+
+  async getHistorial(
+    filters: HistorialFilters,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<HistorialResult> {
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (filters.fecha_desde) {
+      conditions.push('v.fecha_venta >= ?');
+      params.push(filters.fecha_desde);
+    }
+    if (filters.fecha_hasta) {
+      conditions.push('DATE(v.fecha_venta) <= ?');
+      params.push(filters.fecha_hasta);
+    }
+    if (filters.metodo_pago) {
+      conditions.push('v.metodo_pago = ?');
+      params.push(filters.metodo_pago);
+    }
+    if (filters.cliente_id) {
+      conditions.push('v.cliente_id = ?');
+      params.push(filters.cliente_id);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const offset = (page - 1) * limit;
+
+    // Count total
+    const [countRows] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS total FROM ventas v ${where}`,
+      params,
+    );
+    const total = Number(countRows[0]?.total ?? 0);
+
+    // Fetch paginated summary rows
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT
+        v.id,
+        v.fecha_venta,
+        v.cliente_id,
+        c.nombre AS cliente_nombre,
+        v.total,
+        v.metodo_pago
+      FROM ventas v
+      LEFT JOIN clientes c ON v.cliente_id = c.id
+      ${where}
+      ORDER BY v.fecha_venta DESC
+      LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
+    );
+
+    const ventaIds = (rows as RowDataPacket[]).map((r) => r.id);
+    let productosByVentaId = new Map<number, string[]>();
+
+    if (ventaIds.length > 0) {
+      const placeholders = ventaIds.map(() => '?').join(',');
+      const [detalleRows] = await pool.query<RowDataPacket[]>(
+        `SELECT vd.venta_id, p.nombre AS producto_nombre
+         FROM venta_detalle vd
+         LEFT JOIN productos p ON vd.producto_id = p.id
+         WHERE vd.venta_id IN (${placeholders})
+         ORDER BY vd.venta_id, vd.id`,
+        ventaIds,
+      );
+      for (const row of detalleRows as RowDataPacket[]) {
+        const arr = productosByVentaId.get(row.venta_id) ?? [];
+        if (row.producto_nombre) arr.push(row.producto_nombre);
+        productosByVentaId.set(row.venta_id, arr);
+      }
+    }
+
+    const data: VentaHistorial[] = (rows as RowDataPacket[]).map((row) => ({
+      id: row.id,
+      fecha_venta: row.fecha_venta,
+      cliente_id: row.cliente_id,
+      cliente_nombre: row.cliente_nombre,
+      productos: (productosByVentaId.get(row.id) ?? []).join(', '),
+      total: row.total,
+      metodo_pago: row.metodo_pago,
+    }));
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   METODO_PAGO_DEFAULTS: Record<string, string> = {

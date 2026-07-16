@@ -20,6 +20,7 @@ import ContenidoDigital from './ContenidoDigital';
 import Categorias from './Categorias';
 import Ingredientes from './Ingredientes';
 import Clientes from './Clientes';
+import HistorialVentas from './HistorialVentas';
 import ScrollToTop from './components/ScrollToTop';
 import './styles.css';
 
@@ -78,6 +79,14 @@ function App() {
                         element={
                           <PrivateRoute>
                             <Ventas />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/historial-ventas"
+                        element={
+                          <PrivateRoute>
+                            <HistorialVentas />
                           </PrivateRoute>
                         }
                       />
