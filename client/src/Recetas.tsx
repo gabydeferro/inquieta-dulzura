@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
 import { Ingrediente } from './types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from './types/Receta';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { useReducedMotion } from './lib/animations';
 import { recetaSchema } from './schemas/receta.schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,7 @@ interface FormIngrediente {
 const Recetas: React.FC = () => {
   const confirm = useConfirm();
   const { showNotification } = useNotification();
+  const { fadeUp, fadeIn, fadeInFromLeft, staggerContainer } = useReducedMotion();
   const [recetas, setRecetas] = useState<RecetaDTO[]>([]);
   const [selectedReceta, setSelectedReceta] = useState<RecetaDTO | null>(null);
   const [editingReceta, setEditingReceta] = useState<RecetaDTO | null>(null);
@@ -278,7 +281,12 @@ const Recetas: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.header
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div>
           <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
             <BookOpen className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
@@ -297,10 +305,15 @@ const Recetas: React.FC = () => {
           <Plus className="size-4" />
           Nueva Receta
         </Button>
-      </header>
+      </motion.header>
 
       {recetas.length === 0 ? (
-        <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-muted-foreground">
+        <motion.div
+          className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-muted-foreground"
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+        >
           <BookOpen className="size-12 opacity-40" />
           <p className="text-lg">No hay recetas disponibles</p>
           <Button
@@ -314,14 +327,19 @@ const Recetas: React.FC = () => {
             <Plus className="size-4" />
             Crear primera receta
           </Button>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+        <motion.div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {recetas.map((receta) => (
-            <Card
-              key={receta.id}
-              className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-            >
+            <motion.div key={receta.id} variants={fadeUp} layout>
+              <Card
+                className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              >
               <CardHeader className="pb-2">
                 <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
                 <div className="mt-1 flex flex-wrap gap-2">
@@ -401,10 +419,11 @@ const Recetas: React.FC = () => {
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
+          </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Detail Dialog */}
@@ -418,18 +437,23 @@ const Recetas: React.FC = () => {
           </DialogHeader>
 
           {selectedReceta && (
-            <div className="max-h-[65vh] overflow-y-auto space-y-6">
+            <motion.div
+              className="max-h-[65vh] overflow-y-auto space-y-6"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {/* Description */}
-              <div>
+              <motion.div variants={fadeUp}>
                 <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
                   <BookOpen className="size-4" />
                   Descripción
                 </h3>
                 <p className="text-sm text-muted-foreground">{selectedReceta.descripcion}</p>
-              </div>
+              </motion.div>
 
               {/* Meta cards */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <motion.div className="grid grid-cols-1 gap-4 sm:grid-cols-2" variants={fadeUp}>
                 <div className="flex items-center gap-3 rounded-lg bg-muted p-4">
                   <Clock className="size-8 text-muted-foreground" />
                   <div>
@@ -450,10 +474,10 @@ const Recetas: React.FC = () => {
                     <p className="text-lg font-bold text-foreground">{selectedReceta.porciones}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Ingredients */}
-              <div>
+              <motion.div variants={fadeUp}>
                 <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
                   <CookingPot className="size-4" />
                   Ingredientes
@@ -473,10 +497,10 @@ const Recetas: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
               {/* Instructions */}
-              <div>
+              <motion.div variants={fadeInFromLeft}>
                 <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
                   <ChefHat className="size-4" />
                   Instrucciones
@@ -496,10 +520,10 @@ const Recetas: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
               {/* Productos que usan esta receta */}
-              <div>
+              <motion.div variants={fadeUp}>
                 <h3 className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
                   <Package className="size-4" />
                   Productos que usan esta receta
@@ -527,7 +551,7 @@ const Recetas: React.FC = () => {
                     </p>
                   )}
                 </div>
-              </div>
+              </motion.div>
 
               <DialogFooter className="!mt-6">
                 <Button variant="secondary" onClick={() => handlePrint(selectedReceta)}>
@@ -536,7 +560,7 @@ const Recetas: React.FC = () => {
                 </Button>
                 <Button onClick={() => setShowDetailModal(false)}>Cerrar</Button>
               </DialogFooter>
-            </div>
+            </motion.div>
           )}
         </DialogContent>
       </Dialog>
@@ -556,7 +580,7 @@ const Recetas: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="max-h-[65vh] overflow-y-auto space-y-4 py-4">
+          <motion.div className="max-h-[65vh] overflow-y-auto space-y-4 py-4" variants={fadeIn}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="nombre">Nombre *</Label>
@@ -689,7 +713,7 @@ const Recetas: React.FC = () => {
                 className="h-32 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
               />
             </div>
-          </div>
+          </motion.div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCloseModal}>

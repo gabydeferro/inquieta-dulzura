@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { useReducedMotion } from './lib/animations';
 import { inventarioCreateSchema, inventarioUpdateSchema } from './schemas/inventario.schema';
 import { ProductoReceta } from './types/Producto';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +54,7 @@ interface ProductoConStock extends Producto {
 const Inventario: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
+  const { fadeUp, staggerContainer } = useReducedMotion();
   const [productos, setProductos] = useState<ProductoConStock[]>([]);
   const [categorias, setCategorias] = useState<{ id: number; nombre: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -289,7 +292,12 @@ const Inventario: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.header
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div>
           <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
             <Package className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
@@ -306,20 +314,25 @@ const Inventario: React.FC = () => {
         >
           <Plus className="size-4" />+ Nuevo Producto
         </Button>
-      </header>
+      </motion.header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+      <motion.div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {productos.map((producto) => (
-          <Card
-            key={producto.id}
-            className={`transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
-              getStockStatus(producto) === 'stock-bajo'
-                ? 'border-l-4 border-l-amber-500'
-                : getStockStatus(producto) === 'sin-stock'
-                  ? 'border-l-4 border-l-destructive'
-                  : ''
-            }`}
-          >
+          <motion.div key={producto.id} variants={fadeUp} layout>
+            <Card
+              className={`transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                getStockStatus(producto) === 'stock-bajo'
+                  ? 'border-l-4 border-l-amber-500'
+                  : getStockStatus(producto) === 'sin-stock'
+                    ? 'border-l-4 border-l-destructive'
+                    : ''
+              }`}
+            >
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <CardTitle className="text-base sm:text-lg">{producto.nombre}</CardTitle>
               {producto.sku && (
@@ -395,8 +408,9 @@ const Inventario: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <Dialog
         open={showModal}
@@ -413,7 +427,7 @@ const Inventario: React.FC = () => {
               <DialogTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
+            <motion.div className="grid gap-4 py-4" variants={fadeUp}>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nombre">Nombre *</Label>
@@ -562,7 +576,7 @@ const Inventario: React.FC = () => {
                   </Select>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Recetas vinculadas section */}
             {editingProduct && (

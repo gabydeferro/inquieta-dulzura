@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
+import { useReducedMotion } from './lib/animations';
 import { contenidoDigitalCreateSchema } from './schemas/contenido-digital.schema';
 import './ContenidoDigital.css';
 
@@ -19,6 +21,7 @@ export const ContenidoDigital: React.FC = () => {
   const [filtroEtiqueta, setFiltroEtiqueta] = useState('');
   const [loading, setLoading] = useState(true);
   const [, setErrors] = useState<Record<string, string>>({});
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   const cargarImagenes = async () => {
     try {
@@ -76,12 +79,22 @@ export const ContenidoDigital: React.FC = () => {
 
   return (
     <div className="contenido-digital-container">
-      <header className="contenido-digital-header">
+      <motion.header
+        className="contenido-digital-header"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <h1>Contenido Digital</h1>
         <p>Gestión de fotos y videos de productos</p>
-      </header>
+      </motion.header>
 
-      <div className="filtros">
+      <motion.div
+        className="filtros"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <input
           type="text"
           placeholder="Filtrar por etiqueta..."
@@ -89,14 +102,21 @@ export const ContenidoDigital: React.FC = () => {
           onChange={(e) => setFiltroEtiqueta(e.target.value)}
           className="filtro-input"
         />
-      </div>
+      </motion.div>
 
-      <div className="galeria">
+      <motion.div
+        className="galeria"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {imagenesFiltradas.length === 0 ? (
-          <p className="sin-resultados">No hay imágenes disponibles</p>
+          <motion.div variants={fadeIn} initial="hidden" animate="visible">
+            <p className="sin-resultados">No hay imágenes disponibles</p>
+          </motion.div>
         ) : (
           imagenesFiltradas.map((imagen) => (
-            <div key={imagen.id} className="imagen-card">
+            <motion.div key={imagen.id} className="imagen-card" variants={fadeUp} layout>
               <div className="imagen-preview">
                 {imagen.tipo === 'imagen' ? (
                   <img src={imagen.url} alt={imagen.titulo} />
@@ -120,10 +140,10 @@ export const ContenidoDigital: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { useReducedMotion } from './lib/animations';
 import { categoriaSchema, categoriaUpdateSchema } from './schemas/categoria.schema';
 import './Categorias.css';
 
@@ -15,6 +17,7 @@ interface Categoria {
 const Categorias: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
+  const { fadeUp, staggerContainer } = useReducedMotion();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -130,7 +133,12 @@ const Categorias: React.FC = () => {
 
   return (
     <div className="categorias-container">
-      <header className="categorias-header">
+      <motion.header
+        className="categorias-header"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div>
           <h1>🏷️ Gestión de Categorías</h1>
           <p>Organiza tus productos por tipo</p>
@@ -145,30 +153,37 @@ const Categorias: React.FC = () => {
         >
           ➕ Nueva Categoría
         </button>
-      </header>
+      </motion.header>
 
-      <div className="categorias-grid">
+      <motion.div
+        className="categorias-grid"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {categorias.map((categoria) => (
-          <div key={categoria.id} className="categoria-card card">
-            <div className="categoria-content">
-              <h3>{categoria.nombre}</h3>
-              <p>{categoria.descripcion || 'Sin descripción'}</p>
+          <motion.div key={categoria.id} variants={fadeUp} layout>
+            <div className="categoria-card card">
+              <div className="categoria-content">
+                <h3>{categoria.nombre}</h3>
+                <p>{categoria.descripcion || 'Sin descripción'}</p>
+              </div>
+              <div className="categoria-actions">
+                <button className="btn-icon" onClick={() => handleEdit(categoria)} title="Editar">
+                  ✏️
+                </button>
+                <button
+                  className="btn-icon btn-danger"
+                  onClick={() => handleDelete(categoria.id)}
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
-            <div className="categoria-actions">
-              <button className="btn-icon" onClick={() => handleEdit(categoria)} title="Editar">
-                ✏️
-              </button>
-              <button
-                className="btn-icon btn-danger"
-                onClick={() => handleDelete(categoria.id)}
-                title="Eliminar"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {showModal && (
         <div
@@ -179,7 +194,8 @@ const Categorias: React.FC = () => {
           }}
         >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+            <motion.div variants={fadeUp}>
+              <div className="modal-header">
               <h2>{editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}</h2>
               <button
                 className="btn-close"
@@ -238,6 +254,7 @@ const Categorias: React.FC = () => {
                 </button>
               </div>
             </form>
+            </motion.div>
           </div>
         </div>
       )}
