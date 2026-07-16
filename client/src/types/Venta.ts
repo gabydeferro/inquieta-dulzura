@@ -33,3 +33,13 @@ export interface VentaCreateInput {
   descuento: number;
   productos: VentaDetalleInput[];
 }
+
+export interface VentaHistorial {
+  id: number;
+  fecha_venta: string;
+  cliente_id: number | null;
+  cliente_nombre: string | null;
+  productos: string;
+  total: number;
+  metodo_pago: string;
+}
