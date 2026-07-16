@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
-import { VentaResponse, VentaCreateInput } from '../types/Venta';
+import { VentaResponse, VentaCreateInput, VentaHistorial } from '../types/Venta';
 import { Producto, ProductoReceta, RecetaProducto } from '../types/Producto';
 import { CreatePagoDTO, PagoResponse } from '../types/Pago';
 import { Cliente, ClienteForm } from '../types/Cliente';
@@ -236,6 +236,27 @@ class ApiService {
 
   async createVenta(data: VentaCreateInput): Promise<AxiosResponse<VentaResponse>> {
     return this.post<VentaResponse>('/ventas', data);
+  }
+
+  // --- Ventas Historial ---
+  async getHistorialVentas(
+    params: {
+      fecha_desde?: string;
+      fecha_hasta?: string;
+      metodo_pago?: string;
+      cliente_id?: number;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<AxiosResponse<PaginatedResponse<VentaHistorial>>> {
+    const query: Record<string, string | number> = {};
+    if (params.fecha_desde) query.fecha_desde = params.fecha_desde;
+    if (params.fecha_hasta) query.fecha_hasta = params.fecha_hasta;
+    if (params.metodo_pago) query.metodo_pago = params.metodo_pago;
+    if (params.cliente_id) query.cliente_id = params.cliente_id;
+    if (params.page) query.page = params.page;
+    if (params.limit) query.limit = params.limit;
+    return this.get<PaginatedResponse<VentaHistorial>>('/ventas/historial', { params: query });
   }
 
   // Productos search
