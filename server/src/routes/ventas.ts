@@ -6,7 +6,7 @@ import { ventaCreateSchema } from '../schemas/venta.schema';
 
 const router = Router();
 
-router.get('/', getVentas);
+router.get('/', authenticateToken, getVentas);
 router.get('/historial', authenticateToken, requireAdmin, getHistorial);
 router.get('/:id', getVentaById);
 router.post('/', validate(ventaCreateSchema, 'body'), createVenta);

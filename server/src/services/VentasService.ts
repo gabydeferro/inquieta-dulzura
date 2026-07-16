@@ -121,8 +121,8 @@ export class VentasService {
       params.push(filters.fecha_desde);
     }
     if (filters.fecha_hasta) {
-      conditions.push('v.fecha_venta <= ?');
-      params.push(filters.fecha_hasta + ' 23:59:59');
+      conditions.push('DATE(v.fecha_venta) <= ?');
+      params.push(filters.fecha_hasta);
     }
     if (filters.metodo_pago) {
       conditions.push('v.metodo_pago = ?');
