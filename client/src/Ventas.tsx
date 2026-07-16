@@ -247,12 +247,12 @@ const Ventas: React.FC = () => {
 
               <CardContent>
                 <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  {venta.cliente && (
+                  {venta.cliente_nombre && (
                     <div>
                       <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
                         Cliente
                       </p>
-                      <p className="text-sm text-foreground">{venta.cliente}</p>
+                      <p className="text-sm text-foreground">{venta.cliente_nombre}</p>
                     </div>
                   )}
                   <div>

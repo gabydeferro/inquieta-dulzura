@@ -104,7 +104,7 @@ export class DashboardService {
       // 6. Total clientes
       pool
         .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM personas`,
+          `SELECT COUNT(*) as total FROM clientes WHERE activo = 1`,
         )
         .then(([rows]) => rows[0].total),
 
