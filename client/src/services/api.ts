@@ -4,6 +4,15 @@ import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
 import { VentaResponse, VentaCreateInput } from '../types/Venta';
 import { Producto, ProductoReceta, RecetaProducto } from '../types/Producto';
 import { CreatePagoDTO, PagoResponse } from '../types/Pago';
+import { Cliente, ClienteForm } from '../types/Cliente';
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -282,6 +291,35 @@ class ApiService {
 
   async instagramRefreshToken(): Promise<AxiosResponse> {
     return this.post('/instagram/auth/refresh');
+  }
+
+  // --- Clientes ---
+  async getClientes(
+    q?: string,
+    page?: number,
+    limit?: number,
+  ): Promise<AxiosResponse<PaginatedResponse<Cliente>>> {
+    const params: Record<string, string | number> = {};
+    if (q) params.q = q;
+    if (page) params.page = page;
+    if (limit) params.limit = limit;
+    return this.get<PaginatedResponse<Cliente>>('/clientes', { params });
+  }
+
+  async getClienteById(id: number): Promise<AxiosResponse<Cliente>> {
+    return this.get<Cliente>(`/clientes/${id}`);
+  }
+
+  async createCliente(data: ClienteForm): Promise<AxiosResponse<Cliente>> {
+    return this.post<Cliente>('/clientes', data);
+  }
+
+  async updateCliente(id: number, data: Partial<ClienteForm>): Promise<AxiosResponse<Cliente>> {
+    return this.put<Cliente>(`/clientes/${id}`, data);
+  }
+
+  async deleteCliente(id: number): Promise<AxiosResponse<void>> {
+    return this.delete<void>(`/clientes/${id}`);
   }
 
   // Dashboard
