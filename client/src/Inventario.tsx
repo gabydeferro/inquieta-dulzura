@@ -427,7 +427,7 @@ const Inventario: React.FC = () => {
               <DialogTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
             </DialogHeader>
 
-            <motion.div className="grid gap-4 py-4" variants={fadeUp}>
+            <motion.div className="grid gap-4 py-4" variants={fadeUp} initial="hidden" animate="visible">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nombre">Nombre *</Label>
