@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import api, { PaginatedResponse } from './services/api';
 import { VentaHistorial } from './types/Venta';
 import { Cliente } from './types/Cliente';
 import { useNotification } from './contexts/NotificationContext';
+import { useReducedMotion } from './lib/animations';
 import {
   Table,
-  TableBody,
-  TableCell,
   TableHead,
   TableHeader,
+  TableCell,
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,7 @@ const emptyFilters: Filters = {
 
 const HistorialVentas: React.FC = () => {
   const { showNotification } = useNotification();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   const [data, setData] = useState<PaginatedResponse<VentaHistorial> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,16 +126,26 @@ const HistorialVentas: React.FC = () => {
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <header className="mb-6">
+      <motion.header
+        className="mb-6"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
           <History className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
           Historial de Ventas
         </h1>
         <p className="text-muted-foreground">Consulta y filtra el historial de ventas realizadas</p>
-      </header>
+      </motion.header>
 
       {/* Filters */}
-      <div className="mb-4 rounded-lg border border-border/50 bg-card p-4">
+      <motion.div
+        className="mb-4 rounded-lg border border-border/50 bg-card p-4"
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="grid gap-1.5">
             <label className="text-xs font-medium text-muted-foreground">Fecha desde</label>
@@ -202,11 +214,16 @@ const HistorialVentas: React.FC = () => {
             </Button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Pagination Controls (top) */}
       {data && data.total > PAGE_SIZE && (
-        <div className="mb-3 flex items-center justify-end gap-2 text-sm text-muted-foreground">
+        <motion.div
+          className="mb-3 flex items-center justify-end gap-2 text-sm text-muted-foreground"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
           <span>
             Pagina {page} de {totalPages} ({data.total} ventas)
           </span>
@@ -226,7 +243,7 @@ const HistorialVentas: React.FC = () => {
           >
             <ChevronRight className="size-4" />
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {/* Table */}
@@ -235,14 +252,19 @@ const HistorialVentas: React.FC = () => {
           Cargando historial...
         </div>
       ) : !data || data.data.length === 0 ? (
-        <div className="flex min-h-[30vh] flex-col items-center justify-center gap-2 text-muted-foreground">
+        <motion.div
+          className="flex min-h-[30vh] flex-col items-center justify-center gap-2 text-muted-foreground"
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+        >
           <History className="size-12 opacity-30" />
           <p>
             {hasActiveFilters
               ? 'No se encontraron ventas con los filtros aplicados'
               : 'No hay ventas registradas'}
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div className="rounded-lg border border-border/50">
           <Table>
@@ -255,9 +277,9 @@ const HistorialVentas: React.FC = () => {
                 <TableHead className="hidden sm:table-cell">Metodo Pago</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
               {data.data.map((venta) => (
-                <TableRow key={venta.id}>
+                <motion.tr key={venta.id} variants={fadeUp}>
                   <TableCell className="font-medium whitespace-nowrap">
                     {formatDate(venta.fecha_venta)}
                   </TableCell>
@@ -273,16 +295,21 @@ const HistorialVentas: React.FC = () => {
                   <TableCell className="hidden sm:table-cell capitalize">
                     {venta.metodo_pago.replace('_', ' ')}
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
-            </TableBody>
+            </motion.tbody>
           </Table>
         </div>
       )}
 
       {/* Pagination Controls (bottom) */}
       {data && data.total > PAGE_SIZE && (
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <motion.div
+          className="mt-4 flex items-center justify-center gap-2"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
           <Button
             variant="outline"
             size="sm"
@@ -302,7 +329,7 @@ const HistorialVentas: React.FC = () => {
           >
             Siguiente <ChevronRight className="size-4" />
           </Button>
-        </div>
+        </motion.div>
       )}
     </div>
   );

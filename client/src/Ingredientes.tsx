@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import api from './services/api';
 import { Ingrediente, UnidadMedidaIngrediente } from './types/Ingrediente';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { useReducedMotion } from './lib/animations';
 import { ingredienteSchema, ingredienteUpdateSchema } from './schemas/ingrediente.schema';
 import './Ingredientes.css';
 
@@ -15,6 +17,7 @@ const Ingredientes: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showNotification } = useNotification();
   const confirm = useConfirm();
+  const { fadeUp, staggerContainer } = useReducedMotion();
 
   const fetchIngredientes = async () => {
     try {
@@ -134,10 +137,12 @@ const Ingredientes: React.FC = () => {
 
   return (
     <div className="inventario-container">
-      <h2>Gestión de Ingredientes</h2>
-      <button className="add-button" onClick={openCreateModal}>
-        Agregar Ingrediente
-      </button>
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <h2>Gestión de Ingredientes</h2>
+        <button className="add-button" onClick={openCreateModal}>
+          Agregar Ingrediente
+        </button>
+      </motion.div>
 
       <div className="table-responsive">
         <table className="inventario-table">
@@ -150,7 +155,7 @@ const Ingredientes: React.FC = () => {
               <th>Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
             {ingredientes.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
@@ -159,7 +164,7 @@ const Ingredientes: React.FC = () => {
               </tr>
             ) : (
               ingredientes.map((ingrediente) => (
-                <tr key={ingrediente.id}>
+                <motion.tr key={ingrediente.id} variants={fadeUp}>
                   <td>{ingrediente.nombre}</td>
                   <td>{ingrediente.descripcion}</td>
                   <td>{ingrediente.unidad_medida}</td>
@@ -176,17 +181,18 @@ const Ingredientes: React.FC = () => {
                       Eliminar
                     </button>
                   </td>
-                </tr>
+                </motion.tr>
               ))
             )}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
 
       {isModalOpen && editingIngrediente && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingIngrediente.id ? 'Editar Ingrediente' : 'Crear Ingrediente'}</h3>
+            <motion.div variants={fadeUp}>
+              <h3>{editingIngrediente.id ? 'Editar Ingrediente' : 'Crear Ingrediente'}</h3>
             <form onSubmit={handleCreateEdit} noValidate>
               <div className="form-group">
                 <label htmlFor="nombre">Nombre:</label>
@@ -256,6 +262,7 @@ const Ingredientes: React.FC = () => {
                 </button>
               </div>
             </form>
+            </motion.div>
           </div>
         </div>
       )}

@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import api, { PaginatedResponse } from './services/api';
 import { Cliente, ClienteForm } from './types/Cliente';
 import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
+import { useReducedMotion } from './lib/animations';
 import { clienteCreateSchema, clienteUpdateSchema } from './schemas/cliente.schema';
 import {
   Table,
-  TableBody,
-  TableCell,
   TableHead,
   TableHeader,
+  TableCell,
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const PAGE_SIZE = 20;
 const Clientes: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   const [data, setData] = useState<PaginatedResponse<Cliente> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,7 +172,12 @@ const Clientes: React.FC = () => {
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.header
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div>
           <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
             <Users className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
@@ -181,10 +188,15 @@ const Clientes: React.FC = () => {
         <Button onClick={openCreate}>
           <Plus className="size-4" />+ Nuevo Cliente
         </Button>
-      </header>
+      </motion.header>
 
       {/* Search + Pagination Controls */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div
+        className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -218,7 +230,7 @@ const Clientes: React.FC = () => {
             </Button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Table */}
       {loading ? (
@@ -226,10 +238,15 @@ const Clientes: React.FC = () => {
           Cargando clientes...
         </div>
       ) : !data || data.data.length === 0 ? (
-        <div className="flex min-h-[30vh] flex-col items-center justify-center gap-2 text-muted-foreground">
+        <motion.div
+          className="flex min-h-[30vh] flex-col items-center justify-center gap-2 text-muted-foreground"
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+        >
           <Users className="size-12 opacity-30" />
           <p>{search ? 'No se encontraron clientes con esa busqueda' : 'No hay clientes registrados'}</p>
-        </div>
+        </motion.div>
       ) : (
         <div className="rounded-lg border border-border/50">
           <Table>
@@ -242,9 +259,9 @@ const Clientes: React.FC = () => {
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
               {data.data.map((cliente) => (
-                <TableRow key={cliente.id}>
+                <motion.tr key={cliente.id} variants={fadeUp}>
                   <TableCell className="font-medium">{cliente.nombre}</TableCell>
                   <TableCell className="hidden sm:table-cell text-muted-foreground">
                     {cliente.telefono || <span className="italic opacity-50">—</span>}
@@ -276,9 +293,9 @@ const Clientes: React.FC = () => {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
-            </TableBody>
+            </motion.tbody>
           </Table>
         </div>
       )}
@@ -324,7 +341,7 @@ const Clientes: React.FC = () => {
               <DialogTitle>{editingCliente ? 'Editar Cliente' : 'Nuevo Cliente'}</DialogTitle>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
+            <motion.div className="grid gap-4 py-4" variants={fadeIn}>
               <div className="grid gap-2">
                 <Label htmlFor="nombre">Nombre *</Label>
                 <Input
@@ -390,7 +407,7 @@ const Clientes: React.FC = () => {
                   placeholder="Notas adicionales sobre el cliente..."
                 />
               </div>
-            </div>
+            </motion.div>
 
             <DialogFooter>
               <Button
