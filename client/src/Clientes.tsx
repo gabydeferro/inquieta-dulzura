@@ -8,10 +8,9 @@ import { useReducedMotion } from './lib/animations';
 import { clienteCreateSchema, clienteUpdateSchema } from './schemas/cliente.schema';
 import {
   Table,
-  TableBody,
-  TableCell,
   TableHead,
   TableHeader,
+  TableCell,
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,7 @@ const PAGE_SIZE = 20;
 const Clientes: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
-  const { fadeUp, fadeIn } = useReducedMotion();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   const [data, setData] = useState<PaginatedResponse<Cliente> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,9 +259,9 @@ const Clientes: React.FC = () => {
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
               {data.data.map((cliente) => (
-                <TableRow key={cliente.id}>
+                <motion.tr key={cliente.id} variants={fadeUp}>
                   <TableCell className="font-medium">{cliente.nombre}</TableCell>
                   <TableCell className="hidden sm:table-cell text-muted-foreground">
                     {cliente.telefono || <span className="italic opacity-50">—</span>}
@@ -294,9 +293,9 @@ const Clientes: React.FC = () => {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
-            </TableBody>
+            </motion.tbody>
           </Table>
         </div>
       )}

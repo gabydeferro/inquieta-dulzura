@@ -7,10 +7,9 @@ import { useNotification } from './contexts/NotificationContext';
 import { useReducedMotion } from './lib/animations';
 import {
   Table,
-  TableBody,
-  TableCell,
   TableHead,
   TableHeader,
+  TableCell,
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,7 @@ const emptyFilters: Filters = {
 
 const HistorialVentas: React.FC = () => {
   const { showNotification } = useNotification();
-  const { fadeUp, fadeIn } = useReducedMotion();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   const [data, setData] = useState<PaginatedResponse<VentaHistorial> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -278,9 +277,9 @@ const HistorialVentas: React.FC = () => {
                 <TableHead className="hidden sm:table-cell">Metodo Pago</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
               {data.data.map((venta) => (
-                <TableRow key={venta.id}>
+                <motion.tr key={venta.id} variants={fadeUp}>
                   <TableCell className="font-medium whitespace-nowrap">
                     {formatDate(venta.fecha_venta)}
                   </TableCell>
@@ -296,9 +295,9 @@ const HistorialVentas: React.FC = () => {
                   <TableCell className="hidden sm:table-cell capitalize">
                     {venta.metodo_pago.replace('_', ' ')}
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
-            </TableBody>
+            </motion.tbody>
           </Table>
         </div>
       )}
