@@ -8,7 +8,6 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Package,
   DollarSign,
-  Camera,
   AlertTriangle,
   ClipboardList,
   BookOpen,
@@ -68,7 +67,7 @@ const COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ef4444'];
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
+  const { fadeUp, staggerContainer } = useReducedMotion();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
