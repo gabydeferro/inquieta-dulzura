@@ -53,4 +53,14 @@ export class PagosService {
 
     return rows as PagoResponse[];
   }
+
+  async updateByVentaId(
+    ventaId: number,
+    data: { estado?: string; referencia_externa?: string | null; datos_json?: string | null },
+  ): Promise<void> {
+    await pool.query(
+      `UPDATE pagos SET estado = ?, referencia_externa = ?, datos_json = ? WHERE venta_id = ?`,
+      [data.estado ?? null, data.referencia_externa ?? null, data.datos_json ?? null, ventaId],
+    );
+  }
 }

@@ -13,6 +13,8 @@ vi.mock('../services/api', () => ({
       mockGet('/productos/search', { params: { q: query } }),
     createPago: async (ventaId: number, data: Record<string, unknown>) =>
       mockPost(`/ventas/${ventaId}/pagos`, data),
+    createMPPreference: async (ventaId: number, items: unknown[]) =>
+      mockPost('/mercado-pago/preferencia', { ventaId, items }),
   },
 }));
 
@@ -87,6 +89,25 @@ describe('API search and pago methods', () => {
         referencia_externa: 'MP-12345',
         datos_json: { status: 'approved' },
       });
+    });
+  });
+
+  describe('createMPPreference', () => {
+    it('calls POST /mercado-pago/preferencia with ventaId and items', async () => {
+      const mockResult = {
+        data: { success: true, data: { url: 'https://mp.com/checkout', preference_id: 'pref-123' } },
+      };
+      mockPost.mockResolvedValueOnce(mockResult);
+
+      const result = await api.createMPPreference(42, [
+        { title: 'Torta', quantity: 2, unit_price: 5000 },
+      ]);
+
+      expect(mockPost).toHaveBeenCalledWith('/mercado-pago/preferencia', {
+        ventaId: 42,
+        items: [{ title: 'Torta', quantity: 2, unit_price: 5000 }],
+      });
+      expect(result.data).toEqual(mockResult.data);
     });
   });
 });

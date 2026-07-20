@@ -86,3 +86,28 @@ export const getHistorial = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: message });
   }
 };
+
+export const updateVentaStatus = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { estado } = req.body as { estado?: string };
+
+    if (!estado) {
+      res.status(400).json({ success: false, error: 'estado is required' });
+      return;
+    }
+
+    const validEstados = ['completada', 'cancelada', 'pendiente'];
+    if (!validEstados.includes(estado)) {
+      res.status(400).json({ success: false, error: `estado must be one of: ${validEstados.join(', ')}` });
+      return;
+    }
+
+    await ventasService.updateStatus(id, estado);
+    const venta = await ventasService.getVentaById(id);
+    res.json({ success: true, data: venta });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error updating venta status';
+    res.status(500).json({ success: false, error: message });
+  }
+};

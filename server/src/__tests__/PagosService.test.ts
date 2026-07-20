@@ -146,4 +146,50 @@ describe('PagosService', () => {
       expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('WHERE venta_id = ?'), [999]);
     });
   });
+
+  describe('updateByVentaId', () => {
+    it('should update pago estado and referencia_externa for a venta', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      await pagosService.updateByVentaId(10, {
+        estado: 'aprobado',
+        referencia_externa: 'MP-PAY-123',
+      });
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE pagos'),
+        ['aprobado', 'MP-PAY-123', null, 10],
+      );
+    });
+
+    it('should update pago datos_json for a venta', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      const datos = JSON.stringify({ status: 'approved', amount: 5000 });
+
+      await pagosService.updateByVentaId(20, {
+        estado: 'aprobado',
+        datos_json: datos,
+      });
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE pagos'),
+        ['aprobado', null, datos, 20],
+      );
+    });
+
+    it('should update all fields at once', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      await pagosService.updateByVentaId(30, {
+        estado: 'rechazado',
+        referencia_externa: 'MP-PAY-456',
+        datos_json: '{"status":"rejected"}',
+      });
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE pagos'),
+        ['rechazado', 'MP-PAY-456', '{"status":"rejected"}', 30],
+      );
+    });
+  });
 });

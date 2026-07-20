@@ -1,4 +1,5 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import { createHmac } from 'crypto';
 
 export interface MPItem {
   id?: string;
@@ -47,7 +48,7 @@ export class MercadoPagoService {
   }
 
   async createPreference(ventaId: number, items: MPItem[]): Promise<PreferenceResult> {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
     const result = await this.preference.create({
       body: {
@@ -58,9 +59,9 @@ export class MercadoPagoService {
         })),
         external_reference: String(ventaId),
         back_urls: {
-          success: `${frontendUrl}/ventas?pago=exito`,
-          failure: `${frontendUrl}/ventas?pago=fallo`,
-          pending: `${frontendUrl}/ventas?pago=pendiente`,
+          success: `${clientUrl}/ventas?pago=exito`,
+          failure: `${clientUrl}/ventas?pago=fallo`,
+          pending: `${clientUrl}/ventas?pago=pendiente`,
         },
         auto_return: 'approved' as const,
       },
@@ -83,5 +84,49 @@ export class MercadoPagoService {
       payment_id: paymentId,
       transaction_amount: typedPayment.transaction_amount ?? 0,
     };
+  }
+
+  /**
+   * Verify Mercado Pago IPN webhook x-signature using HMAC-SHA256.
+   * MP signs: "id:{paymentId};ts:{timestamp};" with the public key.
+   */
+  async verifySignature(
+    headers: Record<string, string | undefined>,
+    body: string,
+  ): Promise<boolean> {
+    const signatureHeader = headers['x-signature'];
+    if (!signatureHeader) return false;
+
+    const publicKey = process.env.MERCADO_PAGO_PUBLIC_KEY;
+    if (!publicKey) return false;
+
+    try {
+      // Parse x-signature: "ts=123,v1=abcdef..."
+      const parts = Object.fromEntries(
+        signatureHeader.split(',').map((p) => {
+          const [k, ...v] = p.split('=');
+          return [k, v.join('=')];
+        }),
+      );
+      const ts = parts['ts'];
+      const v1 = parts['v1'];
+      if (!ts || !v1) return false;
+
+      // Parse body to get payment id
+      const parsed = JSON.parse(body) as Record<string, unknown>;
+      const data = parsed.data as Record<string, string> | undefined;
+      const paymentId = data?.id;
+      if (!paymentId) return false;
+
+      // Reconstruct manifest and verify HMAC
+      const manifest = `id:${paymentId};ts:${ts};`;
+      const hmac = createHmac('sha256', publicKey);
+      hmac.update(manifest);
+      const expectedV1 = hmac.digest('hex');
+
+      return v1 === expectedV1;
+    } catch {
+      return false;
+    }
   }
 }

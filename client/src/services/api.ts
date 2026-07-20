@@ -238,6 +238,14 @@ class ApiService {
     return this.post<VentaResponse>('/ventas', data);
   }
 
+  // --- Mercado Pago ---
+  async createMPPreference(
+    ventaId: number,
+    items: Array<{ title: string; quantity: number; unit_price: number }>,
+  ): Promise<AxiosResponse<{ success: boolean; data: { url: string; preference_id: string } }>> {
+    return this.post('/mercado-pago/preferencia', { ventaId, items });
+  }
+
   // --- Ventas Historial ---
   async getHistorialVentas(
     params: {
