@@ -5,6 +5,23 @@ import { VentasService } from '../services/VentasService';
 
 const router = Router();
 
+// --- Simple in-memory rate limiter for the webhook endpoint ---
+const webhookHits = new Map<string, { count: number; resetTime: number }>();
+const WEBHOOK_LIMIT = 30;
+const WEBHOOK_WINDOW_MS = 60_000;
+
+function checkWebhookRate(ip: string): boolean {
+  const now = Date.now();
+  const entry = webhookHits.get(ip);
+  if (!entry || now > entry.resetTime) {
+    webhookHits.set(ip, { count: 1, resetTime: now + WEBHOOK_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= WEBHOOK_LIMIT;
+}
+// --- End rate limiter ---
+
 interface PreferenciaBody {
   ventaId?: number;
   items?: MPItem[];
@@ -55,6 +72,12 @@ router.post('/preferencia', async (req: Request, res: Response) => {
  * @access  Public (MP servers call this)
  */
 router.post('/webhook', async (req: Request, res: Response) => {
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+  if (!checkWebhookRate(ip)) {
+    res.status(429).json({ success: false, message: 'Too Many Requests' });
+    return;
+  }
+
   try {
     const mpService = new MercadoPagoService();
 

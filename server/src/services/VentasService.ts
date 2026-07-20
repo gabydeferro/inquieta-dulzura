@@ -199,7 +199,8 @@ export class VentasService {
     };
   }
 
-  METODO_PAGO_DEFAULTS: Record<string, string> = {
+  /** Maps metodo_pago → pago.estado default state (e.g. 'mercado_pago' starts pendiente). */
+  PAGO_ESTADO_DEFAULTS: Record<string, string> = {
     efectivo: 'aprobado',
     tarjeta: 'aprobado',
     transferencia: 'aprobado',
@@ -271,7 +272,7 @@ export class VentasService {
       }
 
       // 3. Insert pago row (1 pago per venta for now)
-      const pagoEstado = this.METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
+      const pagoEstado = this.PAGO_ESTADO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
       await conn.query(
         `INSERT INTO pagos (venta_id, metodo_pago, monto, estado, referencia_externa, datos_json)
          VALUES (?, ?, ?, ?, ?, ?)`,

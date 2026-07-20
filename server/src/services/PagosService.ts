@@ -2,7 +2,8 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { pool } from '../config/database';
 import { CreatePagoDTO, PagoResponse } from '../dtos/PagosDTO';
 
-const METODO_PAGO_DEFAULTS: Record<string, string> = {
+/** Maps metodo_pago → pago.estado default state (e.g. 'mercado_pago' starts pendiente). */
+const PAGO_ESTADO_DEFAULTS: Record<string, string> = {
   efectivo: 'aprobado',
   tarjeta: 'aprobado',
   transferencia: 'aprobado',
@@ -14,7 +15,7 @@ const METODO_PAGO_DEFAULTS: Record<string, string> = {
 
 export class PagosService {
   async create(data: CreatePagoDTO & { estado?: string }): Promise<PagoResponse> {
-    const estado: string = data.estado ?? METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
+    const estado: string = data.estado ?? PAGO_ESTADO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
 
     const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO pagos (venta_id, metodo_pago, monto, estado, referencia_externa, datos_json)
