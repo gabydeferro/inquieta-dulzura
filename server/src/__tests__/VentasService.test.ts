@@ -222,14 +222,14 @@ describe('VentasService', () => {
       });
 
       expect(mockConn.beginTransaction).toHaveBeenCalledOnce();
-      // 2 stock checks + 1 INSERT ventas + 2 INSERT detalles + 1 INSERT pago
-      expect(mockConn.query).toHaveBeenCalledTimes(6);
+      // 2 stock checks + 1 INSERT ventas + 2 INSERT detalles + 2 stock decrements + 1 INSERT pago
+      expect(mockConn.query).toHaveBeenCalledTimes(8);
       // First stock check uses FOR UPDATE
       expect(mockConn.query).toHaveBeenNthCalledWith(1, expect.stringContaining('FOR UPDATE'), [1]);
       expect(mockConn.query).toHaveBeenNthCalledWith(2, expect.stringContaining('FOR UPDATE'), [2]);
-      // Pagos insert happens inside the transaction
+      // Pagos insert happens inside the transaction (call #8 — after stock decrements)
       expect(mockConn.query).toHaveBeenNthCalledWith(
-        6,
+        8,
         expect.stringContaining('INSERT INTO pagos'),
         [1, 'tarjeta', 95, 'aprobado', null, null],
       );
@@ -284,6 +284,134 @@ describe('VentasService', () => {
           productos: [{ producto_id: 999, cantidad: 1, precio_unitario: 10, subtotal: 10 }],
         }),
       ).rejects.toThrow(InsufficientStockError);
+    });
+
+    it('should set venta.estado to completada and decrement stock for non-MP payments', async () => {
+      const mockConn = {
+        beginTransaction: vi.fn(),
+        commit: vi.fn(),
+        rollback: vi.fn(),
+        release: vi.fn(),
+        query: vi.fn(),
+      };
+      mockGetConnection.mockResolvedValue(mockConn);
+      // Stock check — sufficient
+      mockConn.query.mockResolvedValueOnce([[{ cantidad_disponible: 10 }]]);
+      // INSERT ventas — verify 'completada' estado
+      mockConn.query.mockResolvedValueOnce([{ insertId: 1 }]);
+      // INSERT detalle
+      mockConn.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // Stock decrement (non-MP path)
+      mockConn.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // INSERT pago
+      mockConn.query.mockResolvedValueOnce([{ insertId: 10 }]);
+      // After commit: fetch
+      mockQuery.mockResolvedValueOnce([[ 
+        { venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z', subtotal: 50, descuento: 0, impuestos: 0, total: 50, metodo_pago: 'efectivo', estado: 'completada', notas: '', cliente_nombre: null, detalle_id: 1, producto_id: 1, cantidad: 3, precio_unitario: 10, detalle_subtotal: 30, detalle_descuento: 0, detalle_total: 30, producto_nombre: 'Pan' },
+      ]]);
+      mockQuery.mockResolvedValueOnce([[]]);
+
+      const result = await ventasService.createVenta({
+        metodo_pago: 'efectivo',
+        productos: [{ producto_id: 1, cantidad: 3, precio_unitario: 10, subtotal: 30 }],
+      });
+
+      // Venta INSERT uses 'completada'
+      const ventaInsertArgs = mockConn.query.mock.calls[1]; // call #2 (0-indexed: 1)
+      expect(ventaInsertArgs[0]).toContain('INSERT INTO ventas');
+      expect(ventaInsertArgs[1]).toContain('completada'); // estado param
+      expect(ventaInsertArgs[1]).toContain('efectivo'); // metodo_pago param
+      // Stock decrement runs for non-MP (call #4 — after detalle INSERT)
+      expect(mockConn.query).toHaveBeenNthCalledWith(
+        4,
+        expect.stringContaining('UPDATE stock'),
+        expect.arrayContaining([1]),
+      );
+      expect(result.estado).toBe('completada');
+    });
+
+    it('should set venta.estado to pendiente and skip stock decrement for MP payments', async () => {
+      const mockConn = {
+        beginTransaction: vi.fn(),
+        commit: vi.fn(),
+        rollback: vi.fn(),
+        release: vi.fn(),
+        query: vi.fn(),
+      };
+      mockGetConnection.mockResolvedValue(mockConn);
+      // Stock check — sufficient (FOR UPDATE still runs for MP)
+      mockConn.query.mockResolvedValueOnce([[{ cantidad_disponible: 10 }]]);
+      // INSERT ventas — verify 'pendiente' estado
+      mockConn.query.mockResolvedValueOnce([{ insertId: 2 }]);
+      // INSERT detalle
+      mockConn.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // NO stock decrement for MP — INSERT pago is next
+      mockConn.query.mockResolvedValueOnce([{ insertId: 20 }]);
+      // After commit: fetch
+      mockQuery.mockResolvedValueOnce([[
+        { venta_id: 2, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z', subtotal: 50, descuento: 0, impuestos: 0, total: 50, metodo_pago: 'mercado_pago', estado: 'pendiente', notas: '', cliente_nombre: null, detalle_id: 3, producto_id: 1, cantidad: 3, precio_unitario: 10, detalle_subtotal: 30, detalle_descuento: 0, detalle_total: 30, producto_nombre: 'Pan' },
+      ]]);
+      mockQuery.mockResolvedValueOnce([[]]);
+
+      const result = await ventasService.createVenta({
+        metodo_pago: 'mercado_pago',
+        productos: [{ producto_id: 1, cantidad: 3, precio_unitario: 10, subtotal: 30 }],
+      });
+
+      // Venta INSERT uses 'pendiente'
+      const ventaInsertArgs = mockConn.query.mock.calls[1]; // call #2 (0-indexed: 1)
+      expect(ventaInsertArgs[0]).toContain('INSERT INTO ventas');
+      expect(ventaInsertArgs[1]).toContain('pendiente'); // estado param
+      expect(ventaInsertArgs[1]).toContain('mercado_pago'); // metodo_pago param
+      // Total calls: 1 stock check + 1 INSERT venta + 1 INSERT detalle + 1 INSERT pago = 4
+      // NO stock decrement call for MP
+      expect(mockConn.query).toHaveBeenCalledTimes(4);
+      expect(result.estado).toBe('pendiente');
+    });
+
+    it('should update venta estado via updateStatus', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      await ventasService.updateStatus(1, 'cancelada');
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE ventas'),
+        ['cancelada', 1],
+      );
+    });
+
+    it('should decrement stock via decrementStock for a confirmed venta', async () => {
+      // First query: fetch venta_detalle items (pool.query returns [[rows]])
+      mockQuery.mockResolvedValueOnce([
+        [
+          { producto_id: 1, cantidad: 3 },
+          { producto_id: 2, cantidad: 1 },
+        ],
+      ]);
+      // Second query: UPDATE stock for product 1
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // Third query: UPDATE stock for product 2
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      await ventasService.decrementStock(5);
+
+      // Should query venta_detalle to get items
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('SELECT producto_id, cantidad'),
+        [5],
+      );
+      // Should UPDATE stock for each product
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('UPDATE stock'),
+        expect.arrayContaining([3, 1]),
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('UPDATE stock'),
+        expect.arrayContaining([1, 2]),
+      );
     });
 
     it('should rollback transaction and throw on detalle INSERT failure after stock checks', async () => {

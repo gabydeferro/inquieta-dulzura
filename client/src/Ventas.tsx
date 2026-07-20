@@ -41,6 +41,27 @@ const Ventas: React.FC = () => {
     void cargarVentas();
   }, [cargarVentas]);
 
+  // Handle MP return URL params (?pago=exito|fallo|pendiente)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pago = params.get('pago');
+    if (pago) {
+      switch (pago) {
+        case 'exito':
+          showNotification('Pago aprobado exitosamente', 'success');
+          break;
+        case 'fallo':
+          showNotification('El pago no pudo completarse', 'error');
+          break;
+        case 'pendiente':
+          showNotification('Pago pendiente de confirmación', 'info');
+          break;
+      }
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [showNotification]);
+
   const handleAddToCart = (product: Producto) => {
     dispatch({
       type: 'ADD_ITEM',
@@ -94,8 +115,29 @@ const Ventas: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await api.createVenta(result.data);
+      const ventaResponse = await api.createVenta(result.data);
       dispatch({ type: 'CLEAR_CART' });
+
+      // If MP payment, create preference and redirect to checkout
+      if (metodo === 'mercado_pago') {
+        try {
+          const mpItems = items.map((item) => ({
+            title: item.nombre,
+            quantity: item.cantidad,
+            unit_price: item.precio,
+          }));
+          const prefResponse = await api.createMPPreference(ventaResponse.data.id, mpItems);
+          if (prefResponse.data?.data?.url) {
+            window.location.href = prefResponse.data.data.url;
+            return; // Don't show toast — redirecting
+          }
+        } catch {
+          showNotification('Error al crear preferencia de pago. La venta quedó pendiente.', 'error');
+          cargarVentas();
+          return;
+        }
+      }
+
       showNotification('Venta registrada exitosamente', 'success');
       cargarVentas();
     } catch (err: unknown) {

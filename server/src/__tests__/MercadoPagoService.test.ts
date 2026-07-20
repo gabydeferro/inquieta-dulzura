@@ -42,7 +42,7 @@ describe('MercadoPagoService', () => {
   beforeEach(() => {
     process.env = { ...OLD_ENV };
     process.env.MERCADO_PAGO_ACCESS_TOKEN = 'test-access-token';
-    process.env.FRONTEND_URL = 'http://localhost:5173';
+    process.env.CLIENT_URL = 'http://localhost:5173';
     vi.clearAllMocks();
   });
 
@@ -112,8 +112,8 @@ describe('MercadoPagoService', () => {
       });
     });
 
-    test('uses default FRONTEND_URL when env var is not set', async () => {
-      delete process.env.FRONTEND_URL;
+    test('uses default CLIENT_URL when env var is not set', async () => {
+      delete process.env.CLIENT_URL;
 
       mockPreferenceCreate.mockResolvedValueOnce({
         init_point: 'https://mercadopago.com/checkout?pref_id=99',
@@ -190,6 +190,48 @@ describe('MercadoPagoService', () => {
       expect(result.status).toBe('pending');
       expect(result.external_reference).toBe('55');
       expect(result.transaction_amount).toBe(8000);
+    });
+  });
+
+  describe('verifySignature', () => {
+    test('returns true for a valid HMAC-SHA256 signature', async () => {
+      process.env.MERCADO_PAGO_PUBLIC_KEY = 'TEST_PUBLIC_KEY_abc123';
+      const service = new MercadoPagoService();
+
+      // Generate a known signature
+      const crypto = await import('crypto');
+      const body = '{"type":"payment","data":{"id":"123"}}';
+      const ts = String(Math.floor(Date.now() / 1000));
+      const manifest = `id:123;ts:${ts};`;
+      const hmac = crypto.createHmac('sha256', 'TEST_PUBLIC_KEY_abc123');
+      hmac.update(manifest);
+      const v1 = hmac.digest('hex');
+      const signature = `ts=${ts},v1=${v1}`;
+
+      const result = await service.verifySignature(
+        { 'x-signature': signature } as Record<string, string>,
+        body,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    test('returns false when x-signature header is missing', async () => {
+      const service = new MercadoPagoService();
+      const result = await service.verifySignature({}, '{}');
+      expect(result).toBe(false);
+    });
+
+    test('returns false for an invalid signature', async () => {
+      process.env.MERCADO_PAGO_PUBLIC_KEY = 'TEST_PUBLIC_KEY_abc123';
+      const service = new MercadoPagoService();
+
+      const result = await service.verifySignature(
+        { 'x-signature': 'ts=12345,v1=invalidsignature' },
+        '{"type":"payment","data":{"id":"123"}}',
+      );
+
+      expect(result).toBe(false);
     });
   });
 });

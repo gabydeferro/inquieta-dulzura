@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import express from 'express';
 import http from 'http';
 import { AddressInfo } from 'net';
+import { createHmac } from 'crypto';
 
 // ──────────────────────────────────────────────
 // Mocks — hoisted before ALL imports
@@ -9,6 +10,10 @@ import { AddressInfo } from 'net';
 
 const mockPreferenceCreate = vi.fn();
 const mockPaymentGet = vi.fn();
+const mockPagosGetByVentaId = vi.fn();
+const mockPagosUpdateByVentaId = vi.fn();
+const mockVentasUpdateStatus = vi.fn();
+const mockVentasDecrementStock = vi.fn();
 
 vi.mock('mercadopago', () => {
   return {
@@ -28,6 +33,24 @@ vi.mock('../config/mercado-pago', () => ({
   verificarConfiguracion: vi.fn(),
 }));
 
+vi.mock('../services/PagosService', () => ({
+  PagosService: vi.fn(function () {
+    return {
+      getByVentaId: mockPagosGetByVentaId,
+      updateByVentaId: mockPagosUpdateByVentaId,
+    };
+  }),
+}));
+
+vi.mock('../services/VentasService', () => ({
+  VentasService: vi.fn(function () {
+    return {
+      updateStatus: mockVentasUpdateStatus,
+      decrementStock: mockVentasDecrementStock,
+    };
+  }),
+}));
+
 // ──────────────────────────────────────────────
 // Imports (use mocked modules)
 // ──────────────────────────────────────────────
@@ -38,6 +61,16 @@ import mercadoPagoRouter from '../routes/mercado-pago';
 // ──────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────
+
+const TEST_PUBLIC_KEY = 'TEST_PUBLIC_KEY_routes_test';
+
+function signBody(paymentId: string, ts?: string): string {
+  const timestamp = ts ?? String(Math.floor(Date.now() / 1000));
+  const manifest = `id:${paymentId};ts:${timestamp};`;
+  const hmac = createHmac('sha256', TEST_PUBLIC_KEY);
+  hmac.update(manifest);
+  return `ts=${timestamp},v1=${hmac.digest('hex')}`;
+}
 
 function buildApp(configured: boolean): express.Application {
   const app = express();
@@ -118,6 +151,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
     beforeEach(() => {
       vi.mocked(verificarConfiguracion).mockReturnValue(true);
       process.env.MERCADO_PAGO_ACCESS_TOKEN = 'test-access-token';
+      process.env.MERCADO_PAGO_PUBLIC_KEY = TEST_PUBLIC_KEY;
     });
 
     test('routes are mounted — POST /preferencia responds (not 404)', async () => {
@@ -179,18 +213,183 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         id: 'MP-PAY-123',
         transaction_amount: 14000,
       });
+      mockPagosGetByVentaId.mockResolvedValueOnce([]);
+      mockPagosUpdateByVentaId.mockResolvedValueOnce(undefined);
+      mockVentasUpdateStatus.mockResolvedValueOnce(undefined);
+      mockVentasDecrementStock.mockResolvedValueOnce(undefined);
 
       const app = buildApp(true);
       const res = await makeRequest(
         app,
         'POST',
         '/api/mercado-pago/webhook',
-        { 'Content-Type': 'application/json' },
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('MP-PAY-123'),
+        },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-123' } }),
       );
 
       expect(res.status).toBe(200);
       expect(mockPaymentGet).toHaveBeenCalledWith({ id: 'MP-PAY-123' });
+    });
+
+    test('POST /webhook returns 401 when x-signature is invalid', async () => {
+      const app = buildApp(true);
+      const res = await makeRequest(
+        app,
+        'POST',
+        '/api/mercado-pago/webhook',
+        {
+          'Content-Type': 'application/json',
+          'x-signature': 'ts=123,v1=invalid',
+        },
+        JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-456' } }),
+      );
+
+      expect(res.status).toBe(401);
+      expect(mockPaymentGet).not.toHaveBeenCalled();
+    });
+
+    test('POST /webhook skips update when pago already has referencia_externa (idempotent)', async () => {
+      // Payment already processed — referencia_externa is set
+      mockPaymentGet.mockResolvedValueOnce({
+        status: 'approved',
+        external_reference: '42',
+        id: 'MP-PAY-789',
+        transaction_amount: 5000,
+      });
+      mockPagosGetByVentaId.mockResolvedValueOnce([
+        { id: 1, venta_id: 42, referencia_externa: 'MP-PAY-789', estado: 'aprobado' },
+      ]);
+
+      const app = buildApp(true);
+      const res = await makeRequest(
+        app,
+        'POST',
+        '/api/mercado-pago/webhook',
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('MP-PAY-789'),
+        },
+        JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-789' } }),
+      );
+
+      expect(res.status).toBe(200);
+      // Should NOT call update services
+      expect(mockPagosUpdateByVentaId).not.toHaveBeenCalled();
+      expect(mockVentasUpdateStatus).not.toHaveBeenCalled();
+      expect(mockVentasDecrementStock).not.toHaveBeenCalled();
+    });
+
+    test('POST /webhook on approved: updates pago, venta, and decrements stock', async () => {
+      mockPaymentGet.mockResolvedValueOnce({
+        status: 'approved',
+        external_reference: '42',
+        id: 'MP-PAY-NEW',
+        transaction_amount: 14000,
+      });
+      mockPagosGetByVentaId.mockResolvedValueOnce([
+        { id: 1, venta_id: 42, referencia_externa: null, estado: 'pendiente' },
+      ]);
+      mockPagosUpdateByVentaId.mockResolvedValueOnce(undefined);
+      mockVentasUpdateStatus.mockResolvedValueOnce(undefined);
+      mockVentasDecrementStock.mockResolvedValueOnce(undefined);
+
+      const app = buildApp(true);
+      const res = await makeRequest(
+        app,
+        'POST',
+        '/api/mercado-pago/webhook',
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('MP-PAY-NEW'),
+        },
+        JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-NEW' } }),
+      );
+
+      expect(res.status).toBe(200);
+      // Verify pago updated with approved status
+      expect(mockPagosUpdateByVentaId).toHaveBeenCalledWith(42, {
+        estado: 'aprobado',
+        referencia_externa: 'MP-PAY-NEW',
+        datos_json: expect.any(String),
+      });
+      // Verify venta completed
+      expect(mockVentasUpdateStatus).toHaveBeenCalledWith(42, 'completada');
+      // Verify stock decremented
+      expect(mockVentasDecrementStock).toHaveBeenCalledWith(42);
+    });
+
+    test('POST /webhook on rejected: updates pago and cancels venta, no stock decrement', async () => {
+      mockPaymentGet.mockResolvedValueOnce({
+        status: 'rejected',
+        external_reference: '42',
+        id: 'MP-PAY-REJ',
+        transaction_amount: 5000,
+      });
+      mockPagosGetByVentaId.mockResolvedValueOnce([
+        { id: 1, venta_id: 42, referencia_externa: null, estado: 'pendiente' },
+      ]);
+      mockPagosUpdateByVentaId.mockResolvedValueOnce(undefined);
+      mockVentasUpdateStatus.mockResolvedValueOnce(undefined);
+
+      const app = buildApp(true);
+      const res = await makeRequest(
+        app,
+        'POST',
+        '/api/mercado-pago/webhook',
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('MP-PAY-REJ'),
+        },
+        JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-REJ' } }),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockPagosUpdateByVentaId).toHaveBeenCalledWith(42, {
+        estado: 'rechazado',
+        referencia_externa: 'MP-PAY-REJ',
+        datos_json: expect.any(String),
+      });
+      expect(mockVentasUpdateStatus).toHaveBeenCalledWith(42, 'cancelada');
+      expect(mockVentasDecrementStock).not.toHaveBeenCalled();
+    });
+
+    test('POST /webhook on in_process: does not change venta estado', async () => {
+      mockPaymentGet.mockResolvedValueOnce({
+        status: 'in_process',
+        external_reference: '42',
+        id: 'MP-PAY-PEND',
+        transaction_amount: 8000,
+      });
+      mockPagosGetByVentaId.mockResolvedValueOnce([
+        { id: 1, venta_id: 42, referencia_externa: null, estado: 'pendiente' },
+      ]);
+      mockPagosUpdateByVentaId.mockResolvedValueOnce(undefined);
+
+      const app = buildApp(true);
+      const res = await makeRequest(
+        app,
+        'POST',
+        '/api/mercado-pago/webhook',
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('MP-PAY-PEND'),
+        },
+        JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-PEND' } }),
+      );
+
+      expect(res.status).toBe(200);
+      // Pago updated with current status
+      expect(mockPagosUpdateByVentaId).toHaveBeenCalledWith(42, {
+        estado: 'in_process',
+        referencia_externa: 'MP-PAY-PEND',
+        datos_json: expect.any(String),
+      });
+      // Venta status NOT changed for pending
+      expect(mockVentasUpdateStatus).not.toHaveBeenCalled();
+      expect(mockVentasDecrementStock).not.toHaveBeenCalled();
     });
 
     test('POST /webhook returns 200 even for unknown event types', async () => {
@@ -199,8 +398,11 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/webhook',
-        { 'Content-Type': 'application/json' },
-        JSON.stringify({ type: 'unknown', data: {} }),
+        {
+          'Content-Type': 'application/json',
+          'x-signature': signBody('unknown-123'),
+        },
+        JSON.stringify({ type: 'unknown', data: { id: 'unknown-123' } }),
       );
 
       expect(res.status).toBe(200);

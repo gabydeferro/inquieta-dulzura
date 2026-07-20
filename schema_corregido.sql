@@ -337,16 +337,9 @@ COMMIT;
 
 DELIMITER $$
 
--- Trigger para actualizar stock despues de una venta
-DROP TRIGGER IF EXISTS after_venta_detalle_insert$$
-CREATE TRIGGER after_venta_detalle_insert
-AFTER INSERT ON venta_detalle
-FOR EACH ROW
-BEGIN
-  UPDATE stock 
-  SET cantidad_disponible = cantidad_disponible - NEW.cantidad
-  WHERE producto_id = NEW.producto_id;
-END$$
+-- [REMOVED] Trigger after_venta_detalle_insert
+-- Stock decrement now managed by VentasService.createVenta (conditional for MP vs sync payments)
+-- See migrations/003_backup_and_remove_stock_trigger.sql for rollback DDL
 
 -- Trigger para registrar fotos eliminadas
 DROP TRIGGER IF EXISTS before_foto_delete$$

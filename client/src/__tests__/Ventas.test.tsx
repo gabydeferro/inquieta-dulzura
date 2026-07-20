@@ -11,6 +11,7 @@ vi.mock('../services/api', () => ({
     getVentas: vi.fn(),
     createVenta: vi.fn(),
     searchProductos: vi.fn(),
+    createMPPreference: vi.fn(),
   },
 }));
 
@@ -212,5 +213,105 @@ describe('Ventas Component (POS)', () => {
     await waitFor(() => {
       expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
     });
+  });
+
+  // --- MercadoPago redirect ---
+
+  it('redirects to MP checkout after MP sale creation', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    (api.searchProductos as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: [mockSearchResults[0]],
+    });
+    (api.createVenta as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: {
+        id: 10,
+        metodo_pago: 'mercado_pago',
+        estado: 'pendiente',
+        total: 5000,
+        productos: [
+          { producto_id: 1, cantidad: 1, precio_unitario: 5000, subtotal: 5000, producto_nombre: 'Torta Red Velvet' },
+        ],
+        fecha_venta: new Date().toISOString(),
+        subtotal: 5000,
+        descuento: 0,
+        impuestos: 0,
+      },
+    });
+    (api.createMPPreference as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: { url: 'https://mercadopago.com/checkout?pref_id=123', preference_id: '123' },
+      },
+    });
+
+    // Mock window.location.href setter
+    const locationSetter = vi.fn();
+    Object.defineProperty(window, 'location', {
+      value: { set href(val: string) { locationSetter(val); }, get href() { return ''; } },
+      writable: true,
+    });
+
+    await renderVentas();
+
+    // Search and add product
+    await user.type(screen.getByPlaceholderText(/buscar producto/i), 'torta');
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Torta Red Velvet')).toBeInTheDocument();
+    });
+    const addButtons = screen.getAllByRole('button', { name: /agregar/i });
+    await user.click(addButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/1 items/)).toBeInTheDocument();
+    });
+
+    // Select Mercado Pago
+    await user.click(screen.getByText('Mercado Pago'));
+    // Confirm
+    await user.click(screen.getByRole('button', { name: /confirmar venta/i }));
+
+    await waitFor(() => {
+      expect(api.createVenta).toHaveBeenCalled();
+    });
+
+    // After venta created, MP preference should be created
+    await waitFor(() => {
+      expect(api.createMPPreference).toHaveBeenCalled();
+    });
+
+    // Should redirect to MP checkout
+    await waitFor(() => {
+      expect(locationSetter).toHaveBeenCalledWith('https://mercadopago.com/checkout?pref_id=123');
+    });
+  });
+
+  // --- Return URL handling ---
+
+  it('shows success toast and cleans URL when pago=exito param is present', async () => {
+    // Mock URL search params
+    Object.defineProperty(window, 'location', {
+      value: {
+        search: '?pago=exito',
+        pathname: '/ventas',
+        set href(_val: string) {},
+        get href() { return '/ventas?pago=exito'; },
+      },
+      writable: true,
+    });
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    await renderVentas();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Cargando ventas/i)).not.toBeInTheDocument();
+    });
+
+    // URL should be cleaned
+    expect(replaceStateSpy).toHaveBeenCalled();
+
+    replaceStateSpy.mockRestore();
   });
 });

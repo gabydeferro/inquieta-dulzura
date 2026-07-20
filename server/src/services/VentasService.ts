@@ -199,7 +199,8 @@ export class VentasService {
     };
   }
 
-  METODO_PAGO_DEFAULTS: Record<string, string> = {
+  /** Maps metodo_pago → pago.estado default state (e.g. 'mercado_pago' starts pendiente). */
+  PAGO_ESTADO_DEFAULTS: Record<string, string> = {
     efectivo: 'aprobado',
     tarjeta: 'aprobado',
     transferencia: 'aprobado',
@@ -209,13 +210,19 @@ export class VentasService {
     mercado_pago: 'pendiente',
   };
 
+  /** Maps metodo_pago → venta.estado. 'mercado_pago' starts pendiente (webhook completes). */
+  private getVentaEstado(metodoPago: string): string {
+    return metodoPago === 'mercado_pago' ? 'pendiente' : 'completada';
+  }
+
   async createVenta(data: CreateVentaDTO): Promise<VentaResponse> {
     const conn = await pool.getConnection();
+    const isMP = data.metodo_pago === 'mercado_pago';
 
     try {
       await conn.beginTransaction();
 
-      // 1. Validate stock for ALL items with SELECT FOR UPDATE
+      // 1. Validate stock for ALL items with SELECT FOR UPDATE (even MP — reserve capacity)
       for (const prod of data.productos) {
         const [rows] = await conn.query<RowDataPacket[]>(
           'SELECT cantidad_disponible FROM stock WHERE producto_id = ? FOR UPDATE',
@@ -229,11 +236,12 @@ export class VentasService {
       const subtotal = data.productos.reduce((sum, p) => sum + p.subtotal, 0);
       const descuento = data.descuento ?? 0;
       const total = subtotal - descuento;
+      const ventaEstado = this.getVentaEstado(data.metodo_pago);
 
       const [result] = await conn.query<ResultSetHeader>(
         `INSERT INTO ventas (cliente_id, subtotal, descuento, impuestos, total, metodo_pago, estado, notas)
-         VALUES (?, ?, ?, 0, ?, ?, 'completada', '')`,
-        [data.cliente_id ?? null, subtotal, descuento, total, data.metodo_pago],
+         VALUES (?, ?, ?, 0, ?, ?, ?, '')`,
+        [data.cliente_id ?? null, subtotal, descuento, total, data.metodo_pago, ventaEstado],
       );
 
       const ventaId = result.insertId;
@@ -253,12 +261,22 @@ export class VentasService {
         );
       }
 
-      // 2. Insert pago row (1 pago per venta for now)
-      const estado = this.METODO_PAGO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
+      // 2. Decrement stock ONLY for non-MP payments (MP deferred to webhook)
+      if (!isMP) {
+        for (const prod of data.productos) {
+          await conn.query(
+            `UPDATE stock SET cantidad_disponible = cantidad_disponible - ? WHERE producto_id = ?`,
+            [prod.cantidad, prod.producto_id],
+          );
+        }
+      }
+
+      // 3. Insert pago row (1 pago per venta for now)
+      const pagoEstado = this.PAGO_ESTADO_DEFAULTS[data.metodo_pago] ?? 'pendiente';
       await conn.query(
         `INSERT INTO pagos (venta_id, metodo_pago, monto, estado, referencia_externa, datos_json)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [ventaId, data.metodo_pago, total, estado, null, null],
+        [ventaId, data.metodo_pago, total, pagoEstado, null, null],
       );
 
       await conn.commit();
@@ -270,6 +288,29 @@ export class VentasService {
       throw error;
     } finally {
       conn.release();
+    }
+  }
+
+  /** Update venta estado (used by webhook handler). */
+  async updateStatus(id: number, estado: string): Promise<void> {
+    await pool.query(
+      'UPDATE ventas SET estado = ? WHERE id = ?',
+      [estado, id],
+    );
+  }
+
+  /** Decrement stock for all items in a venta (called after webhook confirms approval). */
+  async decrementStock(ventaId: number): Promise<void> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT producto_id, cantidad FROM venta_detalle WHERE venta_id = ?',
+      [ventaId],
+    );
+
+    for (const row of rows) {
+      await pool.query(
+        `UPDATE stock SET cantidad_disponible = cantidad_disponible - ? WHERE producto_id = ?`,
+        [row.cantidad, row.producto_id],
+      );
     }
   }
 

@@ -1,7 +1,26 @@
 import { Router, Request, Response } from 'express';
 import { MercadoPagoService, MPItem } from '../services/MercadoPagoService';
+import { PagosService } from '../services/PagosService';
+import { VentasService } from '../services/VentasService';
 
 const router = Router();
+
+// --- Simple in-memory rate limiter for the webhook endpoint ---
+const webhookHits = new Map<string, { count: number; resetTime: number }>();
+const WEBHOOK_LIMIT = 30;
+const WEBHOOK_WINDOW_MS = 60_000;
+
+function checkWebhookRate(ip: string): boolean {
+  const now = Date.now();
+  const entry = webhookHits.get(ip);
+  if (!entry || now > entry.resetTime) {
+    webhookHits.set(ip, { count: 1, resetTime: now + WEBHOOK_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= WEBHOOK_LIMIT;
+}
+// --- End rate limiter ---
 
 interface PreferenciaBody {
   ventaId?: number;
@@ -53,22 +72,72 @@ router.post('/preferencia', async (req: Request, res: Response) => {
  * @access  Public (MP servers call this)
  */
 router.post('/webhook', async (req: Request, res: Response) => {
-  try {
-    const signature = req.headers['x-signature'] as string | undefined;
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+  if (!checkWebhookRate(ip)) {
+    res.status(429).json({ success: false, message: 'Too Many Requests' });
+    return;
+  }
 
-    // Log webhook for future IPN signature verification
-    if (signature) {
-      console.log('MP webhook received with signature:', signature);
+  try {
+    const mpService = new MercadoPagoService();
+
+    // 1. Verify IPN signature
+    const validSignature = await mpService.verifySignature(
+      req.headers as Record<string, string | undefined>,
+      JSON.stringify(req.body),
+    );
+
+    if (!validSignature) {
+      res.status(401).json({ success: false, message: 'Invalid signature' });
+      return;
     }
 
     const body = req.body as WebhookBody;
     const { type, data } = body;
 
-    if (type === 'payment' && data?.id) {
-      const service = new MercadoPagoService();
-      const paymentDetails = await service.handleWebhook(String(data.id));
-      console.log('MP payment webhook processed:', paymentDetails);
+    if (type !== 'payment' || !data?.id) {
+      res.sendStatus(200);
+      return;
     }
+
+    // 2. Get payment details from MP
+    const paymentDetails = await mpService.handleWebhook(String(data.id));
+    const ventaId = Number(paymentDetails.external_reference);
+
+    if (!ventaId || isNaN(ventaId)) {
+      res.sendStatus(200);
+      return;
+    }
+
+    // 3. Check idempotency — skip if pago already has referencia_externa
+    const pagosService = new PagosService();
+    const existingPagos = await pagosService.getByVentaId(ventaId);
+    const existingPago = existingPagos[0];
+
+    if (existingPago?.referencia_externa) {
+      res.sendStatus(200);
+      return;
+    }
+
+    // 4. Update pago with payment details
+    await pagosService.updateByVentaId(ventaId, {
+      estado: paymentDetails.status === 'approved' ? 'aprobado'
+        : paymentDetails.status === 'rejected' ? 'rechazado'
+        : paymentDetails.status,
+      referencia_externa: paymentDetails.payment_id,
+      datos_json: JSON.stringify(paymentDetails),
+    });
+
+    // 5. Update venta estado based on payment status
+    const ventasService = new VentasService();
+
+    if (paymentDetails.status === 'approved') {
+      await ventasService.updateStatus(ventaId, 'completada');
+      await ventasService.decrementStock(ventaId);
+    } else if (paymentDetails.status === 'rejected') {
+      await ventasService.updateStatus(ventaId, 'cancelada');
+    }
+    // in_process / pending → keep current estado (pendiente)
 
     res.sendStatus(200);
   } catch (error) {
