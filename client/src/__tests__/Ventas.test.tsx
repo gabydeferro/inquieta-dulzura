@@ -34,7 +34,7 @@ const mockVentas = [
   {
     id: 1,
     fecha_venta: new Date().toISOString(),
-    cliente: 'Juan Pérez',
+    cliente_nombre: 'Juan Pérez',
     subtotal: 5000,
     descuento: 0,
     impuestos: 0,
