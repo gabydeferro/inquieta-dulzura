@@ -197,7 +197,7 @@ export class DashboardService {
       // 14. Stock bajo
       pool
         .query<RowDataPacket[]>(
-          `SELECT p.id as producto_id, p.nombre, COALESCE(s.cantidad_disponible, 0) as cantidad_disponible, p.unidad_medida
+          `SELECT p.id as producto_id, p.nombre, COALESCE(s.cantidad_disponible, 0) as cantidad_disponible, COALESCE(s.unidad_medida, 'unidades') as unidad_medida
            FROM productos p
            LEFT JOIN stock s ON p.id = s.producto_id
            WHERE COALESCE(s.cantidad_disponible, 0) <= ?
