@@ -310,18 +310,21 @@ export const Dashboard = (): ReactNode => {
             </CardHeader>
             <div className="px-5 pb-5">
               {stats.metodosPago.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie
                       data={stats.metodosPago}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ metodo, percent }) =>
-                        `${metodo} (${(percent * 100).toFixed(0)}%)`
+                      innerRadius={60}
+                      outerRadius={110}
+                      paddingAngle={stats.metodosPago.length > 1 ? 4 : 0}
+                      labelLine
+                      label={({ metodo, percent, total }) =>
+                        stats.metodosPago.length === 1
+                          ? `${metodo} — $${total.toLocaleString()}`
+                          : `${metodo} (${(percent * 100).toFixed(0)}%)`
                       }
-                      outerRadius={100}
-                      fill="#8884d8"
                       dataKey="total"
                       nameKey="metodo"
                     >
@@ -335,7 +338,11 @@ export const Dashboard = (): ReactNode => {
                     <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total']}
                     />
-                    <Legend />
+                    <Legend
+                      formatter={(value) => (
+                        <span className="text-sm text-foreground">{value}</span>
+                      )}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
