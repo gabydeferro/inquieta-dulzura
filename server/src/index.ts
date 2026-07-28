@@ -41,7 +41,12 @@ app.use(
 // Webhook del bot de Telegram — body raw debe ir ANTES de express.json()
 const botWebhookRaw = express.raw({ type: 'application/json' });
 
-app.use(express.json());
+// Capture raw body BEFORE express.json() for webhook signature verification
+app.use(express.json({
+  verify: (req: Request, _res, buf: Buffer) => {
+    (req as unknown as Record<string, unknown>).rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 const uploadsPath = path.join(__dirname, '../../uploads');

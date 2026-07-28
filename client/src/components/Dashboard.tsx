@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { useReducedMotion } from '../lib/animations';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { useReducedMotion } from '@/lib/animations';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Package,
   DollarSign,
@@ -65,14 +65,14 @@ interface DashboardStats {
 
 const COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ef4444'];
 
-export const Dashboard: React.FC = () => {
+export const Dashboard = (): ReactNode => {
   const { user } = useAuth();
   const { fadeUp, staggerContainer } = useReducedMotion();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadStats = async () => {
+  const loadStats = async (): Promise<void> => {
     try {
       const response = await api.getDashboardStats<DashboardStats>();
       setStats(response.data);
@@ -85,7 +85,7 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    void loadStats();
+    loadStats();
   }, []);
 
   if (loading) {
@@ -176,7 +176,12 @@ export const Dashboard: React.FC = () => {
       desc: 'Gestionar fotos de productos',
       icon: Image,
     },
-    { to: '/categorias', label: 'Categorías', desc: 'Organizar tipos de productos', icon: Tags },
+    { 
+      to: '/categorias',
+      label: 'Categorías', 
+      desc: 'Organizar tipos de productos', 
+      icon: Tags 
+    }
   ];
 
   return (
@@ -201,15 +206,15 @@ export const Dashboard: React.FC = () => {
         animate="visible"
       >
         {statCards.map((stat) => (
-          <motion.div key={stat.label} variants={fadeUp}>
+          <motion.div key={stat.label} variants={fadeUp} className="h-full">
             <Card
-              className={`transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
+              className={`flex h-full flex-col transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg ${
                 stat.alert ? 'border-l-4 border-l-amber-500' : ''
               }`}
             >
-              <CardHeader className="flex flex-row items-center gap-4 px-5 pt-5">
+              <CardHeader className="flex flex-1 flex-row items-center gap-4 px-5 pt-5">
                 <div
-                  className={`flex size-12 items-center justify-center rounded-xl ${
+                  className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${
                     stat.alert
                       ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
                       : 'bg-brand-violet/10 text-brand-violet dark:bg-brand-violet/20'
@@ -241,51 +246,58 @@ export const Dashboard: React.FC = () => {
               <CardTitle className="text-lg">Tendencia de Ventas (30 días)</CardTitle>
             </CardHeader>
             <div className="px-5 pb-5">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={stats.ventasPorDia}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis
-                    dataKey="fecha"
-                    className="text-xs"
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getDate()}/${date.getMonth() + 1}`;
-                    }}
-                  />
-                  <YAxis className="text-xs" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number, name: string) => [
-                      name === 'total' ? `$${value.toLocaleString()}` : value,
-                      name === 'total' ? 'Total' : 'Cantidad',
-                    ]}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return date.toLocaleDateString('es-AR');
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="cantidad"
-                    stroke="#8b5cf6"
-                    fill="#8b5cf6"
-                    fillOpacity={0.2}
-                    name="cantidad"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#06b6d4"
-                    fill="#06b6d4"
-                    fillOpacity={0.2}
-                    name="total"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {stats.ventasPorDia.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={stats.ventasPorDia}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="fecha"
+                      className="text-xs"
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return `${date.getDate()}/${date.getMonth() + 1}`;
+                      }}
+                    />
+                    <YAxis className="text-xs" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number, name: string) => [
+                        name === 'total' ? `$${value.toLocaleString()}` : value,
+                        name === 'total' ? 'Total' : 'Cantidad',
+                      ]}
+                      labelFormatter={(label) => {
+                        const date = new Date(label);
+                        return date.toLocaleDateString('es-AR');
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="cantidad"
+                      stroke="#8b5cf6"
+                      fill="#8b5cf6"
+                      fillOpacity={0.2}
+                      name="cantidad"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="total"
+                      stroke="#06b6d4"
+                      fill="#06b6d4"
+                      fillOpacity={0.2}
+                      name="total"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-muted-foreground">
+                  <TrendingUp className="size-10 opacity-40" />
+                  <p>No hay datos de ventas para mostrar</p>
+                </div>
+              )}
             </div>
           </Card>
         </motion.div>
@@ -297,34 +309,41 @@ export const Dashboard: React.FC = () => {
               <CardTitle className="text-lg">Métodos de Pago</CardTitle>
             </CardHeader>
             <div className="px-5 pb-5">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={stats.metodosPago}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ metodo, percent }) =>
-                      `${metodo} (${(percent * 100).toFixed(0)}%)`
-                    }
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="total"
-                    nameKey="metodo"
-                  >
-                    {stats.metodosPago.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total']}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {stats.metodosPago.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={stats.metodosPago}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ metodo, percent }) =>
+                        `${metodo} (${(percent * 100).toFixed(0)}%)`
+                      }
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="total"
+                      nameKey="metodo"
+                    >
+                      {stats.metodosPago.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total']}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-muted-foreground">
+                  <DollarSign className="size-10 opacity-40" />
+                  <p>No hay datos de métodos de pago para mostrar</p>
+                </div>
+              )}
             </div>
           </Card>
         </motion.div>
@@ -419,16 +438,17 @@ export const Dashboard: React.FC = () => {
           viewport={{ once: true }}
         >
           {quickActions.map((action) => (
-            <motion.div key={action.to} variants={fadeUp}>
-              <Link
-                to={action.to}
-                className="group/card rounded-xl bg-card p-5 text-card-foreground no-underline ring-1 ring-foreground/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-brand-violet"
-              >
-                <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet transition-colors group-hover/card:bg-brand-violet group-hover/card:text-white dark:bg-brand-violet/20">
-                  <action.icon className="size-6" />
-                </div>
-                <h3 className="mb-1 text-base font-semibold text-foreground">{action.label}</h3>
-                <p className="text-sm text-muted-foreground">{action.desc}</p>
+            <motion.div key={action.to} variants={fadeUp} className="h-full">
+              <Link to={action.to} className="block h-full no-underline">
+                <Card className="h-full transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-brand-violet">
+                  <CardHeader className="flex flex-col items-start gap-4">
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-brand-violet/10 text-brand-violet transition-colors group-hover/card:bg-brand-violet group-hover/card:text-white dark:bg-brand-violet/20">
+                      <action.icon className="size-6" />
+                    </div>
+                    <CardTitle className="text-base">{action.label}</CardTitle>
+                    <CardDescription>{action.desc}</CardDescription>
+                  </CardHeader>
+                </Card>
               </Link>
             </motion.div>
           ))}

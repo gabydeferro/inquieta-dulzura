@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import { Producto } from '../types/Producto';
@@ -11,7 +11,7 @@ interface ProductSearchProps {
   onAddToCart: (product: Producto) => void;
 }
 
-const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
+const ProductSearch = ({ onAddToCart }: ProductSearchProps) => {
   const { fadeUp, staggerContainer } = useReducedMotion();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Producto[]>([]);
@@ -83,7 +83,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{product.nombre}</span>
                 <span className="text-xs text-muted-foreground">
-                  ${product.precio.toFixed(2)}
+                  ${Number(product.precio).toFixed(2)}
                   {product.stock != null && ` — Stock: ${product.stock}`}
                 </span>
               </div>
@@ -91,10 +91,11 @@ const ProductSearch: React.FC<ProductSearchProps> = ({ onAddToCart }) => {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={!product.stock || Number(product.stock) <= 0}
                 onClick={() => onAddToCart(product)}
               >
                 <Plus className="mr-1 size-3.5" />
-                Agregar
+                {product.stock != null && Number(product.stock) > 0 ? 'Agregar' : 'Sin stock'}
               </Button>
             </motion.div>
           ))}

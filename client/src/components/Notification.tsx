@@ -1,11 +1,11 @@
 import { Toaster } from 'sonner';
 
-function Notification() {
+export const Notification = () => {
   return (
     <Toaster
-      position="top-right"
+      position="top-center"
       richColors
-      closeButton
+      closeButton={false}
       duration={5000}
       toastOptions={{
         className: 'font-sans text-sm',
@@ -14,4 +14,4 @@ function Notification() {
   );
 }
 
-export default Notification;
+

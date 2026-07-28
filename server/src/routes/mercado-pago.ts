@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { MercadoPagoService, MPItem } from '../services/MercadoPagoService';
 import { PagosService } from '../services/PagosService';
 import { VentasService } from '../services/VentasService';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -37,7 +38,7 @@ interface WebhookBody {
  * @desc    Create a Mercado Pago payment preference for a venta
  * @access  Private
  */
-router.post('/preferencia', async (req: Request, res: Response) => {
+router.post('/preferencia', authenticateToken, async (req: Request, res: Response) => {
   try {
     const body = req.body as PreferenciaBody;
     const { ventaId, items } = body;
@@ -81,10 +82,12 @@ router.post('/webhook', async (req: Request, res: Response) => {
   try {
     const mpService = new MercadoPagoService();
 
-    // 1. Verify IPN signature
-    const validSignature = await mpService.verifySignature(
+    // 1. Verify IPN signature using raw body bytes
+    const rawBody = (req as unknown as Record<string, unknown>).rawBody as Buffer | undefined;
+    const bodyForSignature = rawBody ? rawBody.toString() : JSON.stringify(req.body);
+    const validSignature = mpService.verifySignature(
       req.headers as Record<string, string | undefined>,
-      JSON.stringify(req.body),
+      bodyForSignature,
     );
 
     if (!validSignature) {
@@ -92,19 +95,32 @@ router.post('/webhook', async (req: Request, res: Response) => {
       return;
     }
 
-    const body = req.body as WebhookBody;
-    const { type, data } = body;
+    const body = req.body as Record<string, unknown>;
 
-    if (type !== 'payment' || !data?.id) {
+    // Support both webhook formats:
+    // Webhook v2: { type: 'payment', data: { id: '...' } }
+    // IPN v1:     { resource: '...', topic: 'payment' } or query params ?id=...&topic=payment
+    const webhookType = (body.type as string) || (body.topic as string) || (req.query.topic as string);
+    const paymentId = (body.data as Record<string, string>)?.id
+      || (body.resource as string)
+      || (req.query.id as string);
+
+    if (webhookType !== 'payment' || !paymentId) {
+      console.log(`[MP Webhook] Ignoring non-payment notification (type=${webhookType})`);
       res.sendStatus(200);
       return;
     }
 
+    console.log(`[MP Webhook] Processing payment ${paymentId}`);
+
     // 2. Get payment details from MP
-    const paymentDetails = await mpService.handleWebhook(String(data.id));
+    const paymentDetails = await mpService.handleWebhook(paymentId);
+    console.log(`[MP Webhook] Payment details:`, JSON.stringify(paymentDetails));
     const ventaId = Number(paymentDetails.external_reference);
+    console.log(`[MP Webhook] Venta ID from external_reference: ${ventaId}`);
 
     if (!ventaId || isNaN(ventaId)) {
+      console.log(`[MP Webhook] No valid venta ID — skipping`);
       res.sendStatus(200);
       return;
     }
@@ -113,8 +129,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
     const pagosService = new PagosService();
     const existingPagos = await pagosService.getByVentaId(ventaId);
     const existingPago = existingPagos[0];
+    console.log(`[MP Webhook] Existing pago:`, existingPago ? JSON.stringify(existingPago) : 'none');
 
     if (existingPago?.referencia_externa) {
+      console.log(`[MP Webhook] Already processed — skipping`);
       res.sendStatus(200);
       return;
     }
@@ -127,6 +145,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
       referencia_externa: paymentDetails.payment_id,
       datos_json: JSON.stringify(paymentDetails),
     });
+    console.log(`[MP Webhook] Pago updated for venta ${ventaId}`);
 
     // 5. Update venta estado based on payment status
     const ventasService = new VentasService();
@@ -134,14 +153,17 @@ router.post('/webhook', async (req: Request, res: Response) => {
     if (paymentDetails.status === 'approved') {
       await ventasService.updateStatus(ventaId, 'completada');
       await ventasService.decrementStock(ventaId);
+      console.log(`[MP Webhook] Venta ${ventaId} → completada`);
     } else if (paymentDetails.status === 'rejected') {
       await ventasService.updateStatus(ventaId, 'cancelada');
+      console.log(`[MP Webhook] Venta ${ventaId} → cancelada`);
+    } else {
+      console.log(`[MP Webhook] Payment status: ${paymentDetails.status} — no venta update`);
     }
-    // in_process / pending → keep current estado (pendiente)
 
     res.sendStatus(200);
   } catch (error) {
-    console.error('Error processing MP webhook:', error);
+    console.error('[MP Webhook] Error processing webhook:', error);
     // Always return 200 to MP — they retry on non-200
     res.sendStatus(200);
   }

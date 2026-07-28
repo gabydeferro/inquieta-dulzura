@@ -13,6 +13,7 @@ export interface ProductoDTO {
   costo?: number;
   sku?: string;
   activo: boolean;
+  stock?: number;
   recetas?: ProductoRecetaDTO[];
 }
 
@@ -23,6 +24,9 @@ export interface CreateProductoDTO {
   precio: number;
   costo?: number;
   sku?: string;
+  cantidad_disponible?: number;
+  cantidad_minima?: number;
+  unidad_medida?: 'unidades' | 'kg' | 'litros' | 'docenas';
 }
 
 export interface UpdateProductoDTO {
@@ -33,4 +37,7 @@ export interface UpdateProductoDTO {
   costo?: number;
   sku?: string;
   activo?: boolean;
+  cantidad_disponible?: number;
+  cantidad_minima?: number;
+  unidad_medida?: 'unidades' | 'kg' | 'litros' | 'docenas';
 }

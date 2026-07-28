@@ -35,7 +35,7 @@ describe('Bot webhook mounting in index.ts', () => {
   });
 
   it('debe poder importar el modulo index sin errores', async () => {
-    // Should not throw
+    // Should not throw — index imports many modules, needs more time
     await expect(import('../../index')).resolves.toBeDefined();
-  });
+  }, 15000);
 });

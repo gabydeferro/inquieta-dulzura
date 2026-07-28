@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { createContext, Dispatch ,useContext, useReducer, useEffect, ReactNode } from 'react';
 import { CartItem, CartState, CartAction } from '../types/Cart';
 
 const CART_KEY = 'inquieta-dulzura-cart';
@@ -72,7 +72,7 @@ interface CartContextType {
   items: CartItem[];
   total: number;
   itemCount: number;
-  dispatch: React.Dispatch<CartAction>;
+  dispatch: Dispatch<CartAction>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -85,7 +85,7 @@ export const useCart = () => {
   return context;
 };
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CartProvider = ({ children }: { children: ReactNode }): ReactNode => {
   const [state, dispatch] = useReducer(cartReducer, initialState, loadCartFromStorage);
 
   useEffect(() => {

@@ -43,6 +43,8 @@ describe('MercadoPagoService', () => {
     process.env = { ...OLD_ENV };
     process.env.MERCADO_PAGO_ACCESS_TOKEN = 'test-access-token';
     process.env.CLIENT_URL = 'http://localhost:5173';
+    process.env.NODE_ENV = 'test';
+    process.env.MP_WEBHOOK_SECRET = 'test-webhook-secret';
     vi.clearAllMocks();
   });
 
@@ -102,12 +104,14 @@ describe('MercadoPagoService', () => {
             { id: '2', title: 'Alfajor x6', quantity: 1, unit_price: 3000, currency_id: 'ARS' },
           ],
           external_reference: '42',
+          statement_descriptor: 'INQUIETA DULZURA',
+          binary_mode: true,
+          payment_methods: { installments: 12 },
           back_urls: {
             success: 'http://localhost:5173/ventas?pago=exito',
             failure: 'http://localhost:5173/ventas?pago=fallo',
             pending: 'http://localhost:5173/ventas?pago=pendiente',
           },
-          auto_return: 'approved',
         },
       });
     });
@@ -195,21 +199,23 @@ describe('MercadoPagoService', () => {
 
   describe('verifySignature', () => {
     test('returns true for a valid HMAC-SHA256 signature', async () => {
-      process.env.MERCADO_PAGO_PUBLIC_KEY = 'TEST_PUBLIC_KEY_abc123';
+      process.env.NODE_ENV = 'production';
+      process.env.MP_WEBHOOK_SECRET = 'TEST_WEBHOOK_SECRET_abc123';
       const service = new MercadoPagoService();
 
       // Generate a known signature
       const crypto = await import('crypto');
       const body = '{"type":"payment","data":{"id":"123"}}';
       const ts = String(Math.floor(Date.now() / 1000));
-      const manifest = `id:123;ts:${ts};`;
-      const hmac = crypto.createHmac('sha256', 'TEST_PUBLIC_KEY_abc123');
+      const requestId = 'test-request-id';
+      const manifest = `id:123;request-id:${requestId};ts:${ts};`;
+      const hmac = crypto.createHmac('sha256', 'TEST_WEBHOOK_SECRET_abc123');
       hmac.update(manifest);
       const v1 = hmac.digest('hex');
       const signature = `ts=${ts},v1=${v1}`;
 
       const result = await service.verifySignature(
-        { 'x-signature': signature } as Record<string, string>,
+        { 'x-signature': signature, 'x-request-id': requestId } as Record<string, string>,
         body,
       );
 
@@ -217,17 +223,20 @@ describe('MercadoPagoService', () => {
     });
 
     test('returns false when x-signature header is missing', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.MP_WEBHOOK_SECRET = 'test-secret';
       const service = new MercadoPagoService();
-      const result = await service.verifySignature({}, '{}');
+      const result = await service.verifySignature({ 'x-request-id': 'test' }, '{}');
       expect(result).toBe(false);
     });
 
     test('returns false for an invalid signature', async () => {
-      process.env.MERCADO_PAGO_PUBLIC_KEY = 'TEST_PUBLIC_KEY_abc123';
+      process.env.NODE_ENV = 'production';
+      process.env.MP_WEBHOOK_SECRET = 'TEST_WEBHOOK_SECRET_abc123';
       const service = new MercadoPagoService();
 
       const result = await service.verifySignature(
-        { 'x-signature': 'ts=12345,v1=invalidsignature' },
+        { 'x-signature': 'ts=12345,v1=invalidsignature', 'x-request-id': 'test-request-id' },
         '{"type":"payment","data":{"id":"123"}}',
       );
 

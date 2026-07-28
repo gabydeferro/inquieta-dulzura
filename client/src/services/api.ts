@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, create } from 'axios';
 import { Ingrediente } from '../types/Ingrediente';
 import { RecetaDTO, CreateRecetaDTO, UpdateRecetaDTO } from '../types/Receta';
 import { VentaResponse, VentaCreateInput, VentaHistorial } from '../types/Venta';
@@ -22,7 +22,7 @@ class ApiService {
   private refreshSubscribers: Array<(token: string) => void> = [];
 
   constructor() {
-    this.api = axios.create({
+    this.api = create({
       baseURL: API_URL,
       headers: {
         'Content-Type': 'application/json',

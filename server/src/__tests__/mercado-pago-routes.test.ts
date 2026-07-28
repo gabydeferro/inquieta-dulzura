@@ -3,6 +3,15 @@ import express from 'express';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { createHmac } from 'crypto';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secret-key-change-in-production';
+
+function signToken(payload: { userId: number; email: string; rol: 'admin' | 'usuario' }): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+}
+
+const adminToken = signToken({ userId: 1, email: 'admin@test.com', rol: 'admin' });
 
 // ──────────────────────────────────────────────
 // Mocks — hoisted before ALL imports
@@ -62,11 +71,12 @@ import mercadoPagoRouter from '../routes/mercado-pago';
 // Helpers
 // ──────────────────────────────────────────────
 
-const TEST_PUBLIC_KEY = 'TEST_PUBLIC_KEY_routes_test';
+const TEST_PUBLIC_KEY = 'TEST_WEBHOOK_SECRET_routes_test';
 
 function signBody(paymentId: string, ts?: string): string {
   const timestamp = ts ?? String(Math.floor(Date.now() / 1000));
-  const manifest = `id:${paymentId};ts:${timestamp};`;
+  const requestId = 'test-request-id';
+  const manifest = `id:${paymentId};request-id:${requestId};ts:${timestamp};`;
   const hmac = createHmac('sha256', TEST_PUBLIC_KEY);
   hmac.update(manifest);
   return `ts=${timestamp},v1=${hmac.digest('hex')}`;
@@ -143,6 +153,8 @@ async function makeRequest(
 describe('Mercado Pago Routes — conditional mount integration', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete process.env.NODE_ENV;
+    delete process.env.MP_WEBHOOK_SECRET;
   });
 
   // ── Suite 1: MP IS configured ──
@@ -151,7 +163,8 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
     beforeEach(() => {
       vi.mocked(verificarConfiguracion).mockReturnValue(true);
       process.env.MERCADO_PAGO_ACCESS_TOKEN = 'test-access-token';
-      process.env.MERCADO_PAGO_PUBLIC_KEY = TEST_PUBLIC_KEY;
+      process.env.MP_WEBHOOK_SECRET = TEST_PUBLIC_KEY;
+      process.env.NODE_ENV = 'production';
     });
 
     test('routes are mounted — POST /preferencia responds (not 404)', async () => {
@@ -165,7 +178,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
         JSON.stringify({
           ventaId: 1,
           items: [{ title: 'Torta', quantity: 1, unit_price: 5000 }],
@@ -184,7 +197,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
         JSON.stringify({ items: [{ title: 'Torta', quantity: 1, unit_price: 5000 }] }),
       );
 
@@ -198,7 +211,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json' },
+        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
         JSON.stringify({ ventaId: 1, items: [] }),
       );
 
@@ -226,6 +239,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('MP-PAY-123'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-123' } }),
       );
@@ -243,6 +257,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': 'ts=123,v1=invalid',
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-456' } }),
       );
@@ -271,6 +286,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('MP-PAY-789'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-789' } }),
       );
@@ -304,6 +320,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('MP-PAY-NEW'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-NEW' } }),
       );
@@ -342,6 +359,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('MP-PAY-REJ'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-REJ' } }),
       );
@@ -376,6 +394,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('MP-PAY-PEND'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'payment', data: { id: 'MP-PAY-PEND' } }),
       );
@@ -401,6 +420,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         {
           'Content-Type': 'application/json',
           'x-signature': signBody('unknown-123'),
+          'x-request-id': 'test-request-id',
         },
         JSON.stringify({ type: 'unknown', data: { id: 'unknown-123' } }),
       );

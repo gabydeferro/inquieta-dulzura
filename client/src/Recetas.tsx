@@ -20,6 +20,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   BookOpen,
   Plus,
   Clock,
@@ -71,7 +78,7 @@ const Recetas: React.FC = () => {
     ingredientes: [],
   });
   const [selectedIngredienteId, setSelectedIngredienteId] = useState<number | ''>('');
-  const [cantidad, setCantidad] = useState<number>(0);
+  const [cantidad, setCantidad] = useState<number>(1);
 
   const cargarIngredientes = async () => {
     try {
@@ -149,6 +156,8 @@ const Recetas: React.FC = () => {
     setShowModal(false);
     setEditingReceta(null);
     setErrors({});
+    setSelectedIngredienteId('');
+    setCantidad(1);
     resetForm();
   };
 
@@ -186,10 +195,20 @@ const Recetas: React.FC = () => {
   };
 
   const handleAgregarIngrediente = () => {
-    if (!selectedIngredienteId || cantidad <= 0) return;
+    if (!selectedIngredienteId) {
+      showNotification('Seleccioná un ingrediente del listado', 'error');
+      return;
+    }
+    if (cantidad <= 0) {
+      showNotification('Ingresá una cantidad mayor a 0', 'error');
+      return;
+    }
 
     const ingrediente = ingredientesDisponibles.find((i) => i.id === selectedIngredienteId);
-    if (!ingrediente) return;
+    if (!ingrediente) {
+      showNotification('Ingrediente no encontrado', 'error');
+      return;
+    }
 
     const nuevoIngrediente: FormIngrediente = {
       ingrediente_id: ingrediente.id as number,
@@ -553,7 +572,7 @@ const Recetas: React.FC = () => {
                 </div>
               </motion.div>
 
-              <DialogFooter className="!mt-6">
+              <DialogFooter className="mx-0 mb-0 !mt-6">
                 <Button variant="secondary" onClick={() => handlePrint(selectedReceta)}>
                   <Printer className="size-4" />
                   Imprimir Receta
@@ -573,14 +592,14 @@ const Recetas: React.FC = () => {
         }}
       >
         <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
+          <DialogHeader className="px-1">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="size-5 text-brand-violet" />
               {editingReceta ? 'Editar Receta' : 'Nueva Receta'}
             </DialogTitle>
           </DialogHeader>
 
-          <motion.div className="max-h-[65vh] overflow-y-auto space-y-4 py-4" variants={fadeIn}>
+          <motion.div className="max-h-[65vh] overflow-y-auto space-y-4 px-1 py-4" variants={fadeIn}>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="nombre">Nombre *</Label>
@@ -633,7 +652,7 @@ const Recetas: React.FC = () => {
                 value={formData.descripcion}
                 onChange={handleFormChange}
                 rows={3}
-                className={`h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 ${errors.descripcion ? 'border-destructive' : ''}`}
+                className={`h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 box-border md:text-sm dark:bg-input/30 ${errors.descripcion ? 'border-destructive' : ''}`}
               />
               {errors.descripcion && (
                 <p className="text-xs text-destructive">{errors.descripcion}</p>
@@ -642,29 +661,35 @@ const Recetas: React.FC = () => {
 
             <div className="grid gap-2">
               <Label>Ingredientes</Label>
-              <div className="flex flex-wrap items-end gap-2">
-                <select
-                  value={selectedIngredienteId}
-                  onChange={(e) =>
-                    setSelectedIngredienteId(e.target.value ? parseInt(e.target.value) : '')
-                  }
-                  className="flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                >
-                  <option value="">Seleccionar ingrediente...</option>
-                  {ingredientesDisponibles.map((ing) => (
-                    <option key={ing.id} value={ing.id}>
-                      {ing.nombre} ({ing.unidad_medida})
-                    </option>
-                  ))}
-                </select>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="flex-1 grid gap-2">
+                  <Select
+                    value={selectedIngredienteId.toString()}
+                    onValueChange={(value) =>
+                      setSelectedIngredienteId(value ? parseInt(value) : '')
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar ingrediente..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ingredientesDisponibles.map((ing) => (
+                        <SelectItem key={ing.id} value={String(ing.id)}>
+                          {ing.nombre} ({ing.unidad_medida})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Input
                   type="number"
                   placeholder="Cantidad"
-                  value={cantidad || ''}
+                  value={cantidad}
                   onChange={(e) => setCantidad(parseFloat(e.target.value) || 0)}
-                  className="w-28"
+                  className="w-full sm:w-28"
+                  min="1"
                 />
-                <Button type="button" variant="secondary" onClick={handleAgregarIngrediente}>
+                <Button type="button" variant="secondary" onClick={handleAgregarIngrediente} className="w-full sm:w-auto">
                   <Plus className="size-4" />
                   Agregar
                 </Button>
@@ -715,7 +740,7 @@ const Recetas: React.FC = () => {
             </div>
           </motion.div>
 
-          <DialogFooter>
+          <DialogFooter className="mx-0 mb-0">
             <Button type="button" variant="outline" onClick={handleCloseModal}>
               Cancelar
             </Button>

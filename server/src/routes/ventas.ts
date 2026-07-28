@@ -6,10 +6,10 @@ import { ventaCreateSchema } from '../schemas/venta.schema';
 
 const router = Router();
 
-router.get('/', authenticateToken, getVentas);
+router.get('/', authenticateToken, requireAdmin, getVentas);
 router.get('/historial', authenticateToken, requireAdmin, getHistorial);
-router.get('/:id', getVentaById);
-router.post('/', validate(ventaCreateSchema, 'body'), createVenta);
+router.get('/:id', authenticateToken, getVentaById);
+router.post('/', authenticateToken, validate(ventaCreateSchema, 'body'), createVenta);
 router.patch('/:id/status', authenticateToken, requireAdmin, updateVentaStatus);
 
 export default router;

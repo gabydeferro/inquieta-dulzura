@@ -144,10 +144,10 @@ describe('Inventario Component', () => {
       expect(screen.getByText('Torta de Chocolate')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText(/Nuevo Producto/));
+    await user.click(screen.getByRole('button', { name: /Nuevo Producto/ }));
 
     await waitFor(() => {
-      expect(screen.getByText('Nuevo Producto')).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 

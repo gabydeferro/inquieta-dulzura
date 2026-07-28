@@ -9,6 +9,9 @@ export const productoSchema = z.object({
   sku: z.string().optional(),
   imagen: z.string().optional(),
   activo: z.boolean().optional(),
+  cantidad_disponible: z.number().int().min(0).optional(),
+  cantidad_minima: z.number().int().min(0).optional(),
+  unidad_medida: z.enum(['unidades', 'kg', 'litros', 'docenas']).optional(),
 });
 
 export const productoUpdateSchema = z.object({
@@ -20,6 +23,9 @@ export const productoUpdateSchema = z.object({
   sku: z.string().optional(),
   imagen: z.string().optional(),
   activo: z.boolean().optional(),
+  cantidad_disponible: z.number().int().min(0).optional(),
+  cantidad_minima: z.number().int().min(0).optional(),
+  unidad_medida: z.enum(['unidades', 'kg', 'litros', 'docenas']).optional(),
 });
 
 export const productoIdSchema = z.object({

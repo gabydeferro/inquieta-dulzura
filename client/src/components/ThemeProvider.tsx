@@ -1,13 +1,13 @@
 'use client';
 
-import * as React from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type Theme = 'light' | 'dark';
 
 interface ThemeProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 }
@@ -18,14 +18,14 @@ interface ThemeContextValue {
   toggleTheme: () => void;
 }
 
-const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function ThemeProvider({
   children,
   defaultTheme = 'light',
   storageKey = 'theme',
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = React.useState<Theme>(() => {
+  const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(storageKey) as Theme | null;
       if (stored === 'light' || stored === 'dark') return stored;
@@ -33,7 +33,7 @@ function ThemeProvider({
     return defaultTheme;
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
@@ -43,11 +43,11 @@ function ThemeProvider({
     localStorage.setItem(storageKey, theme);
   }, [theme, storageKey]);
 
-  const setTheme = React.useCallback((newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
   }, []);
 
-  const toggleTheme = React.useCallback(() => {
+  const toggleTheme = useCallback(() => {
     setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
@@ -59,7 +59,7 @@ function ThemeProvider({
 }
 
 function useTheme(): ThemeContextValue {
-  const context = React.useContext(ThemeContext);
+  const context = useContext(ThemeContext);
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../services/api';
 
 interface Usuario {
@@ -32,7 +32,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: AuthProviderProps): ReactNode => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 

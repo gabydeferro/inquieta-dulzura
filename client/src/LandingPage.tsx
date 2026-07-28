@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
@@ -6,7 +6,7 @@ import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
 import { Cake, Cookie, Croissant, Candy, Truck, ShieldCheck, CreditCard } from 'lucide-react';
 
-const LandingPage: React.FC = () => {
+const LandingPage = (): ReactNode => {
   const { isAuthenticated } = useAuth();
   const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 

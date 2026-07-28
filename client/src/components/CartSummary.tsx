@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartItem } from '../types/Cart';
 import { Button } from '@/components/ui/button';
@@ -20,13 +19,13 @@ interface CartSummaryProps {
   onRemove: (producto_id: number) => void;
 }
 
-const CartSummary: React.FC<CartSummaryProps> = ({
+const CartSummary = ({
   items,
   total,
   itemCount,
   onUpdateQuantity,
   onRemove,
-}) => {
+}: CartSummaryProps) => {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
@@ -90,9 +89,9 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-sm">${item.precio.toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-sm">${Number(item.precio).toFixed(2)}</TableCell>
                   <TableCell className="text-right text-sm font-semibold">
-                    ${(item.precio * item.cantidad).toFixed(2)}
+                    ${(Number(item.precio) * item.cantidad).toFixed(2)}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -115,7 +114,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 
       <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
         <span className="text-sm font-bold">Total:</span>
-        <span className="text-lg font-bold text-emerald-600">${total.toFixed(2)}</span>
+        <span className="text-lg font-bold text-emerald-600">${Number(total).toFixed(2)}</span>
       </div>
     </div>
   );

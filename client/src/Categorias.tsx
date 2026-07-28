@@ -5,7 +5,18 @@ import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { useReducedMotion } from './lib/animations';
 import { categoriaSchema, categoriaUpdateSchema } from './schemas/categoria.schema';
-import './Categorias.css';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Tags, Plus, Pencil, Trash2, FolderOpen } from 'lucide-react';
 
 interface Categoria {
   id: number;
@@ -17,7 +28,7 @@ interface Categoria {
 const Categorias: React.FC = () => {
   const { showNotification } = useNotification();
   const confirm = useConfirm();
-  const { fadeUp, staggerContainer } = useReducedMotion();
+  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -78,7 +89,7 @@ const Categorias: React.FC = () => {
       resetForm();
       cargarCategorias();
       showNotification(
-        editingCategoria ? 'Categoría actualizada!' : 'Categoría creada con éxito! ✨',
+        editingCategoria ? 'Categoría actualizada!' : 'Categoría creada con éxito!',
         'success',
       );
     } catch (error: unknown) {
@@ -128,136 +139,163 @@ const Categorias: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="loading">Cargando categorías...</div>;
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
+        Cargando categorías...
+      </div>
+    );
   }
 
   return (
-    <div className="categorias-container">
+    <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       <motion.header
-        className="categorias-header"
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         variants={fadeUp}
         initial="hidden"
         animate="visible"
       >
         <div>
-          <h1>🏷️ Gestión de Categorías</h1>
-          <p>Organiza tus productos por tipo</p>
+          <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
+            <Tags className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
+            Gestión de Categorías
+          </h1>
+          <p className="text-muted-foreground">Organiza tus productos por tipo</p>
         </div>
-        <button
-          className="btn btn-primary"
+        <Button
           onClick={() => {
             resetForm();
             setShowModal(true);
             setErrors({});
           }}
         >
-          ➕ Nueva Categoría
-        </button>
+          <Plus className="size-4" /> Nueva Categoría
+        </Button>
       </motion.header>
 
-      <motion.div
-        className="categorias-grid"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {categorias.map((categoria) => (
-          <motion.div key={categoria.id} variants={fadeUp} layout>
-            <div className="categoria-card card">
-              <div className="categoria-content">
-                <h3>{categoria.nombre}</h3>
-                <p>{categoria.descripcion || 'Sin descripción'}</p>
-              </div>
-              <div className="categoria-actions">
-                <button className="btn-icon" onClick={() => handleEdit(categoria)} title="Editar">
-                  ✏️
-                </button>
-                <button
-                  className="btn-icon btn-danger"
-                  onClick={() => handleDelete(categoria.id)}
-                  title="Eliminar"
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+      {categorias.length === 0 ? (
+        <motion.div
+          className="flex min-h-[30vh] flex-col items-center justify-center gap-4 text-muted-foreground"
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+        >
+          <FolderOpen className="size-12 opacity-40" />
+          <p className="text-lg">No hay categorías disponibles</p>
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+              setErrors({});
+            }}
+          >
+            <Plus className="size-4" />
+            Crear primera categoría
+          </Button>
+        </motion.div>
+      ) : (
+        <motion.div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          {categorias.map((categoria) => (
+            <motion.div key={categoria.id} variants={fadeUp} layout>
+              <Card className="transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <CardHeader className="flex flex-row items-start justify-between pb-2">
+                  <CardTitle className="text-base sm:text-lg">{categoria.nombre}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    {categoria.descripcion || 'Sin descripción'}
+                  </p>
+                  <div className="flex justify-end gap-1 border-t pt-3">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEdit(categoria)}
+                      title="Editar"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleDelete(categoria.id)}
+                      title="Eliminar"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
 
-      {showModal && (
-        <div
-          className="modal-overlay"
-          onClick={() => {
+      <Dialog
+        open={showModal}
+        onOpenChange={(open) => {
+          if (!open) {
             setShowModal(false);
             setErrors({});
-          }}
-        >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <motion.div variants={fadeUp}>
-              <div className="modal-header">
-              <h2>{editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}</h2>
-              <button
-                className="btn-close"
-                onClick={() => {
-                  setShowModal(false);
-                  setErrors({});
-                }}
-              >
-                ✕
-              </button>
-            </div>
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[450px]">
+          <form onSubmit={handleSubmit} noValidate>
+            <DialogHeader>
+              <DialogTitle>{editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
+            </DialogHeader>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="form-group">
-                <label>Nombre de la Categoría *</label>
-                <input
-                  type="text"
+            <motion.div className="grid gap-4 py-4" variants={fadeUp} initial="hidden" animate="visible">
+              <div className="grid gap-2">
+                <Label htmlFor="nombre">Nombre *</Label>
+                <Input
+                  id="nombre"
                   value={formData.nombre}
                   onChange={(e) => {
                     setFormData({ ...formData, nombre: e.target.value });
                     if (errors.nombre) setErrors({ ...errors, nombre: '' });
                   }}
-                  className={errors.nombre ? 'input-error' : ''}
-                  required
+                  className={errors.nombre ? 'border-destructive' : ''}
                   placeholder="Ej: Tortas, Panes, Cookies..."
+                  required
                 />
-                {errors.nombre && <span className="field-error">{errors.nombre}</span>}
+                {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
               </div>
 
-              <div className="form-group">
-                <label>Descripción</label>
+              <div className="grid gap-2">
+                <Label htmlFor="descripcion">Descripción</Label>
                 <textarea
+                  id="descripcion"
                   value={formData.descripcion}
-                  onChange={(e) => {
-                    setFormData({ ...formData, descripcion: e.target.value });
-                    if (errors.descripcion) setErrors({ ...errors, descripcion: '' });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   rows={3}
                   placeholder="Breve descripción de la categoría..."
+                  className="h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
                 />
               </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setShowModal(false);
-                    setErrors({});
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingCategoria ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
             </motion.div>
-          </div>
-        </div>
-      )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowModal(false);
+                  setErrors({});
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">{editingCategoria ? 'Actualizar' : 'Crear'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

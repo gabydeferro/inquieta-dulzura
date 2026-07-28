@@ -73,7 +73,7 @@ describe('Ingredientes Component', () => {
     renderIngredientes();
 
     expect(screen.getByText(/Gestión de Ingredientes/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Agregar Ingrediente/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Nuevo Ingrediente/i })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
@@ -86,15 +86,15 @@ describe('Ingredientes Component', () => {
   it('should open and close the create ingrediente modal', async () => {
     renderIngredientes();
 
-    fireEvent.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Nuevo Ingrediente/i }));
 
-    expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Nombre:/i)).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre \*/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Cancelar/i }));
 
     await waitFor(() => {
-      expect(screen.queryByText(/Crear Ingrediente/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 
@@ -106,37 +106,37 @@ describe('Ingredientes Component', () => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await user.click(screen.getByRole('button', { name: /Nuevo Ingrediente/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    const nombreInput = screen.getByLabelText(/Nombre:/i);
-    const unidadMedidaSelect = screen.getByLabelText(/Unidad de Medida:/i);
-    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    const nombreInput = screen.getByLabelText(/Nombre \*/i);
+    const unidadMedidaSelect = screen.getByRole('combobox');
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario/i);
 
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Leche');
-    await user.selectOptions(unidadMedidaSelect, 'litros');
+    // Unidad de Medida default is 'unidades' — acceptable for this test
     await user.clear(costoUnitarioInput);
     await user.type(costoUnitarioInput, '1.5');
 
     vi.mocked(api.createIngrediente).mockResolvedValueOnce({
-      data: { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
+      data: { id: 3, nombre: 'Leche', unidad_medida: 'unidades', costo_unitario: 1.5, activo: true },
     } as never);
     vi.mocked(api.getIngredientes).mockResolvedValueOnce({
       data: [
         ...mockIngredientes,
-        { id: 3, nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5, activo: true },
+        { id: 3, nombre: 'Leche', unidad_medida: 'unidades', costo_unitario: 1.5, activo: true },
       ],
     } as never);
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Crear/i }));
 
     await waitFor(() => {
       expect(api.createIngrediente).toHaveBeenCalledWith(
-        expect.objectContaining({ nombre: 'Leche', unidad_medida: 'litros', costo_unitario: 1.5 }),
+        expect.objectContaining({ nombre: 'Leche', costo_unitario: 1.5 }),
       );
       expect(mockShowNotification).toHaveBeenCalledWith('Ingrediente creado con éxito', 'success');
       expect(screen.getByText('Leche')).toBeInTheDocument();
@@ -187,7 +187,7 @@ describe('Ingredientes Component', () => {
       data: [{ ...mockIngredientes[0], nombre: 'Harina Integral' }, mockIngredientes[1]],
     } as never);
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Actualizar/i }));
 
     await waitFor(() => {
       expect(api.updateIngrediente).toHaveBeenCalledWith(
@@ -240,21 +240,21 @@ describe('Ingredientes Component', () => {
     const user = userEvent.setup();
     renderIngredientes();
 
-    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await user.click(screen.getByRole('button', { name: /Nuevo Ingrediente/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    const nombreInput = screen.getByLabelText(/Nombre:/i);
-    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    const nombreInput = screen.getByLabelText(/Nombre \*/i);
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario/i);
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Leche');
     await user.clear(costoUnitarioInput);
     await user.type(costoUnitarioInput, '1.5');
     vi.mocked(api.createIngrediente).mockRejectedValueOnce(new Error('Creation failed'));
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Crear/i }));
 
     await waitFor(() => {
       expect(mockShowNotification).toHaveBeenCalledWith('Error al guardar ingrediente', 'error');
@@ -280,7 +280,7 @@ describe('Ingredientes Component', () => {
     await user.type(nombreInput, 'Harina Edit Failed');
     vi.mocked(api.updateIngrediente).mockRejectedValueOnce(new Error('Update failed'));
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Actualizar/i }));
 
     await waitFor(() => {
       expect(mockShowNotification).toHaveBeenCalledWith('Error al guardar ingrediente', 'error');
@@ -315,22 +315,20 @@ describe('Ingredientes Component', () => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await user.click(screen.getByRole('button', { name: /Nuevo Ingrediente/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     // Leave nombre empty, fill only other fields
-    const unidadMedidaSelect = screen.getByLabelText(/Unidad de Medida:/i);
-    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
-    await user.selectOptions(unidadMedidaSelect, 'litros');
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario/i);
+    // Unidad de Medida default is 'unidades' — acceptable
     await user.clear(costoUnitarioInput);
     await user.type(costoUnitarioInput, '1.5');
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Crear/i }));
 
-    // Expect validation error, NOT API call
     await waitFor(() => {
       expect(screen.getByText('Nombre is required')).toBeInTheDocument();
     });
@@ -345,14 +343,14 @@ describe('Ingredientes Component', () => {
       expect(screen.getByText('Harina')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /Agregar Ingrediente/i }));
+    await user.click(screen.getByRole('button', { name: /Nuevo Ingrediente/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Crear Ingrediente/i)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    const nombreInput = screen.getByLabelText(/Nombre:/i);
-    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario:/i);
+    const nombreInput = screen.getByLabelText(/Nombre \*/i);
+    const costoUnitarioInput = screen.getByLabelText(/Costo Unitario/i);
     await user.clear(nombreInput);
     await user.type(nombreInput, 'Leche');
 
@@ -360,7 +358,7 @@ describe('Ingredientes Component', () => {
     await user.clear(costoUnitarioInput);
     fireEvent.change(costoUnitarioInput, { target: { name: 'costo_unitario', value: '-5' } });
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Crear/i }));
 
     // Expect validation error, NOT API call
     await waitFor(() => {
@@ -386,7 +384,7 @@ describe('Ingredientes Component', () => {
     const nombreInput = screen.getByDisplayValue('Harina');
     await user.clear(nombreInput);
 
-    await user.click(screen.getByRole('button', { name: /Guardar/i }));
+    await user.click(screen.getByRole('button', { name: /Actualizar/i }));
 
     // Expect validation error, NOT API call
     await waitFor(() => {

@@ -1,5 +1,5 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 export interface MPItem {
   id?: string;
@@ -49,6 +49,7 @@ export class MercadoPagoService {
 
   async createPreference(ventaId: number, items: MPItem[]): Promise<PreferenceResult> {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const notificationUrl = process.env.MERCADO_PAGO_NOTIFICATION_URL;
 
     const result = await this.preference.create({
       body: {
@@ -58,12 +59,17 @@ export class MercadoPagoService {
           currency_id: 'ARS' as const,
         })),
         external_reference: String(ventaId),
+        statement_descriptor: 'INQUIETA DULZURA',
+        binary_mode: true,
+        payment_methods: {
+          installments: 12,
+        },
         back_urls: {
           success: `${clientUrl}/ventas?pago=exito`,
           failure: `${clientUrl}/ventas?pago=fallo`,
           pending: `${clientUrl}/ventas?pago=pendiente`,
         },
-        auto_return: 'approved' as const,
+        ...(notificationUrl ? { notification_url: notificationUrl } : {}),
       },
     });
 
@@ -87,18 +93,29 @@ export class MercadoPagoService {
   }
 
   /**
-   * Verify Mercado Pago IPN webhook x-signature using HMAC-SHA256.
-   * MP signs: "id:{paymentId};ts:{timestamp};" with the public key.
+   * Verify Mercado Pago webhook x-signature using HMAC-SHA256.
+   * Canonical string: id:<data.id>;request-id:<x-request-id>;ts:<ts>;
+   * Signed with the webhook secret key from the MP dashboard.
    */
-  async verifySignature(
+  verifySignature(
     headers: Record<string, string | undefined>,
     body: string,
-  ): Promise<boolean> {
-    const signatureHeader = headers['x-signature'];
-    if (!signatureHeader) return false;
+  ): boolean {
+    // Skip signature verification in development — verify only in production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[MP Webhook] Dev mode — skipping signature verification');
+      return true;
+    }
 
-    const publicKey = process.env.MERCADO_PAGO_PUBLIC_KEY;
-    if (!publicKey) return false;
+    const signatureHeader = headers['x-signature'];
+    const requestId = headers['x-request-id'];
+    if (!signatureHeader || !requestId) return false;
+
+    const secret = process.env.MP_WEBHOOK_SECRET;
+    if (!secret) {
+      console.warn('MP_WEBHOOK_SECRET not configured — skipping signature verification');
+      return true;
+    }
 
     try {
       // Parse x-signature: "ts=123,v1=abcdef..."
@@ -112,19 +129,23 @@ export class MercadoPagoService {
       const v1 = parts['v1'];
       if (!ts || !v1) return false;
 
-      // Parse body to get payment id
+      // Parse body to get data.id
       const parsed = JSON.parse(body) as Record<string, unknown>;
       const data = parsed.data as Record<string, string> | undefined;
-      const paymentId = data?.id;
-      if (!paymentId) return false;
+      const dataId = data?.id;
+      if (!dataId) return false;
 
-      // Reconstruct manifest and verify HMAC
-      const manifest = `id:${paymentId};ts:${ts};`;
-      const hmac = createHmac('sha256', publicKey);
+      // Build canonical string per MP docs
+      const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+      const hmac = createHmac('sha256', secret);
       hmac.update(manifest);
       const expectedV1 = hmac.digest('hex');
 
-      return v1 === expectedV1;
+      // Timing-safe comparison
+      const expectedBuf = Buffer.from(expectedV1, 'hex');
+      const receivedBuf = Buffer.from(v1, 'hex');
+      if (expectedBuf.length !== receivedBuf.length) return false;
+      return timingSafeEqual(expectedBuf, receivedBuf);
     } catch {
       return false;
     }

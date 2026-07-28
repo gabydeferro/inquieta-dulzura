@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MetodoPago, METODOS_PAGO } from '../types/Cart';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -11,7 +11,7 @@ interface PaymentSelectorProps {
   onConfirm: (metodo: MetodoPago) => void;
 }
 
-const PaymentSelector: React.FC<PaymentSelectorProps> = ({ total, isSubmitting, onConfirm }) => {
+const PaymentSelector = ({ total, isSubmitting, onConfirm }: PaymentSelectorProps) => {
   const [selectedMethod, setSelectedMethod] = useState<MetodoPago>('efectivo');
 
   if (total <= 0) {
@@ -29,7 +29,7 @@ const PaymentSelector: React.FC<PaymentSelectorProps> = ({ total, isSubmitting, 
           <CreditCard className="size-4" />
           Método de Pago
         </h3>
-        <span className="text-lg font-bold text-emerald-600">${total.toFixed(2)}</span>
+        <span className="text-lg font-bold text-emerald-600">${Number(total).toFixed(2)}</span>
       </div>
 
       <RadioGroup

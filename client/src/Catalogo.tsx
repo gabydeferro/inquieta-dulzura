@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from './lib/animations';
@@ -28,7 +28,7 @@ interface ProductoDTO {
   imagen?: string; // Placeholder, la API de productos aún no sirve imágenes
 }
 
-const Catalogo: React.FC = () => {
+const Catalogo = (): ReactNode => {
   const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
   const [productos, setProductos] = useState<ProductoDTO[]>([]);
   const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);

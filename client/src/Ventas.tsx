@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { ReactNode, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import api from './services/api';
 import { useCart } from './contexts/CartContext';
@@ -14,7 +14,7 @@ import { useNotification } from './contexts/NotificationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, BarChart3, TrendingUp } from 'lucide-react';
 
-const Ventas: React.FC = () => {
+const Ventas = (): ReactNode => {
   const { items, total, itemCount, dispatch } = useCart();
   const { showNotification } = useNotification();
   const { fadeUp, staggerContainer } = useReducedMotion();
@@ -39,6 +39,17 @@ const Ventas: React.FC = () => {
 
   useEffect(() => {
     void cargarVentas();
+  }, [cargarVentas]);
+
+  // Auto-refresh ventas when user returns to tab (after MP checkout in new tab)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void cargarVentas();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [cargarVentas]);
 
   // Handle MP return URL params (?pago=exito|fallo|pendiente)
@@ -94,9 +105,9 @@ const Ventas: React.FC = () => {
 
     const productosPayload = items.map((item) => ({
       producto_id: item.producto_id,
-      cantidad: item.cantidad,
-      precio_unitario: item.precio,
-      subtotal: item.precio * item.cantidad,
+      cantidad: Number(item.cantidad),
+      precio_unitario: Number(item.precio),
+      subtotal: Number(item.precio) * Number(item.cantidad),
     }));
 
     const payload = {
@@ -118,18 +129,20 @@ const Ventas: React.FC = () => {
       const ventaResponse = await api.createVenta(result.data);
       dispatch({ type: 'CLEAR_CART' });
 
-      // If MP payment, create preference and redirect to checkout
+      // If MP payment, create preference and open checkout in new tab
       if (metodo === 'mercado_pago') {
         try {
           const mpItems = items.map((item) => ({
             title: item.nombre,
-            quantity: item.cantidad,
-            unit_price: item.precio,
+            quantity: Number(item.cantidad),
+            unit_price: Number(item.precio),
           }));
           const prefResponse = await api.createMPPreference(ventaResponse.data.id, mpItems);
           if (prefResponse.data?.data?.url) {
-            window.location.href = prefResponse.data.data.url;
-            return; // Don't show toast — redirecting
+            showNotification('Redirigiendo a Mercado Pago...', 'info');
+            window.open(prefResponse.data.data.url, '_blank');
+            cargarVentas(); // Refresh sales list in background
+            return;
           }
         } catch {
           showNotification('Error al crear preferencia de pago. La venta quedó pendiente.', 'error');
@@ -219,7 +232,7 @@ const Ventas: React.FC = () => {
                   Total Hoy
                 </p>
                 <p className="text-2xl font-bold text-foreground">
-                  ${ventas.reduce((sum, v) => sum + v.total, 0).toFixed(2)}
+                  ${Number(ventas.reduce((sum, v) => sum + Number(v.total), 0)).toFixed(2)}
                 </p>
               </div>
             </CardHeader>
@@ -236,7 +249,7 @@ const Ventas: React.FC = () => {
                 <p className="text-2xl font-bold text-foreground">
                   $
                   {ventas.length > 0
-                    ? (ventas.reduce((sum, v) => sum + v.total, 0) / ventas.length).toFixed(2)
+                    ? (Number(ventas.reduce((sum, v) => sum + Number(v.total), 0)) / ventas.length).toFixed(2)
                     : '0.00'}
                 </p>
               </div>
@@ -283,7 +296,7 @@ const Ventas: React.FC = () => {
                   </p>
                 </div>
                 <span className="text-xl font-bold text-emerald-600">
-                  ${venta.total.toFixed(2)}
+                  ${Number(venta.total).toFixed(2)}
                 </span>
               </CardHeader>
 
@@ -330,7 +343,7 @@ const Ventas: React.FC = () => {
                   <ul className="space-y-1">
                     {venta.productos.map((prod, idx) => (
                       <li key={idx} className="text-xs text-muted-foreground">
-                        {prod.cantidad}x {prod.nombre} — ${prod.subtotal.toFixed(2)}
+                        {prod.cantidad}x {prod.nombre} — ${Number(prod.subtotal).toFixed(2)}
                       </li>
                     ))}
                   </ul>

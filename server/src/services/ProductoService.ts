@@ -53,12 +53,26 @@ export class ProductoService {
   }
 
   async create(data: CreateProductoDTO): Promise<ProductoDTO> {
-    const { categoria_id, nombre, descripcion, precio, costo, sku } = data;
+    const { categoria_id, nombre, descripcion, precio, costo, sku, cantidad_disponible, cantidad_minima, unidad_medida } = data;
     const [result] = await connection.query<ResultSetHeader>(
       'INSERT INTO productos (categoria_id, nombre, descripcion, precio, costo, sku) VALUES (?, ?, ?, ?, ?, ?)',
       [categoria_id, nombre, descripcion || null, precio, costo || null, sku || null],
     );
     const insertedId = result.insertId;
+
+    // Create stock record if stock data provided
+    if (cantidad_disponible !== undefined || cantidad_minima !== undefined) {
+      await connection.query(
+        'INSERT INTO stock (producto_id, cantidad_disponible, cantidad_minima, unidad_medida) VALUES (?, ?, ?, ?)',
+        [
+          insertedId,
+          cantidad_disponible ?? 0,
+          cantidad_minima ?? 0,
+          unidad_medida || 'unidades',
+        ],
+      );
+    }
+
     return (await this.getById(insertedId))!;
   }
 
@@ -68,7 +82,8 @@ export class ProductoService {
       return null;
     }
 
-    const updatedProducto = { ...producto, ...data };
+    const { cantidad_disponible, cantidad_minima, unidad_medida, ...productoData } = data;
+    const updatedProducto = { ...producto, ...productoData };
 
     await connection.query(
       'UPDATE productos SET categoria_id = ?, nombre = ?, descripcion = ?, precio = ?, costo = ?, sku = ?, activo = ? WHERE id = ?',
@@ -84,6 +99,41 @@ export class ProductoService {
       ],
     );
 
+    // Update stock if any stock field provided
+    if (cantidad_disponible !== undefined || cantidad_minima !== undefined || unidad_medida !== undefined) {
+      const [existingStock] = await connection.query<RowDataPacket[]>(
+        'SELECT id FROM stock WHERE producto_id = ?',
+        [id],
+      );
+
+      if (existingStock.length > 0) {
+        const stockUpdates: string[] = [];
+        const stockValues: (number | string)[] = [];
+        if (cantidad_disponible !== undefined) {
+          stockUpdates.push('cantidad_disponible = ?');
+          stockValues.push(cantidad_disponible);
+        }
+        if (cantidad_minima !== undefined) {
+          stockUpdates.push('cantidad_minima = ?');
+          stockValues.push(cantidad_minima);
+        }
+        if (unidad_medida !== undefined) {
+          stockUpdates.push('unidad_medida = ?');
+          stockValues.push(unidad_medida);
+        }
+        stockValues.push(id);
+        await connection.query(
+          `UPDATE stock SET ${stockUpdates.join(', ')} WHERE producto_id = ?`,
+          stockValues,
+        );
+      } else {
+        await connection.query(
+          'INSERT INTO stock (producto_id, cantidad_disponible, cantidad_minima, unidad_medida) VALUES (?, ?, ?, ?)',
+          [id, cantidad_disponible ?? 0, cantidad_minima ?? 0, unidad_medida || 'unidades'],
+        );
+      }
+    }
+
     return await this.getById(id);
   }
 
@@ -96,7 +146,11 @@ export class ProductoService {
 
   async search(query: string): Promise<ProductoDTO[]> {
     const [rows] = await connection.query<RowDataPacket[]>(
-      'SELECT id, categoria_id, nombre, descripcion, precio, costo, sku, activo FROM productos WHERE nombre LIKE ? AND activo = true ORDER BY nombre ASC',
+      `SELECT p.id, p.categoria_id, p.nombre, p.descripcion, p.precio, p.costo, p.sku, p.activo,
+              s.cantidad_disponible AS stock
+       FROM productos p
+       LEFT JOIN stock s ON s.producto_id = p.id
+       WHERE p.nombre LIKE ? AND p.activo = true ORDER BY p.nombre ASC`,
       [`%${query}%`],
     );
     return rows as ProductoDTO[];

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
@@ -9,7 +9,7 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const NotificationProvider = ({ children }: { children: ReactNode }): ReactNode => {
   const showNotification = useCallback((message: string, type: NotificationType = 'info') => {
     switch (type) {
       case 'success':

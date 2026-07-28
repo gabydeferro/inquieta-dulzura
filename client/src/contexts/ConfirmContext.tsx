@@ -1,5 +1,5 @@
 /* Re-writing clean ConfirmContext */
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, ReactNode, useRef } from 'react';
 
 interface ConfirmOptions {
   title?: string;
@@ -21,7 +21,7 @@ interface ConfirmContextType {
 
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined);
 
-export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ConfirmProvider = ({ children }: { children: ReactNode }): ReactNode => {
   const [state, setState] = useState<ConfirmContextType['state']>({
     isOpen: false,
     options: {

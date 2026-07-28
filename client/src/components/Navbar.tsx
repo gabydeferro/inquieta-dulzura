@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,11 +28,11 @@ import {
   UserPlus,
 } from 'lucide-react';
 
-const Navbar: React.FC = () => {
+const Navbar = (): ReactNode => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -45,20 +45,20 @@ const Navbar: React.FC = () => {
 
   const navLinks = user
     ? [
-        { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/inventario', label: 'Inventario', icon: Package },
-        { to: '/recetas', label: 'Recetas', icon: BookOpen },
-        { to: '/ingredientes', label: 'Ingredientes', icon: Wheat },
-        { to: '/ventas', label: 'Ventas', icon: ShoppingCart },
-        { to: '/historial-ventas', label: 'Historial', icon: History },
-        { to: '/clientes', label: 'Clientes', icon: Users },
-        { to: '/contenido-digital', label: 'Contenido Digital', icon: Image },
-      ]
+        { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, adminOnly: true },
+        { to: '/inventario', label: 'Inventario', icon: Package, adminOnly: true },
+        { to: '/recetas', label: 'Recetas', icon: BookOpen, adminOnly: true },
+        { to: '/ingredientes', label: 'Ingredientes', icon: Wheat, adminOnly: true },
+        { to: '/ventas', label: 'Ventas', icon: ShoppingCart, adminOnly: true },
+        { to: '/historial-ventas', label: 'Historial', icon: History, adminOnly: true },
+        { to: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
+        { to: '/contenido-digital', label: 'Contenido Digital', icon: Image, adminOnly: true },
+      ].filter((link) => !(link.adminOnly && user.rol !== 'admin'))
     : [{ to: '/catalogo', label: 'Catálogo', icon: Tags }];
 
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-border/40 bg-accent/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
+      <div className="flex h-14 items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <Link
           to="/"
@@ -68,72 +68,73 @@ const Navbar: React.FC = () => {
           <span className="hidden sm:inline">Inquieta Dulzura</span>
         </Link>
 
-        {/* Desktop Nav */}
-        <ul className="ml-auto hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => {
-            const isActive = link.to === '/' ? pathname === '/' : pathname.startsWith(link.to);
-            return (
-              <li key={link.to}>
-                <Link
-                  to={link.to}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide no-underline transition-colors',
-                    isActive
-                      ? 'bg-brand-violet text-white'
-                      : 'text-brand-violet hover:bg-brand-violet hover:text-white',
-                  )}
-                >
-                  <link.icon className="size-4" />
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {/* Desktop Nav + Auth */}
+        <div className="ml-auto hidden min-w-0 items-center gap-3 md:flex">
+          <ul className="flex min-w-0 shrink items-center gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {navLinks.map((link) => {
+              const isActive = link.to === '/' ? pathname === '/' : pathname.startsWith(link.to);
+              return (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide no-underline transition-colors',
+                      isActive
+                        ? 'bg-brand-violet text-white'
+                        : 'text-brand-violet hover:bg-brand-violet hover:text-white',
+                    )}
+                  >
+                    <link.icon className="size-4" />
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
-        {/* Auth & Theme (Desktop) */}
-        <div className="hidden items-center gap-2 md:flex">
-          <ThemeToggle />
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-brand-violet">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="size-4 fill-brand-violet"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-                {user.nombre}
-              </span>
-              {user.rol === 'admin' && (
-                <span className="inline-block rounded-full bg-brand-violet px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  Admin
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-brand-violet">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-4 fill-brand-violet"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                  {user.nombre}
                 </span>
-              )}
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="size-4" />
-                <span className="sr-only">Salir</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-1.5 rounded-md border-2 border-brand-violet px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-brand-violet no-underline transition-colors hover:bg-brand-violet hover:text-white"
-              >
-                <LogIn className="size-4" />
-                Ingresar
-              </Link>
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-1.5 rounded-md bg-brand-violet px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white no-underline transition-colors hover:bg-black"
-              >
-                <UserPlus className="size-4" />
-                Registrarse
-              </Link>
-            </div>
-          )}
+                {user.rol === 'admin' && (
+                  <span className="inline-block rounded-full bg-brand-violet px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                    Admin
+                  </span>
+                )}
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="size-4" />
+                  <span className="sr-only">Salir</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1.5 rounded-md border-2 border-brand-violet px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-brand-violet no-underline transition-colors hover:bg-brand-violet hover:text-white"
+                >
+                  <LogIn className="size-4" />
+                  Ingresar
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-brand-violet px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white no-underline transition-colors hover:bg-black"
+                >
+                  <UserPlus className="size-4" />
+                  Registrarse
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Hamburger */}

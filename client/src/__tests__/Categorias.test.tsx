@@ -151,7 +151,7 @@ describe('Categorias Component', () => {
         descripcion: '',
       });
       expect(mockShowNotification).toHaveBeenCalledWith(
-        'Categoría creada con éxito! ✨',
+        'Categoría creada con éxito!',
         'success',
       );
     });

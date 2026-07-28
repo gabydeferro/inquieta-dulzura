@@ -186,7 +186,7 @@ const Clientes: React.FC = () => {
           <p className="text-muted-foreground">Gestion de clientes registrados</p>
         </div>
         <Button onClick={openCreate}>
-          <Plus className="size-4" />+ Nuevo Cliente
+          <Plus className="size-4" /> Nuevo Cliente
         </Button>
       </motion.header>
 

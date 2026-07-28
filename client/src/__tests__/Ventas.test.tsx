@@ -244,12 +244,8 @@ describe('Ventas Component (POS)', () => {
       },
     });
 
-    // Mock window.location.href setter
-    const locationSetter = vi.fn();
-    Object.defineProperty(window, 'location', {
-      value: { set href(val: string) { locationSetter(val); }, get href() { return ''; } },
-      writable: true,
-    });
+    // Mock window.open
+    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
     await renderVentas();
 
@@ -282,9 +278,9 @@ describe('Ventas Component (POS)', () => {
       expect(api.createMPPreference).toHaveBeenCalled();
     });
 
-    // Should redirect to MP checkout
+    // Should open MP checkout in new tab
     await waitFor(() => {
-      expect(locationSetter).toHaveBeenCalledWith('https://mercadopago.com/checkout?pref_id=123');
+      expect(windowOpenSpy).toHaveBeenCalledWith('https://mercadopago.com/checkout?pref_id=123', '_blank');
     });
   });
 
