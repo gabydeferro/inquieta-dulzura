@@ -310,6 +310,26 @@ export const Dashboard = (): ReactNode => {
             </CardHeader>
             <div className="px-5 pb-5">
               {stats.metodosPago.length > 0 ? (
+                stats.metodosPago.length === 1 ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div
+                      className="mb-4 flex size-28 items-center justify-center rounded-full"
+                      style={{ backgroundColor: COLORS[0] + '20' }}
+                    >
+                      <DollarSign className="size-12" style={{ color: COLORS[0] }} />
+                    </div>
+                    <p className="text-lg font-semibold capitalize">
+                      {stats.metodosPago[0].metodo.replace(/_/g, ' ')}
+                    </p>
+                    <p className="text-3xl font-bold">
+                      ${stats.metodosPago[0].total.toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {stats.metodosPago[0].cantidad} venta
+                      {stats.metodosPago[0].cantidad !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                ) : (
                 <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie
@@ -318,12 +338,10 @@ export const Dashboard = (): ReactNode => {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={110}
-                      paddingAngle={stats.metodosPago.length > 1 ? 4 : 0}
+                      paddingAngle={4}
                       labelLine
-                      label={({ metodo, percent, total }) =>
-                        stats.metodosPago.length === 1
-                          ? `${metodo} — $${total.toLocaleString()}`
-                          : `${metodo} (${(percent * 100).toFixed(0)}%)`
+                      label={({ metodo, percent }) =>
+                        `${metodo} (${(percent * 100).toFixed(0)}%)`
                       }
                       dataKey="total"
                       nameKey="metodo"
@@ -345,6 +363,7 @@ export const Dashboard = (): ReactNode => {
                     />
                   </PieChart>
                 </ResponsiveContainer>
+                )
               ) : (
                 <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-muted-foreground">
                   <DollarSign className="size-10 opacity-40" />
