@@ -197,11 +197,11 @@ export class DashboardService {
       // 14. Stock bajo
       pool
         .query<RowDataPacket[]>(
-          `SELECT p.id as producto_id, p.nombre, s.cantidad_disponible, p.unidad_medida
+          `SELECT p.id as producto_id, p.nombre, COALESCE(s.cantidad_disponible, 0) as cantidad_disponible, p.unidad_medida
            FROM productos p
-           JOIN stock s ON p.id = s.producto_id
-           WHERE s.cantidad_disponible <= ?
-           ORDER BY s.cantidad_disponible ASC`,
+           LEFT JOIN stock s ON p.id = s.producto_id
+           WHERE COALESCE(s.cantidad_disponible, 0) <= ?
+           ORDER BY cantidad_disponible ASC`,
           [stockThreshold],
         )
         .then(([rows]) =>
