@@ -90,6 +90,22 @@ export class IngredienteService {
     return this.getById(id);
   }
 
+  async updateStock(id: number, cantidad_disponible: number): Promise<IngredienteDTO | null> {
+    if (cantidad_disponible < 0) {
+      throw new Error('cantidad_disponible no puede ser negativo');
+    }
+
+    const [result] = await pool.query<ResultSetHeader>(
+      'UPDATE ingredientes SET cantidad_disponible = ? WHERE id = ?',
+      [cantidad_disponible, id],
+    );
+
+    if (result.affectedRows === 0) {
+      return null;
+    }
+    return this.getById(id);
+  }
+
   async delete(id: number): Promise<boolean> {
     // Soft delete
     const [result] = await pool.query<ResultSetHeader>(

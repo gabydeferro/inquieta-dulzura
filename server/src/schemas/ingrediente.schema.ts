@@ -24,5 +24,10 @@ export const ingredienteUpdateSchema = z.object({
   activo: z.boolean().optional(),
 });
 
+export const ingredienteStockSchema = z.object({
+  cantidad_disponible: z.number().nonnegative('cantidad_disponible no puede ser negativo'),
+});
+
 export type IngredienteInput = z.infer<typeof ingredienteSchema>;
 export type IngredienteUpdateInput = z.infer<typeof ingredienteUpdateSchema>;
+export type IngredienteStockInput = z.infer<typeof ingredienteStockSchema>;
