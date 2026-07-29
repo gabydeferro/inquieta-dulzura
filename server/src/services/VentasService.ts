@@ -51,6 +51,20 @@ interface VentaJoinedRow {
   producto_nombre: string | null;
 }
 
+// Typed result interfaces for getHistorial queries
+interface VentaHistorialRow extends RowDataPacket {
+  id: number;
+  fecha_venta: string;
+  cliente_id: number | null;
+  cliente_nombre: string | null;
+  total: number;
+  metodo_pago: string;
+}
+interface DetalleVentaHistorialRow extends RowDataPacket {
+  venta_id: number;
+  producto_nombre: string | null;
+}
+
 export class VentasService {
   async getVentas(): Promise<VentaResponse[]> {
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -144,7 +158,7 @@ export class VentasService {
     const total = Number(countRows[0]?.total ?? 0);
 
     // Fetch paginated summary rows
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<VentaHistorialRow[]>(
       `SELECT
         v.id,
         v.fecha_venta,
@@ -160,12 +174,12 @@ export class VentasService {
       [...params, limit, offset],
     );
 
-    const ventaIds = (rows as RowDataPacket[]).map((r) => r.id);
-    let productosByVentaId = new Map<number, string[]>();
+    const ventaIds = rows.map((r) => r.id);
+    const productosByVentaId = new Map<number, string[]>();
 
     if (ventaIds.length > 0) {
       const placeholders = ventaIds.map(() => '?').join(',');
-      const [detalleRows] = await pool.query<RowDataPacket[]>(
+      const [detalleRows] = await pool.query<DetalleVentaHistorialRow[]>(
         `SELECT vd.venta_id, p.nombre AS producto_nombre
          FROM venta_detalle vd
          LEFT JOIN productos p ON vd.producto_id = p.id
@@ -173,14 +187,14 @@ export class VentasService {
          ORDER BY vd.venta_id, vd.id`,
         ventaIds,
       );
-      for (const row of detalleRows as RowDataPacket[]) {
+      for (const row of detalleRows) {
         const arr = productosByVentaId.get(row.venta_id) ?? [];
         if (row.producto_nombre) arr.push(row.producto_nombre);
         productosByVentaId.set(row.venta_id, arr);
       }
     }
 
-    const data: VentaHistorial[] = (rows as RowDataPacket[]).map((row) => ({
+    const data: VentaHistorial[] = rows.map((row) => ({
       id: row.id,
       fecha_venta: row.fecha_venta,
       cliente_id: row.cliente_id,

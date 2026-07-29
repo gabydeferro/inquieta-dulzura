@@ -215,7 +215,7 @@ describe('MercadoPagoService', () => {
       const signature = `ts=${ts},v1=${v1}`;
 
       const result = await service.verifySignature(
-        { 'x-signature': signature, 'x-request-id': requestId } as Record<string, string>,
+        { 'x-signature': signature, 'x-request-id': requestId },
         body,
       );
 

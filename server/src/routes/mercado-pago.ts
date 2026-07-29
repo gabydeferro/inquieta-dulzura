@@ -28,11 +28,6 @@ interface PreferenciaBody {
   items?: MPItem[];
 }
 
-interface WebhookBody {
-  type?: string;
-  data?: { id?: string };
-}
-
 /**
  * @route   POST /api/mercado-pago/preferencia
  * @desc    Create a Mercado Pago payment preference for a venta

@@ -1,4 +1,9 @@
+import { RowDataPacket } from 'mysql2';
 import { pool } from './database';
+
+interface CountResult extends RowDataPacket {
+  count: number;
+}
 
 export async function initConfig(): Promise<void> {
   const conn = await pool.getConnection();
@@ -12,8 +17,8 @@ export async function initConfig(): Promise<void> {
     `);
 
     // Check if table is empty
-    const [rows] = await conn.query('SELECT COUNT(*) as count FROM configuracion');
-    const count = (rows as any[])[0].count;
+    const [rows] = await conn.query<CountResult[]>('SELECT COUNT(*) as count FROM configuracion');
+    const count = rows[0].count;
 
     if (count === 0) {
       // Seed default values

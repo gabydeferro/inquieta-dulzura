@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-floating-promises, @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/no-require-imports */
 import bcrypt from 'bcrypt';
 import path from 'path';
 import dotenv from 'dotenv';
+import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 
 // Cargar variables de entorno antes de importar el pool
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -19,7 +20,10 @@ const createAdmin = async () => {
 
   try {
     // Verificar si ya existe
-    const [existing] = await pool.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
+    const [existing] = await pool.execute<RowDataPacket[]>(
+      'SELECT id FROM usuarios WHERE email = ?',
+      [email],
+    );
 
     if (existing.length > 0) {
       console.log('⚠️ El usuario ya existe. Actualizando a rol admin...');
@@ -33,7 +37,7 @@ const createAdmin = async () => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Insertar usuario
-    const [result] = await pool.execute(
+    const [result] = await pool.execute<ResultSetHeader>(
       `INSERT INTO usuarios (email, password_hash, nombre, rol, activo) 
              VALUES (?, ?, ?, ?, TRUE)`,
       [email, passwordHash, nombre, rol],

@@ -2,6 +2,37 @@ import { RowDataPacket } from 'mysql2/promise';
 import { pool } from '../config/database';
 import { ConfiguracionService } from './ConfiguracionService';
 
+// Typed result interfaces for mysql2 query results
+interface CountResult extends RowDataPacket {
+  cantidad: number;
+  total: number;
+}
+interface TotalResult extends RowDataPacket {
+  total: number;
+}
+interface VentaPorDiaResult extends RowDataPacket {
+  fecha: string;
+  cantidad: number;
+  total: number;
+}
+interface MetodoPagoResult extends RowDataPacket {
+  metodo: string;
+  cantidad: number;
+  total: number;
+}
+interface TopProductoResult extends RowDataPacket {
+  producto_id: number;
+  nombre: string;
+  cantidad: number;
+  total: number;
+}
+interface StockBajoResult extends RowDataPacket {
+  producto_id: number;
+  nombre: string;
+  cantidad_disponible: number;
+  unidad_medida: string;
+}
+
 interface DashboardStats {
   ventasHoy: { cantidad: number; total: number };
   ventasSemana: { cantidad: number; total: number };
@@ -53,7 +84,7 @@ export class DashboardService {
     const results = await Promise.allSettled([
       // 1. Ventas hoy
       pool
-        .query<RowDataPacket[]>(
+        .query<CountResult[]>(
           `SELECT COUNT(*) as cantidad, COALESCE(SUM(total), 0) as total
            FROM ventas WHERE DATE(fecha_venta) = ?`,
           [todayStr],
@@ -65,7 +96,7 @@ export class DashboardService {
 
       // 2. Ventas semana
       pool
-        .query<RowDataPacket[]>(
+        .query<CountResult[]>(
           `SELECT COUNT(*) as cantidad, COALESCE(SUM(total), 0) as total
            FROM ventas WHERE fecha_venta >= ?`,
           [weekAgoStr],
@@ -77,7 +108,7 @@ export class DashboardService {
 
       // 3. Ventas mes
       pool
-        .query<RowDataPacket[]>(
+        .query<CountResult[]>(
           `SELECT COUNT(*) as cantidad, COALESCE(SUM(total), 0) as total
            FROM ventas WHERE fecha_venta >= ?`,
           [monthAgoStr],
@@ -89,42 +120,42 @@ export class DashboardService {
 
       // 4. Total ingresos
       pool
-        .query<RowDataPacket[]>(`SELECT COALESCE(SUM(total), 0) as total FROM ventas`)
+        .query<TotalResult[]>(`SELECT COALESCE(SUM(total), 0) as total FROM ventas`)
         .then(([rows]) => rows[0].total),
 
       // 5. Total ventas
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM ventas`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM ventas`)
         .then(([rows]) => rows[0].total),
 
       // 6. Total clientes
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM clientes WHERE activo = 1`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM clientes WHERE activo = 1`)
         .then(([rows]) => rows[0].total),
 
       // 7. Productos activos
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM productos WHERE activo = 1`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM productos WHERE activo = 1`)
         .then(([rows]) => rows[0].total),
 
       // 8. Categorias count
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM categorias`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM categorias`)
         .then(([rows]) => rows[0].total),
 
       // 9. Ingredientes count
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM ingredientes`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM ingredientes`)
         .then(([rows]) => rows[0].total),
 
       // 10. Recetas count
       pool
-        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM recetas`)
+        .query<TotalResult[]>(`SELECT COUNT(*) as total FROM recetas`)
         .then(([rows]) => rows[0].total),
 
       // 11. Ventas por dia (last 30 days)
       pool
-        .query<RowDataPacket[]>(
+        .query<VentaPorDiaResult[]>(
           `SELECT DATE(fecha_venta) as fecha, COUNT(*) as cantidad, COALESCE(SUM(total), 0) as total
            FROM ventas
            WHERE fecha_venta >= ?
@@ -142,7 +173,7 @@ export class DashboardService {
 
       // 12. Metodos de pago
       pool
-        .query<RowDataPacket[]>(
+        .query<MetodoPagoResult[]>(
           `SELECT metodo_pago as metodo, COUNT(*) as cantidad, COALESCE(SUM(total), 0) as total
            FROM ventas
            WHERE fecha_venta >= ?
@@ -160,7 +191,7 @@ export class DashboardService {
 
       // 13. Top 5 productos (last 30 days)
       pool
-        .query<RowDataPacket[]>(
+        .query<TopProductoResult[]>(
           `SELECT vd.producto_id, p.nombre, SUM(vd.cantidad) as cantidad, SUM(vd.total) as total
            FROM venta_detalle vd
            JOIN ventas v ON vd.venta_id = v.id
@@ -182,7 +213,7 @@ export class DashboardService {
 
       // 14. Stock bajo
       pool
-        .query<RowDataPacket[]>(
+        .query<StockBajoResult[]>(
           `SELECT p.id as producto_id, p.nombre, COALESCE(s.cantidad_disponible, 0) as cantidad_disponible, COALESCE(s.unidad_medida, 'unidades') as unidad_medida
            FROM productos p
            LEFT JOIN stock s ON p.id = s.producto_id

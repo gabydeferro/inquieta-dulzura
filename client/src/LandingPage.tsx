@@ -3,18 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
-import {
-  Cake,
-  Cookie,
-  Croissant,
-  Candy,
-  Truck,
-  ShieldCheck,
-  CreditCard,
-  Sprout,
-  CookingPot,
-  Gift,
-} from 'lucide-react';
+import { Cake, Cookie, Croissant, Candy, Sprout, CookingPot, Gift } from 'lucide-react';
 import { InstagramIcon, WhatsAppIcon } from './components/SocialIcons';
 
 const LandingPage = (): ReactNode => {

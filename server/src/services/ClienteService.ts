@@ -2,6 +2,10 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { pool } from '../config/database';
 import { ClienteDTO, PaginatedResponse } from '../dtos/ClienteDTO';
 
+interface ClienteCountResult extends RowDataPacket {
+  total: number;
+}
+
 export class ClienteService {
   async getAll(
     q?: string,
@@ -10,7 +14,7 @@ export class ClienteService {
   ): Promise<PaginatedResponse<ClienteDTO>> {
     const offset = (page - 1) * limit;
     let whereClause = 'WHERE activo = TRUE';
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (q && q.trim()) {
       whereClause += ' AND (nombre LIKE ? OR telefono LIKE ? OR email LIKE ?)';
@@ -19,7 +23,7 @@ export class ClienteService {
     }
 
     // Count total
-    const [countRows] = await pool.query<RowDataPacket[]>(
+    const [countRows] = await pool.query<ClienteCountResult[]>(
       `SELECT COUNT(*) as total FROM clientes ${whereClause}`,
       params,
     );
@@ -32,7 +36,7 @@ export class ClienteService {
     );
 
     return {
-      data: rows as ClienteDTO[],
+      data: rows as unknown as ClienteDTO[],
       total,
       page,
       limit,
@@ -77,9 +81,9 @@ export class ClienteService {
     }>,
   ): Promise<ClienteDTO | null> {
     const setClauses: string[] = [];
-    const values: any[] = [];
+    const values: (string | number)[] = [];
 
-    const fieldMap: Record<string, any> = {
+    const fieldMap: Record<string, string | undefined> = {
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       email: cliente.email,
