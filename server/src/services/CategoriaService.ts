@@ -1,17 +1,17 @@
-import { connection } from '../db';
+import { pool } from '../config/database';
 import { CategoriaDTO, CreateCategoriaDTO, UpdateCategoriaDTO } from '../dtos/CategoriaDTO';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export class CategoriaService {
   async getAll(): Promise<CategoriaDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT id, nombre, descripcion, activo FROM categorias ORDER BY nombre ASC',
     );
     return rows as CategoriaDTO[];
   }
 
   async getById(id: number): Promise<CategoriaDTO | null> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT id, nombre, descripcion, activo FROM categorias WHERE id = ?',
       [id],
     );
@@ -23,7 +23,7 @@ export class CategoriaService {
 
   async create(data: CreateCategoriaDTO): Promise<CategoriaDTO> {
     const { nombre, descripcion } = data;
-    const [result] = await connection.query<ResultSetHeader>(
+    const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)',
       [nombre, descripcion || null],
     );
@@ -39,19 +39,18 @@ export class CategoriaService {
 
     const updatedCategoria = { ...categoria, ...data };
 
-    await connection.query(
-      'UPDATE categorias SET nombre = ?, descripcion = ?, activo = ? WHERE id = ?',
-      [updatedCategoria.nombre, updatedCategoria.descripcion, updatedCategoria.activo, id],
-    );
+    await pool.query('UPDATE categorias SET nombre = ?, descripcion = ?, activo = ? WHERE id = ?', [
+      updatedCategoria.nombre,
+      updatedCategoria.descripcion,
+      updatedCategoria.activo,
+      id,
+    ]);
 
     return await this.getById(id);
   }
 
   async delete(id: number): Promise<boolean> {
-    const [result] = await connection.query<ResultSetHeader>(
-      'DELETE FROM categorias WHERE id = ?',
-      [id],
-    );
+    const [result] = await pool.query<ResultSetHeader>('DELETE FROM categorias WHERE id = ?', [id]);
     return result.affectedRows > 0;
   }
 }

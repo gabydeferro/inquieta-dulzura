@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { getInventario } from '../controllers/InventarioController';
-import { connection } from '../db';
+import { pool } from '../config/database';
 
-vi.mock('../db', () => ({
-  connection: { execute: vi.fn() },
+vi.mock('../config/database', () => ({
+  pool: { execute: vi.fn() },
 }));
 
 describe('InventarioController', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockJson: vi.Mock;
-  const mockExecute = connection.execute as vi.Mock;
+  const mockExecute = pool.execute as vi.Mock;
 
   beforeEach(() => {
     mockJson = vi.fn();

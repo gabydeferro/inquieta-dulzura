@@ -1,5 +1,5 @@
-import { connection } from '../db';
+import { pool } from '../config/database';
 export const getInventario = async () => {
-  const [rows] = await connection.execute('SELECT * FROM categorias');
+  const [rows] = await pool.execute('SELECT * FROM categorias');
   return rows;
 };

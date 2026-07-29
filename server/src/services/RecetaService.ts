@@ -1,4 +1,4 @@
-import { connection } from '../db';
+import { pool } from '../config/database';
 import {
   RecetaDTO,
   CreateRecetaDTO,
@@ -9,23 +9,21 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export class RecetaService {
   async getAll(): Promise<RecetaDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT * FROM recetas WHERE activo = true ORDER BY nombre ASC',
     );
     return rows as RecetaDTO[];
   }
 
   async getById(id: number): Promise<RecetaDTO | null> {
-    const [rows] = await connection.query<RowDataPacket[]>('SELECT * FROM recetas WHERE id = ?', [
-      id,
-    ]);
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM recetas WHERE id = ?', [id]);
     if (rows.length === 0) {
       return null;
     }
     const receta = rows[0] as RecetaDTO;
 
     // Fetch ingredients
-    const [ingredientes] = await connection.query<RowDataPacket[]>(
+    const [ingredientes] = await pool.query<RowDataPacket[]>(
       `
         SELECT 
             ri.ingrediente_id, 
@@ -58,7 +56,7 @@ export class RecetaService {
     })) as RecetaIngredienteDTO[];
 
     // Eager-load linked products
-    const [productos] = await connection.query<RowDataPacket[]>(
+    const [productos] = await pool.query<RowDataPacket[]>(
       `SELECT pr.producto_id, p.nombre, pr.cantidad_receta
        FROM producto_receta pr
        JOIN productos p ON pr.producto_id = p.id
@@ -76,7 +74,7 @@ export class RecetaService {
   }
 
   async create(data: CreateRecetaDTO): Promise<RecetaDTO> {
-    const conn = await connection.getConnection();
+    const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
@@ -119,7 +117,7 @@ export class RecetaService {
   }
 
   async update(id: number, data: UpdateRecetaDTO): Promise<RecetaDTO | null> {
-    const conn = await connection.getConnection();
+    const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
@@ -174,9 +172,7 @@ export class RecetaService {
   }
 
   async delete(id: number): Promise<boolean> {
-    const [result] = await connection.query<ResultSetHeader>('DELETE FROM recetas WHERE id = ?', [
-      id,
-    ]);
+    const [result] = await pool.query<ResultSetHeader>('DELETE FROM recetas WHERE id = ?', [id]);
     return result.affectedRows > 0;
   }
 
@@ -185,7 +181,7 @@ export class RecetaService {
   async getProductosByReceta(
     recetaId: number,
   ): Promise<{ producto_id: number; nombre: string; cantidad_receta: number }[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT pr.producto_id, p.nombre, pr.cantidad_receta
        FROM producto_receta pr
        JOIN productos p ON pr.producto_id = p.id

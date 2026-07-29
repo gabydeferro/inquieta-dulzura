@@ -1,24 +1,22 @@
-import { connection } from '../db';
+import { pool } from '../config/database';
 import { ProductoDTO, CreateProductoDTO, UpdateProductoDTO } from '../dtos/ProductoDTO';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export class ProductoService {
   async getAll(): Promise<ProductoDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT * FROM productos WHERE activo = true ORDER BY nombre ASC',
     );
     return rows as ProductoDTO[];
   }
 
   async getAllAdmin(): Promise<ProductoDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
-      'SELECT * FROM productos ORDER BY nombre ASC',
-    );
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM productos ORDER BY nombre ASC');
     return rows as ProductoDTO[];
   }
 
   async getByCategoriaId(categoriaId: number): Promise<ProductoDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT * FROM productos WHERE categoria_id = ? AND activo = true ORDER BY nombre ASC',
       [categoriaId],
     );
@@ -26,16 +24,14 @@ export class ProductoService {
   }
 
   async getById(id: number): Promise<ProductoDTO | null> {
-    const [rows] = await connection.query<RowDataPacket[]>('SELECT * FROM productos WHERE id = ?', [
-      id,
-    ]);
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM productos WHERE id = ?', [id]);
     if (rows.length === 0) {
       return null;
     }
     const producto = rows[0] as ProductoDTO;
 
     // Eager-load linked recipes
-    const [recetas] = await connection.query<RowDataPacket[]>(
+    const [recetas] = await pool.query<RowDataPacket[]>(
       `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
        FROM producto_receta pr
        JOIN recetas r ON pr.receta_id = r.id
@@ -64,7 +60,7 @@ export class ProductoService {
       cantidad_minima,
       unidad_medida,
     } = data;
-    const [result] = await connection.query<ResultSetHeader>(
+    const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO productos (categoria_id, nombre, descripcion, precio, costo, sku) VALUES (?, ?, ?, ?, ?, ?)',
       [categoria_id, nombre, descripcion || null, precio, costo || null, sku || null],
     );
@@ -72,7 +68,7 @@ export class ProductoService {
 
     // Create stock record if stock data provided
     if (cantidad_disponible !== undefined || cantidad_minima !== undefined) {
-      await connection.query(
+      await pool.query(
         'INSERT INTO stock (producto_id, cantidad_disponible, cantidad_minima, unidad_medida) VALUES (?, ?, ?, ?)',
         [insertedId, cantidad_disponible ?? 0, cantidad_minima ?? 0, unidad_medida || 'unidades'],
       );
@@ -90,7 +86,7 @@ export class ProductoService {
     const { cantidad_disponible, cantidad_minima, unidad_medida, ...productoData } = data;
     const updatedProducto = { ...producto, ...productoData };
 
-    await connection.query(
+    await pool.query(
       'UPDATE productos SET categoria_id = ?, nombre = ?, descripcion = ?, precio = ?, costo = ?, sku = ?, activo = ? WHERE id = ?',
       [
         updatedProducto.categoria_id,
@@ -110,7 +106,7 @@ export class ProductoService {
       cantidad_minima !== undefined ||
       unidad_medida !== undefined
     ) {
-      const [existingStock] = await connection.query<RowDataPacket[]>(
+      const [existingStock] = await pool.query<RowDataPacket[]>(
         'SELECT id FROM stock WHERE producto_id = ?',
         [id],
       );
@@ -131,12 +127,12 @@ export class ProductoService {
           stockValues.push(unidad_medida);
         }
         stockValues.push(id);
-        await connection.query(
+        await pool.query(
           `UPDATE stock SET ${stockUpdates.join(', ')} WHERE producto_id = ?`,
           stockValues,
         );
       } else {
-        await connection.query(
+        await pool.query(
           'INSERT INTO stock (producto_id, cantidad_disponible, cantidad_minima, unidad_medida) VALUES (?, ?, ?, ?)',
           [id, cantidad_disponible ?? 0, cantidad_minima ?? 0, unidad_medida || 'unidades'],
         );
@@ -147,14 +143,12 @@ export class ProductoService {
   }
 
   async delete(id: number): Promise<boolean> {
-    const [result] = await connection.query<ResultSetHeader>('DELETE FROM productos WHERE id = ?', [
-      id,
-    ]);
+    const [result] = await pool.query<ResultSetHeader>('DELETE FROM productos WHERE id = ?', [id]);
     return result.affectedRows > 0;
   }
 
   async search(query: string): Promise<ProductoDTO[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT p.id, p.categoria_id, p.nombre, p.descripcion, p.precio, p.costo, p.sku, p.activo,
               s.cantidad_disponible AS stock
        FROM productos p
@@ -170,7 +164,7 @@ export class ProductoService {
   async getRecetasByProducto(
     productoId: number,
   ): Promise<{ receta_id: number; nombre: string; cantidad_receta: number }[]> {
-    const [rows] = await connection.query<RowDataPacket[]>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT pr.receta_id, r.nombre, pr.cantidad_receta
        FROM producto_receta pr
        JOIN recetas r ON pr.receta_id = r.id
@@ -189,7 +183,7 @@ export class ProductoService {
     recetaId: number,
     cantidadReceta: number,
   ): Promise<{ producto_id: number; receta_id: number; cantidad_receta: number }> {
-    await connection.query<ResultSetHeader>(
+    await pool.query<ResultSetHeader>(
       'INSERT INTO producto_receta (producto_id, receta_id, cantidad_receta) VALUES (?, ?, ?)',
       [productoId, recetaId, cantidadReceta],
     );
@@ -201,7 +195,7 @@ export class ProductoService {
   }
 
   async desvincular(productoId: number, recetaId: number): Promise<boolean> {
-    const [result] = await connection.query<ResultSetHeader>(
+    const [result] = await pool.query<ResultSetHeader>(
       'DELETE FROM producto_receta WHERE producto_id = ? AND receta_id = ?',
       [productoId, recetaId],
     );

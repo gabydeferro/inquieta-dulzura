@@ -1,4 +1,4 @@
-import { connection } from '../db';
+import { pool } from '../config/database';
 import { ContenidoDigitalDTO } from '../dtos/ContenidoDigitalDTO';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
@@ -39,14 +39,14 @@ function rowToDTO(row: ContenidoDigitalRow): ContenidoDigitalDTO {
 
 export class ContenidoDigitalService {
   async obtenerTodasLasImagenes(): Promise<ContenidoDigitalDTO[]> {
-    const [rows] = await connection.query<ContenidoDigitalRow[]>(
+    const [rows] = await pool.query<ContenidoDigitalRow[]>(
       'SELECT * FROM contenido_digital ORDER BY fecha_subida DESC',
     );
     return rows.map(rowToDTO);
   }
 
   async obtenerImagenPorId(id: number): Promise<ContenidoDigitalDTO | undefined> {
-    const [rows] = await connection.query<ContenidoDigitalRow[]>(
+    const [rows] = await pool.query<ContenidoDigitalRow[]>(
       'SELECT * FROM contenido_digital WHERE id = ?',
       [id],
     );
@@ -57,7 +57,7 @@ export class ContenidoDigitalService {
   }
 
   async obtenerImagenesPorProducto(productoId: number): Promise<ContenidoDigitalDTO[]> {
-    const [rows] = await connection.query<ContenidoDigitalRow[]>(
+    const [rows] = await pool.query<ContenidoDigitalRow[]>(
       'SELECT * FROM contenido_digital WHERE producto_id = ? ORDER BY fecha_subida DESC',
       [productoId],
     );
@@ -65,7 +65,7 @@ export class ContenidoDigitalService {
   }
 
   async obtenerImagenesPorEtiqueta(etiqueta: string): Promise<ContenidoDigitalDTO[]> {
-    const [rows] = await connection.query<ContenidoDigitalRow[]>(
+    const [rows] = await pool.query<ContenidoDigitalRow[]>(
       `SELECT * FROM contenido_digital WHERE JSON_SEARCH(etiquetas, 'one', ?) IS NOT NULL ORDER BY fecha_subida DESC`,
       [etiqueta],
     );
@@ -73,7 +73,7 @@ export class ContenidoDigitalService {
   }
 
   async crearImagen(data: Omit<ContenidoDigitalDTO, 'id'>): Promise<ContenidoDigitalDTO> {
-    const [result] = await connection.query<ResultSetHeader>(
+    const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO contenido_digital (producto_id, url, titulo, descripcion, etiquetas, fecha_subida, tipo, tamaño)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -142,16 +142,13 @@ export class ContenidoDigitalService {
     }
 
     values.push(id);
-    await connection.query(
-      `UPDATE contenido_digital SET ${fields.join(', ')} WHERE id = ?`,
-      values,
-    );
+    await pool.query(`UPDATE contenido_digital SET ${fields.join(', ')} WHERE id = ?`, values);
 
     return (await this.obtenerImagenPorId(id))!;
   }
 
   async eliminarImagen(id: number): Promise<void> {
-    const [result] = await connection.query<ResultSetHeader>(
+    const [result] = await pool.query<ResultSetHeader>(
       'DELETE FROM contenido_digital WHERE id = ?',
       [id],
     );
@@ -167,7 +164,7 @@ export class ContenidoDigitalService {
     }
     if (!imagen.etiquetas.includes(etiqueta)) {
       imagen.etiquetas.push(etiqueta);
-      await connection.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
+      await pool.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
         JSON.stringify(imagen.etiquetas),
         id,
       ]);
@@ -181,7 +178,7 @@ export class ContenidoDigitalService {
       throw new Error('Imagen no encontrada');
     }
     imagen.etiquetas = imagen.etiquetas.filter((e) => e !== etiqueta);
-    await connection.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
+    await pool.query('UPDATE contenido_digital SET etiquetas = ? WHERE id = ?', [
       JSON.stringify(imagen.etiquetas),
       id,
     ]);

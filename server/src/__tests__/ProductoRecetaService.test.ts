@@ -1,11 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { connection } from '../db';
+import { pool } from '../config/database';
 
-vi.mock('../db', () => ({
-  connection: { query: vi.fn() },
+vi.mock('../config/database', () => ({
+  pool: { query: vi.fn() },
 }));
 
-const mockQuery = connection.query as vi.Mock;
+const mockQuery = pool.query as vi.Mock;
 
 // We import after mock so the module picks up the mocked connection
 import { ProductoService } from '../services/ProductoService';

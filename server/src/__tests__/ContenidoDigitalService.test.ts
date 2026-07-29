@@ -2,14 +2,14 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { ContenidoDigitalService } from '../services/ContenidoDigitalService';
 
 // Mock the db module
-vi.mock('../db', () => ({
-  connection: {
+vi.mock('../config/database', () => ({
+  pool: {
     query: vi.fn(),
   },
 }));
 
-import { connection } from '../db';
-const mockQuery = vi.mocked(connection.query);
+import { pool } from '../config/database';
+const mockQuery = vi.mocked(pool.query);
 
 function makeRow(overrides: Record<string, unknown> = {}) {
   return {

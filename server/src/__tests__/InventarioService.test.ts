@@ -1,12 +1,12 @@
 import { describe, test, expect, vi } from 'vitest';
-import { connection } from '../db';
+import { pool } from '../config/database';
 import { getInventario } from '../services/InventarioService';
 
-vi.mock('../db', () => ({
-  connection: { execute: vi.fn() },
+vi.mock('../config/database', () => ({
+  pool: { execute: vi.fn() },
 }));
 
-const mockExecute = connection.execute as vi.Mock;
+const mockExecute = pool.execute as vi.Mock;
 
 describe('InventarioService', () => {
   describe('getInventario', () => {

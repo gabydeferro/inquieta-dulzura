@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProductoService } from '../services/ProductoService';
-import { connection } from '../db';
+import { pool } from '../config/database';
 
-vi.mock('../db', () => ({
-  connection: {
+vi.mock('../config/database', () => ({
+  pool: {
     query: vi.fn(),
   },
 }));
 
 describe('ProductoService — search', () => {
   let productoService: ProductoService;
-  const mockQuery = connection.query as vi.Mock;
+  const mockQuery = pool.query as vi.Mock;
 
   beforeEach(() => {
     productoService = new ProductoService();
