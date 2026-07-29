@@ -123,7 +123,6 @@ export class RecetaService {
 
       const receta = await this.getById(id); // Check existence
       if (!receta) {
-        conn.release();
         return null;
       }
 
