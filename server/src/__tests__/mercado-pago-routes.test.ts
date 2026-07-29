@@ -178,7 +178,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
         JSON.stringify({
           ventaId: 1,
           items: [{ title: 'Torta', quantity: 1, unit_price: 5000 }],
@@ -197,7 +197,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
         JSON.stringify({ items: [{ title: 'Torta', quantity: 1, unit_price: 5000 }] }),
       );
 
@@ -211,7 +211,7 @@ describe('Mercado Pago Routes — conditional mount integration', () => {
         app,
         'POST',
         '/api/mercado-pago/preferencia',
-        { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
         JSON.stringify({ ventaId: 1, items: [] }),
       );
 

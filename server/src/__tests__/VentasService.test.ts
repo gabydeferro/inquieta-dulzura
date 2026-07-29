@@ -306,9 +306,31 @@ describe('VentasService', () => {
       // INSERT pago
       mockConn.query.mockResolvedValueOnce([{ insertId: 10 }]);
       // After commit: fetch
-      mockQuery.mockResolvedValueOnce([[ 
-        { venta_id: 1, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z', subtotal: 50, descuento: 0, impuestos: 0, total: 50, metodo_pago: 'efectivo', estado: 'completada', notas: '', cliente_nombre: null, detalle_id: 1, producto_id: 1, cantidad: 3, precio_unitario: 10, detalle_subtotal: 30, detalle_descuento: 0, detalle_total: 30, producto_nombre: 'Pan' },
-      ]]);
+      mockQuery.mockResolvedValueOnce([
+        [
+          {
+            venta_id: 1,
+            cliente_id: null,
+            fecha_venta: '2024-01-01T00:00:00.000Z',
+            subtotal: 50,
+            descuento: 0,
+            impuestos: 0,
+            total: 50,
+            metodo_pago: 'efectivo',
+            estado: 'completada',
+            notas: '',
+            cliente_nombre: null,
+            detalle_id: 1,
+            producto_id: 1,
+            cantidad: 3,
+            precio_unitario: 10,
+            detalle_subtotal: 30,
+            detalle_descuento: 0,
+            detalle_total: 30,
+            producto_nombre: 'Pan',
+          },
+        ],
+      ]);
       mockQuery.mockResolvedValueOnce([[]]);
 
       const result = await ventasService.createVenta({
@@ -348,9 +370,31 @@ describe('VentasService', () => {
       // NO stock decrement for MP — INSERT pago is next
       mockConn.query.mockResolvedValueOnce([{ insertId: 20 }]);
       // After commit: fetch
-      mockQuery.mockResolvedValueOnce([[
-        { venta_id: 2, cliente_id: null, fecha_venta: '2024-01-01T00:00:00.000Z', subtotal: 50, descuento: 0, impuestos: 0, total: 50, metodo_pago: 'mercado_pago', estado: 'pendiente', notas: '', cliente_nombre: null, detalle_id: 3, producto_id: 1, cantidad: 3, precio_unitario: 10, detalle_subtotal: 30, detalle_descuento: 0, detalle_total: 30, producto_nombre: 'Pan' },
-      ]]);
+      mockQuery.mockResolvedValueOnce([
+        [
+          {
+            venta_id: 2,
+            cliente_id: null,
+            fecha_venta: '2024-01-01T00:00:00.000Z',
+            subtotal: 50,
+            descuento: 0,
+            impuestos: 0,
+            total: 50,
+            metodo_pago: 'mercado_pago',
+            estado: 'pendiente',
+            notas: '',
+            cliente_nombre: null,
+            detalle_id: 3,
+            producto_id: 1,
+            cantidad: 3,
+            precio_unitario: 10,
+            detalle_subtotal: 30,
+            detalle_descuento: 0,
+            detalle_total: 30,
+            producto_nombre: 'Pan',
+          },
+        ],
+      ]);
       mockQuery.mockResolvedValueOnce([[]]);
 
       const result = await ventasService.createVenta({
@@ -374,10 +418,10 @@ describe('VentasService', () => {
 
       await ventasService.updateStatus(1, 'cancelada');
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE ventas'),
-        ['cancelada', 1],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE ventas'), [
+        'cancelada',
+        1,
+      ]);
     });
 
     it('should decrement stock via decrementStock for a confirmed venta', async () => {

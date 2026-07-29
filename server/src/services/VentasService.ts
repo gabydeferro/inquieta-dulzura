@@ -293,10 +293,7 @@ export class VentasService {
 
   /** Update venta estado (used by webhook handler). */
   async updateStatus(id: number, estado: string): Promise<void> {
-    await pool.query(
-      'UPDATE ventas SET estado = ? WHERE id = ?',
-      [estado, id],
-    );
+    await pool.query('UPDATE ventas SET estado = ? WHERE id = ?', [estado, id]);
   }
 
   /** Decrement stock for all items in a venta (called after webhook confirms approval). */

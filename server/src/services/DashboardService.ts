@@ -89,51 +89,37 @@ export class DashboardService {
 
       // 4. Total ingresos
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COALESCE(SUM(total), 0) as total FROM ventas`,
-        )
+        .query<RowDataPacket[]>(`SELECT COALESCE(SUM(total), 0) as total FROM ventas`)
         .then(([rows]) => rows[0].total),
 
       // 5. Total ventas
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM ventas`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM ventas`)
         .then(([rows]) => rows[0].total),
 
       // 6. Total clientes
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM clientes WHERE activo = 1`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM clientes WHERE activo = 1`)
         .then(([rows]) => rows[0].total),
 
       // 7. Productos activos
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM productos WHERE activo = 1`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM productos WHERE activo = 1`)
         .then(([rows]) => rows[0].total),
 
       // 8. Categorias count
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM categorias`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM categorias`)
         .then(([rows]) => rows[0].total),
 
       // 9. Ingredientes count
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM ingredientes`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM ingredientes`)
         .then(([rows]) => rows[0].total),
 
       // 10. Recetas count
       pool
-        .query<RowDataPacket[]>(
-          `SELECT COUNT(*) as total FROM recetas`,
-        )
+        .query<RowDataPacket[]>(`SELECT COUNT(*) as total FROM recetas`)
         .then(([rows]) => rows[0].total),
 
       // 11. Ventas por dia (last 30 days)
@@ -216,10 +202,20 @@ export class DashboardService {
 
     // Helper to extract value from settled result or return default
     const queryNames = [
-      'ventasHoy', 'ventasSemana', 'ventasMes', 'totalIngresos',
-      'totalVentas', 'totalClientes', 'productosActivos', 'categoriasCount',
-      'ingredientesCount', 'recetasCount', 'ventasPorDia', 'metodosPago',
-      'topProductos', 'stockBajo',
+      'ventasHoy',
+      'ventasSemana',
+      'ventasMes',
+      'totalIngresos',
+      'totalVentas',
+      'totalClientes',
+      'productosActivos',
+      'categoriasCount',
+      'ingredientesCount',
+      'recetasCount',
+      'ventasPorDia',
+      'metodosPago',
+      'topProductos',
+      'stockBajo',
     ];
 
     const partial_failures: string[] = [];

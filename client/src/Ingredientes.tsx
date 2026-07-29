@@ -8,6 +8,7 @@ import { useReducedMotion } from './lib/animations';
 import { ingredienteSchema, ingredienteUpdateSchema } from './schemas/ingrediente.schema';
 import {
   Table,
+  TableBody,
   TableHead,
   TableHeader,
   TableCell,
@@ -41,7 +42,7 @@ const Ingredientes: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { showNotification } = useNotification();
   const confirm = useConfirm();
-  const { fadeUp, staggerContainer } = useReducedMotion();
+  const { fadeUp } = useReducedMotion();
 
   const fetchIngredientes = async () => {
     try {
@@ -198,9 +199,9 @@ const Ingredientes: React.FC = () => {
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
-            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
+            <TableBody>
               {ingredientes.map((ingrediente) => (
-                <motion.tr key={ingrediente.id} variants={fadeUp}>
+                <TableRow key={ingrediente.id}>
                   <TableCell className="font-medium">{ingrediente.nombre}</TableCell>
                   <TableCell className="hidden sm:table-cell text-muted-foreground">
                     {ingrediente.descripcion || <span className="italic opacity-50">—</span>}
@@ -234,9 +235,9 @@ const Ingredientes: React.FC = () => {
                       </Button>
                     </div>
                   </TableCell>
-                </motion.tr>
+                </TableRow>
               ))}
-            </motion.tbody>
+            </TableBody>
           </Table>
         </div>
       )}
@@ -314,7 +315,9 @@ const Ingredientes: React.FC = () => {
                     id="costo_unitario"
                     type="number"
                     value={editingIngrediente?.costo_unitario || 0}
-                    onChange={(e) => handleChange('costo_unitario', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleChange('costo_unitario', parseFloat(e.target.value) || 0)
+                    }
                     step="0.01"
                     className={errors.costo_unitario ? 'border-destructive' : ''}
                   />
@@ -329,9 +332,7 @@ const Ingredientes: React.FC = () => {
               <Button type="button" variant="outline" onClick={closeModal}>
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingIngrediente?.id ? 'Actualizar' : 'Crear'}
-              </Button>
+              <Button type="submit">{editingIngrediente?.id ? 'Actualizar' : 'Crear'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

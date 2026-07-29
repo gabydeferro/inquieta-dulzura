@@ -250,7 +250,12 @@ const Categorias: React.FC = () => {
               <DialogTitle>{editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
             </DialogHeader>
 
-            <motion.div className="grid gap-4 py-4" variants={fadeUp} initial="hidden" animate="visible">
+            <motion.div
+              className="grid gap-4 py-4"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+            >
               <div className="grid gap-2">
                 <Label htmlFor="nombre">Nombre *</Label>
                 <Input

@@ -42,11 +42,13 @@ app.use(
 const botWebhookRaw = express.raw({ type: 'application/json' });
 
 // Capture raw body BEFORE express.json() for webhook signature verification
-app.use(express.json({
-  verify: (req: Request, _res, buf: Buffer) => {
-    (req as unknown as Record<string, unknown>).rawBody = buf;
-  },
-}));
+app.use(
+  express.json({
+    verify: (req: Request, _res, buf: Buffer) => {
+      (req as unknown as Record<string, unknown>).rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 const uploadsPath = path.join(__dirname, '../../uploads');

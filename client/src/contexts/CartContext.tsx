@@ -1,4 +1,4 @@
-import { createContext, Dispatch ,useContext, useReducer, useEffect, ReactNode } from 'react';
+import { createContext, Dispatch, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { CartItem, CartState, CartAction } from '../types/Cart';
 
 const CART_KEY = 'inquieta-dulzura-cart';

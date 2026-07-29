@@ -73,7 +73,8 @@ router.post('/preferencia', authenticateToken, async (req: Request, res: Respons
  * @access  Public (MP servers call this)
  */
 router.post('/webhook', async (req: Request, res: Response) => {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+  const ip =
+    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
   if (!checkWebhookRate(ip)) {
     res.status(429).json({ success: false, message: 'Too Many Requests' });
     return;
@@ -100,10 +101,12 @@ router.post('/webhook', async (req: Request, res: Response) => {
     // Support both webhook formats:
     // Webhook v2: { type: 'payment', data: { id: '...' } }
     // IPN v1:     { resource: '...', topic: 'payment' } or query params ?id=...&topic=payment
-    const webhookType = (body.type as string) || (body.topic as string) || (req.query.topic as string);
-    const paymentId = (body.data as Record<string, string>)?.id
-      || (body.resource as string)
-      || (req.query.id as string);
+    const webhookType =
+      (body.type as string) || (body.topic as string) || (req.query.topic as string);
+    const paymentId =
+      (body.data as Record<string, string>)?.id ||
+      (body.resource as string) ||
+      (req.query.id as string);
 
     if (webhookType !== 'payment' || !paymentId) {
       console.log(`[MP Webhook] Ignoring non-payment notification (type=${webhookType})`);
@@ -129,7 +132,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
     const pagosService = new PagosService();
     const existingPagos = await pagosService.getByVentaId(ventaId);
     const existingPago = existingPagos[0];
-    console.log(`[MP Webhook] Existing pago:`, existingPago ? JSON.stringify(existingPago) : 'none');
+    console.log(
+      `[MP Webhook] Existing pago:`,
+      existingPago ? JSON.stringify(existingPago) : 'none',
+    );
 
     if (existingPago?.referencia_externa) {
       console.log(`[MP Webhook] Already processed — skipping`);
@@ -139,9 +145,12 @@ router.post('/webhook', async (req: Request, res: Response) => {
 
     // 4. Update pago with payment details
     await pagosService.updateByVentaId(ventaId, {
-      estado: paymentDetails.status === 'approved' ? 'aprobado'
-        : paymentDetails.status === 'rejected' ? 'rechazado'
-        : paymentDetails.status,
+      estado:
+        paymentDetails.status === 'approved'
+          ? 'aprobado'
+          : paymentDetails.status === 'rejected'
+            ? 'rechazado'
+            : paymentDetails.status,
       referencia_externa: paymentDetails.payment_id,
       datos_json: JSON.stringify(paymentDetails),
     });

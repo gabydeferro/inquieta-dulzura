@@ -8,12 +8,8 @@ interface PageTransitionProps {
 
 export const PageTransition = ({ children }: PageTransitionProps): ReactNode => {
   return (
-    <motion.div
-      variants={fadeIn}
-      initial="hidden"
-      animate="visible"
-    >
+    <motion.div variants={fadeIn} initial="hidden" animate="visible">
       {children}
     </motion.div>
   );
-}
+};

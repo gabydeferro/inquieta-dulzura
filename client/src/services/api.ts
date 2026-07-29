@@ -247,16 +247,14 @@ class ApiService {
   }
 
   // --- Ventas Historial ---
-  async getHistorialVentas(
-    params: {
-      fecha_desde?: string;
-      fecha_hasta?: string;
-      metodo_pago?: string;
-      cliente_id?: number;
-      page?: number;
-      limit?: number;
-    },
-  ): Promise<AxiosResponse<PaginatedResponse<VentaHistorial>>> {
+  async getHistorialVentas(params: {
+    fecha_desde?: string;
+    fecha_hasta?: string;
+    metodo_pago?: string;
+    cliente_id?: number;
+    page?: number;
+    limit?: number;
+  }): Promise<AxiosResponse<PaginatedResponse<VentaHistorial>>> {
     const query: Record<string, string | number> = {};
     if (params.fecha_desde) query.fecha_desde = params.fecha_desde;
     if (params.fecha_hasta) query.fecha_hasta = params.fecha_hasta;

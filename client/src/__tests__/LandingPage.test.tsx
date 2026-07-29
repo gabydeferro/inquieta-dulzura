@@ -38,16 +38,13 @@ describe('LandingPage Component', () => {
     expect(screen.getByText(/Endulzando momentos, creando recuerdos/)).toBeInTheDocument();
   });
 
-  it('renders "Ver Catálogo" CTA button linked to /catalogo', () => {
+  it('renders "Ver Catálogo" buttons linked to /catalogo', () => {
     renderLandingPage();
-    const ctaLink = screen.getByText('Ver Catálogo').closest('a');
-    expect(ctaLink).toHaveAttribute('href', '/catalogo');
-  });
-
-  it('renders "Únete a nosotros" CTA for unauthenticated users', () => {
-    renderLandingPage();
-    const joinLink = screen.getByText('Únete a nosotros').closest('a');
-    expect(joinLink).toHaveAttribute('href', '/register');
+    const ctaLinks = screen.getAllByText('Ver Catálogo');
+    expect(ctaLinks.length).toBeGreaterThanOrEqual(1);
+    for (const link of ctaLinks) {
+      expect(link.closest('a')).toHaveAttribute('href', '/catalogo');
+    }
   });
 
   it('renders the specialities section title', () => {
@@ -63,22 +60,16 @@ describe('LandingPage Component', () => {
     expect(screen.getByText('Postres')).toBeInTheDocument();
   });
 
-  it('renders info bar with delivery info', () => {
+  it('renders info bar with product focus', () => {
     renderLandingPage();
-    expect(screen.getByText('Envío a Domicilio')).toBeInTheDocument();
-    expect(screen.getByText('Compra Segura')).toBeInTheDocument();
-    expect(screen.getByText('Medios de Pago')).toBeInTheDocument();
+    expect(screen.getByText('Ingredientes Frescos')).toBeInTheDocument();
+    expect(screen.getByText('Elaboración Artesanal')).toBeInTheDocument();
+    expect(screen.getByText('Ocasiones Especiales')).toBeInTheDocument();
   });
 
   it('renders CTA section title "¿Listo para comenzar?"', () => {
     renderLandingPage();
     expect(screen.getByText('¿Listo para comenzar?')).toBeInTheDocument();
-  });
-
-  it('renders CTA buttons for unauthenticated users', () => {
-    renderLandingPage();
-    expect(screen.getByText('Crear Cuenta Gratis')).toBeInTheDocument();
-    expect(screen.getByText('Ya tengo cuenta')).toBeInTheDocument();
   });
 
   it('renders footer with brand name', () => {
@@ -97,14 +88,8 @@ describe('LandingPage Component', () => {
 
   it('renders footer contact information', () => {
     renderLandingPage();
-    expect(screen.getByText(/Villa Ramallo/)).toBeInTheDocument();
     expect(screen.getByText(/info@inquietadulzura/)).toBeInTheDocument();
-  });
-
-  it('renders footer hours section', () => {
-    renderLandingPage();
-    expect(screen.getByText('Mar a Sáb: 09:00 - 20:00')).toBeInTheDocument();
-    expect(screen.getByText('Dom: 09:00 - 13:00')).toBeInTheDocument();
-    expect(screen.getByText('Lun: Cerrado')).toBeInTheDocument();
+    expect(screen.getByText('@inquietadulzura')).toBeInTheDocument();
+    expect(screen.getByText('WhatsApp')).toBeInTheDocument();
   });
 });

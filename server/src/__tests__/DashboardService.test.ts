@@ -247,8 +247,7 @@ describe('DashboardService', () => {
     });
 
     it('should throw when ALL queries fail', async () => {
-      mockQuery
-        .mockRejectedValue(new Error('Database down'));
+      mockQuery.mockRejectedValue(new Error('Database down'));
 
       await expect(dashboardService.getStats()).rejects.toThrow('All dashboard queries failed');
     });
@@ -274,7 +273,10 @@ describe('DashboardService', () => {
 
       expect(result.partial_failures).toHaveLength(4);
       expect(result.partial_failures).toEqual([
-        'ventasPorDia', 'metodosPago', 'topProductos', 'stockBajo',
+        'ventasPorDia',
+        'metodosPago',
+        'topProductos',
+        'stockBajo',
       ]);
       expect(result.ventasPorDia).toEqual([]);
       expect(result.metodosPago).toEqual([]);

@@ -83,9 +83,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center"
           >
-            <div className="bg-white rounded-xl p-6 max-w-md w-full">
-              {children}
-            </div>
+            <div className="bg-white rounded-xl p-6 max-w-md w-full">{children}</div>
           </motion.div>
         </>
       )}
@@ -121,11 +119,7 @@ const itemVariants = {
 
 export function StaggeredList({ items }: { items: string[] }) {
   return (
-    <motion.ul
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <motion.ul variants={containerVariants} initial="hidden" animate="visible">
       {items.map((item, index) => (
         <motion.li key={index} variants={itemVariants}>
           {item}
@@ -146,11 +140,7 @@ const buttonVariants = {
   disabled: { opacity: 0.5, scale: 1 },
 };
 
-export function AnimatedButton({
-  children,
-  disabled,
-  onClick,
-}: ButtonProps) {
+export function AnimatedButton({ children, disabled, onClick }: ButtonProps) {
   return (
     <motion.button
       variants={buttonVariants}
@@ -202,11 +192,7 @@ export function Tabs({ tabs, activeTab, onTabChange }: TabsProps) {
     <LayoutGroup>
       <div className="flex gap-2">
         {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className="relative px-4 py-2"
-          >
+          <button key={tab.id} onClick={() => onTabChange(tab.id)} className="relative px-4 py-2">
             {activeTab === tab.id && (
               <motion.div
                 layoutId="activeTab"
@@ -306,10 +292,7 @@ export function ParallaxHero() {
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   return (
-    <motion.div
-      style={{ y, opacity }}
-      className="h-screen flex items-center justify-center"
-    >
+    <motion.div style={{ y, opacity }} className="h-screen flex items-center justify-center">
       <h1 className="text-6xl font-bold">Parallax Hero</h1>
     </motion.div>
   );
@@ -343,11 +326,7 @@ export function SubmitButton() {
     await animate(scope.current, { scale: 1 }, { type: 'spring' });
 
     // Success animation
-    await animate(
-      scope.current,
-      { backgroundColor: '#22c55e' },
-      { duration: 0.2 }
-    );
+    await animate(scope.current, { backgroundColor: '#22c55e' }, { duration: 0.2 });
   };
 
   return (
@@ -527,7 +506,7 @@ export const transitions = {
 } as const;
 
 // Usage
-<motion.div transition={transitions.spring} />
+<motion.div transition={transitions.spring} />;
 ```
 
 ## Reduced Motion Support

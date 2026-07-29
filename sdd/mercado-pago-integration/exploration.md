@@ -5,6 +5,7 @@
 The system has a solid **foundation** for Mercado Pago but the **end-to-end flow is incomplete**:
 
 **What exists:**
+
 - `MercadoPagoService` — creates preferences and handles webhook payment lookups via the official `mercadopago` SDK
 - `POST /api/mercado-pago/preferencia` — creates a payment preference (expects `ventaId` + `items[]`)
 - `POST /api/mercado-pago/webhook` — receives IPN notifications, queries MP API, **but only logs the result**
@@ -14,6 +15,7 @@ The system has a solid **foundation** for Mercado Pago but the **end-to-end flow
 - `METODO_PAGO_DEFAULTS` in both `VentasService` and `PagosService` set `mercado_pago → pendiente`
 
 **What's missing:**
+
 1. **Frontend MP flow**: `handleConfirmSale` in `Ventas.tsx` calls `api.createVenta()` then clears the cart — it never creates the MP preference or redirects to MP checkout
 2. **Webhook DB update**: The webhook route receives payment data but never updates `ventas.estado` or `pagos.estado` in the database
 3. **Return URL handling**: The `/ventas?pago=exito` URL is referenced in `back_urls` but the frontend has no logic to read or act on this query parameter
@@ -22,6 +24,7 @@ The system has a solid **foundation** for Mercado Pago but the **end-to-end flow
 ### Database Schema Findings
 
 **ventas table:**
+
 ```
 id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
 cliente_id      BIGINT UNSIGNED NULL
@@ -38,6 +41,7 @@ updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TI
 ```
 
 **pagos table:**
+
 ```
 id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
 venta_id            BIGINT UNSIGNED NOT NULL
@@ -57,6 +61,7 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 ### Frontend Flow Analysis
 
 **Current flow for ALL payment methods (including MP):**
+
 1. User adds products to cart → sees total in `PaymentSelector`
 2. User selects payment method (e.g., "Mercado Pago") → clicks "Confirmar Venta"
 3. `handleConfirmSale(metodo)` is called in `Ventas.tsx`
@@ -66,6 +71,7 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 7. **No MP-specific branching** — it treats MP exactly like efectivo/tarjeta
 
 **What should happen for MP (but doesn't):**
+
 - After `createVenta` succeeds → get the `venta.id` from response
 - Call `api.post('/mercado-pago/preferencia', { ventaId: venta.id, items: [...] })`
 - Get back `{ url, preference_id }` → redirect `window.location.href = url`
@@ -77,6 +83,7 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 ### Backend Flow Analysis
 
 **createVenta flow (VentasService):**
+
 1. Validates stock with `SELECT ... FOR UPDATE`
 2. Inserts venta row with `estado = 'completada'` (hardcoded — BUG for MP)
 3. Inserts venta_detalle rows
@@ -87,12 +94,14 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 **Bug identified:** For MP, the venta should be `'pendiente'` initially, and only transition to `'completada'` when the webhook confirms approval. Currently `estado` is hardcoded to `'completada'` in the INSERT statement regardless of `metodo_pago`.
 
 **Webhook flow (current):**
+
 1. Receives POST with `{ type, data: { id } }`
 2. If `type === 'payment'`, calls `MercadoPagoService.handleWebhook(paymentId)`
 3. Gets payment details: `{ status, external_reference, payment_id, transaction_amount }`
 4. **Logs and does nothing else** — no DB update
 
 **What should happen in webhook:**
+
 1. Parse `external_reference` → that's the `venta_id`
 2. Look up the pago by `venta_id` (where `metodo_pago = 'mercado_pago'`)
 3. Update `pagos.estado` based on MP status (approved → aprobado, rejected → rechazado, etc.)
@@ -105,11 +114,11 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 
 ### Env Vars & Config
 
-| Variable | Present in `.env` | Present in `.env.example` | Used in |
-|---|---|---|---|
-| `MERCADO_PAGO_ACCESS_TOKEN` | No | No | MercadoPagoService constructor, verificarConfiguracion |
-| `MERCADO_PAGO_PUBLIC_KEY` | No | No | verificarConfiguracion only (not used elsewhere) |
-| `FRONTEND_URL` | No (`CLIENT_URL` exists) | No | MercadoPagoService.createPreference (defaults to localhost:5173) |
+| Variable                    | Present in `.env`        | Present in `.env.example` | Used in                                                          |
+| --------------------------- | ------------------------ | ------------------------- | ---------------------------------------------------------------- |
+| `MERCADO_PAGO_ACCESS_TOKEN` | No                       | No                        | MercadoPagoService constructor, verificarConfiguracion           |
+| `MERCADO_PAGO_PUBLIC_KEY`   | No                       | No                        | verificarConfiguracion only (not used elsewhere)                 |
+| `FRONTEND_URL`              | No (`CLIENT_URL` exists) | No                        | MercadoPagoService.createPreference (defaults to localhost:5173) |
 
 **Note:** `MERCADO_PAGO_PUBLIC_KEY` is only checked in `verificarConfiguracion()` but never actually used in the service itself (the SDK only needs `accessToken`). This is harmless but worth noting — only `accessToken` is functionally required.
 
@@ -136,14 +145,14 @@ The `pagos` table already has `referencia_externa` and `datos_json` columns read
 
 ### Risk Areas
 
-| Risk | Severity | Mitigation |
-|---|---|---|
-| **Webhook security** — anyone can POST to `/api/mercado-pago/webhook` and potentially trigger status changes | High | Implement IPN signature verification using `x-signature` header and MP's public key. Also validate `topic` / `type` field |
-| **Webhook idempotency** — duplicate notifications could double-process | Medium | Check `referencia_externa` on the pago before updating; skip if already set |
-| **Venta status inconsistency** — venta shows `completada` before payment is confirmed | Medium | Change `createVenta` to set `estado = 'pendiente'` for MP (and potentially other async methods) |
-| **Stock reservation** — stock is decremented immediately on venta creation, but MP payment might fail | High | Currently stock is deducted via `venta_detalle` insert with FK to stock — need to verify if stock is actually decremented. If the webhook never confirms, stock is lost. Consider pending stock reservations or a timeout mechanism |
-| **Test credentials** — no `.env.example` entries for MP means new devs won't know how to set it up | Low | Add `MERCADO_PAGO_ACCESS_TOKEN` and `MERCADO_PAGO_PUBLIC_KEY` to `.env.example` with comments |
-| **FRONTEND_URL alignment** — env var name mismatch between MP config and existing `.env` (`CLIENT_URL` vs `FRONTEND_URL`) | Low | Either add `FRONTEND_URL` or refactor MercadoPagoService to use `CLIENT_URL` |
+| Risk                                                                                                                      | Severity | Mitigation                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Webhook security** — anyone can POST to `/api/mercado-pago/webhook` and potentially trigger status changes              | High     | Implement IPN signature verification using `x-signature` header and MP's public key. Also validate `topic` / `type` field                                                                                                           |
+| **Webhook idempotency** — duplicate notifications could double-process                                                    | Medium   | Check `referencia_externa` on the pago before updating; skip if already set                                                                                                                                                         |
+| **Venta status inconsistency** — venta shows `completada` before payment is confirmed                                     | Medium   | Change `createVenta` to set `estado = 'pendiente'` for MP (and potentially other async methods)                                                                                                                                     |
+| **Stock reservation** — stock is decremented immediately on venta creation, but MP payment might fail                     | High     | Currently stock is deducted via `venta_detalle` insert with FK to stock — need to verify if stock is actually decremented. If the webhook never confirms, stock is lost. Consider pending stock reservations or a timeout mechanism |
+| **Test credentials** — no `.env.example` entries for MP means new devs won't know how to set it up                        | Low      | Add `MERCADO_PAGO_ACCESS_TOKEN` and `MERCADO_PAGO_PUBLIC_KEY` to `.env.example` with comments                                                                                                                                       |
+| **FRONTEND_URL alignment** — env var name mismatch between MP config and existing `.env` (`CLIENT_URL` vs `FRONTEND_URL`) | Low      | Either add `FRONTEND_URL` or refactor MercadoPagoService to use `CLIENT_URL`                                                                                                                                                        |
 
 ### Ready for Proposal
 

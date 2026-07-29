@@ -156,10 +156,12 @@ describe('PagosService', () => {
         referencia_externa: 'MP-PAY-123',
       });
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE pagos'),
-        ['aprobado', 'MP-PAY-123', null, 10],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE pagos'), [
+        'aprobado',
+        'MP-PAY-123',
+        null,
+        10,
+      ]);
     });
 
     it('should update pago datos_json for a venta', async () => {
@@ -171,10 +173,12 @@ describe('PagosService', () => {
         datos_json: datos,
       });
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE pagos'),
-        ['aprobado', null, datos, 20],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE pagos'), [
+        'aprobado',
+        null,
+        datos,
+        20,
+      ]);
     });
 
     it('should update all fields at once', async () => {
@@ -186,10 +190,12 @@ describe('PagosService', () => {
         datos_json: '{"status":"rejected"}',
       });
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE pagos'),
-        ['rechazado', 'MP-PAY-456', '{"status":"rejected"}', 30],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE pagos'), [
+        'rechazado',
+        'MP-PAY-456',
+        '{"status":"rejected"}',
+        30,
+      ]);
     });
   });
 });

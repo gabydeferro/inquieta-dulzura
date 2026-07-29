@@ -1,4 +1,4 @@
-import { ReactNode, FormEvent ,useState, useEffect } from 'react';
+import { ReactNode, FormEvent, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from './services/api';
 import { useNotification } from './contexts/NotificationContext';
@@ -150,7 +150,7 @@ const Inventario = (): ReactNode => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     // Convertir strings a números antes de enviar al backend
     const payload = {
       ...formData,
@@ -365,81 +365,81 @@ const Inventario = (): ReactNode => {
                       : ''
                 }`}
               >
-              <CardHeader className="flex flex-row items-start justify-between pb-2">
-                <CardTitle className="text-base sm:text-lg">{producto.nombre}</CardTitle>
-                {producto.sku && (
-                  <Badge variant="outline" className="shrink-0 font-mono text-[0.7rem]">
-                    {producto.sku}
-                  </Badge>
-                )}
-              </CardHeader>
+                <CardHeader className="flex flex-row items-start justify-between pb-2">
+                  <CardTitle className="text-base sm:text-lg">{producto.nombre}</CardTitle>
+                  {producto.sku && (
+                    <Badge variant="outline" className="shrink-0 font-mono text-[0.7rem]">
+                      {producto.sku}
+                    </Badge>
+                  )}
+                </CardHeader>
 
-              <CardContent>
-                {producto.descripcion && (
-                  <p className="mb-3 text-sm text-muted-foreground">{producto.descripcion}</p>
-                )}
+                <CardContent>
+                  {producto.descripcion && (
+                    <p className="mb-3 text-sm text-muted-foreground">{producto.descripcion}</p>
+                  )}
 
-                <div className="mb-3 flex gap-4 rounded-lg bg-muted/50 p-3">
-                  <div>
-                    <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                      Precio
-                    </p>
-                    <p className="text-lg font-bold text-foreground">
-                      ${Number(producto.precio).toFixed(2)}
-                    </p>
-                  </div>
-                  {producto.costo && (
+                  <div className="mb-3 flex gap-4 rounded-lg bg-muted/50 p-3">
                     <div>
                       <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                        Costo
+                        Precio
                       </p>
                       <p className="text-lg font-bold text-foreground">
-                        ${Number(producto.costo).toFixed(2)}
+                        ${Number(producto.precio).toFixed(2)}
                       </p>
                     </div>
-                  )}
-                </div>
-
-                {producto.stock && (
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between rounded-lg bg-muted/30 p-2">
-                      <span className="font-semibold text-foreground">
-                        {producto.stock.cantidad_disponible} {producto.stock.unidad_medida}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Mín: {producto.stock.cantidad_minima}
-                      </span>
-                    </div>
-                    {producto.stock.cantidad_disponible <= producto.stock.cantidad_minima && (
-                      <Badge variant="destructive" className="mt-2 w-full justify-center gap-1">
-                        <AlertTriangle className="size-3" />
-                        Stock bajo
-                      </Badge>
+                    {producto.costo && (
+                      <div>
+                        <p className="text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                          Costo
+                        </p>
+                        <p className="text-lg font-bold text-foreground">
+                          ${Number(producto.costo).toFixed(2)}
+                        </p>
+                      </div>
                     )}
                   </div>
-                )}
 
-                <div className="flex justify-end gap-1 border-t pt-3">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleEdit(producto)}
-                    title="Editar"
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleDelete(producto.id)}
-                    title="Eliminar"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  {producto.stock && (
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between rounded-lg bg-muted/30 p-2">
+                        <span className="font-semibold text-foreground">
+                          {producto.stock.cantidad_disponible} {producto.stock.unidad_medida}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Mín: {producto.stock.cantidad_minima}
+                        </span>
+                      </div>
+                      {producto.stock.cantidad_disponible <= producto.stock.cantidad_minima && (
+                        <Badge variant="destructive" className="mt-2 w-full justify-center gap-1">
+                          <AlertTriangle className="size-3" />
+                          Stock bajo
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-1 border-t pt-3">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEdit(producto)}
+                      title="Editar"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleDelete(producto.id)}
+                      title="Eliminar"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
@@ -460,7 +460,12 @@ const Inventario = (): ReactNode => {
               <DialogTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
             </DialogHeader>
 
-            <motion.div className="grid gap-4 py-4" variants={fadeUp} initial="hidden" animate="visible">
+            <motion.div
+              className="grid gap-4 py-4"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+            >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="nombre">Nombre *</Label>

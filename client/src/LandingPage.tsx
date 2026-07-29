@@ -1,13 +1,23 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from './contexts/AuthContext';
 import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
-import { Cake, Cookie, Croissant, Candy, Truck, ShieldCheck, CreditCard } from 'lucide-react';
+import {
+  Cake,
+  Cookie,
+  Croissant,
+  Candy,
+  Truck,
+  ShieldCheck,
+  CreditCard,
+  Sprout,
+  CookingPot,
+  Gift,
+} from 'lucide-react';
+import { InstagramIcon, WhatsAppIcon } from './components/SocialIcons';
 
 const LandingPage = (): ReactNode => {
-  const { isAuthenticated } = useAuth();
   const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
 
   return (
@@ -37,13 +47,6 @@ const LandingPage = (): ReactNode => {
                   Ver Catálogo
                 </Button>
               </Link>
-              {!isAuthenticated && (
-                <Link to="/register">
-                  <Button variant="outline" size="lg">
-                    Únete a nosotros
-                  </Button>
-                </Link>
-              )}
             </div>
           </motion.div>
           <motion.div
@@ -144,30 +147,30 @@ const LandingPage = (): ReactNode => {
       >
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
           <div className="flex items-center gap-6 border-b border-white/10 pb-8 last:border-none lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
-            <Truck className="size-12 shrink-0" />
+            <Sprout className="size-12 shrink-0" />
             <div>
               <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
-                Envío a Domicilio
+                Ingredientes Frescos
               </h4>
-              <p className="text-sm text-white/60">Llegamos a toda la zona</p>
+              <p className="text-sm text-white/60">Seleccionamos todo con cuidado</p>
             </div>
           </div>
           <div className="flex items-center gap-6 border-b border-white/10 pb-8 last:border-none lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
-            <ShieldCheck className="size-12 shrink-0" />
+            <CookingPot className="size-12 shrink-0" />
             <div>
               <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
-                Compra Segura
+                Elaboración Artesanal
               </h4>
-              <p className="text-sm text-white/60">Tus datos siempre protegidos</p>
+              <p className="text-sm text-white/60">Horneamos cada pedido al momento</p>
             </div>
           </div>
           <div className="flex items-center gap-6 pb-8 last:border-none lg:pb-0">
-            <CreditCard className="size-12 shrink-0" />
+            <Gift className="size-12 shrink-0" />
             <div>
               <h4 className="font-[var(--font-titles)] mb-2 text-sm font-bold uppercase tracking-[2px] text-white/40">
-                Medios de Pago
+                Ocasiones Especiales
               </h4>
-              <p className="text-sm text-white/60">Todas las tarjetas y efectivo</p>
+              <p className="text-sm text-white/60">Personalizamos para tu evento</p>
             </div>
           </div>
         </div>
@@ -186,22 +189,18 @@ const LandingPage = (): ReactNode => {
             ¿Listo para comenzar?
           </h2>
           <p className="font-[var(--font-script)] mx-auto mb-12 max-w-2xl text-3xl text-foreground/90 sm:text-4xl">
-            Únete a nuestra plataforma y gestiona tu pastelería de forma profesional
+            Endulzá tu día con nuestras creaciones artesanales
           </p>
-          {!isAuthenticated && (
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/register">
-                <Button size="lg" className="bg-brand-violet text-white hover:bg-brand-violet/90">
-                  Crear Cuenta Gratis
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="outline" size="lg">
-                  Ya tengo cuenta
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/catalogo">
+              <Button
+                size="lg"
+                className="bg-brand-violet text-white hover:bg-brand-violet/90 px-12 h-14 text-lg"
+              >
+                Ver Catálogo
+              </Button>
+            </Link>
+          </div>
         </div>
       </motion.section>
 
@@ -213,7 +212,7 @@ const LandingPage = (): ReactNode => {
         whileInView="visible"
         viewport={{ once: true, margin: '-100px' }}
       >
-        <div className="mx-auto mb-16 grid max-w-7xl gap-16 lg:grid-cols-[2fr_1fr_1.5fr_1.2fr]">
+        <div className="mx-auto mb-16 grid max-w-7xl gap-16 lg:grid-cols-[2fr_1fr_1.5fr]">
           <div>
             <div className="mb-8 flex items-center gap-4">
               <img src="/logo.svg" alt="Inquieta Dulzura" className="h-14 w-auto" />
@@ -261,17 +260,48 @@ const LandingPage = (): ReactNode => {
             <h4 className="font-[var(--font-titles)] mb-6 text-xs font-bold uppercase tracking-[3px] text-white/40">
               Contacto
             </h4>
-            <p className="text-sm text-white/70">📍 Villa Ramallo, Buenos Aires</p>
-            <p className="text-sm text-white/70">📞 (2477) 123456</p>
-            <p className="text-sm text-white/70">📧 info@inquietadulzura.com</p>
-          </div>
-          <div>
-            <h4 className="font-[var(--font-titles)] mb-6 text-xs font-bold uppercase tracking-[3px] text-white/40">
-              Horarios
-            </h4>
-            <p className="text-sm text-white/70">Mar a Sáb: 09:00 - 20:00</p>
-            <p className="text-sm text-white/70">Dom: 09:00 - 13:00</p>
-            <p className="text-sm text-white/70">Lun: Cerrado</p>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3 text-sm text-white/70">
+                <InstagramIcon size={18} className="shrink-0" />
+                <span>@inquietadulzura</span>
+              </li>
+              <li className="flex items-center gap-3 text-sm text-white/70">
+                <WhatsAppIcon size={18} className="shrink-0" />
+                <span>WhatsApp</span>
+              </li>
+              <li className="flex items-center gap-3 text-sm text-white/70">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="shrink-0"
+                >
+                  <rect
+                    x="2"
+                    y="4"
+                    width="20"
+                    height="16"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M22 7L12 13L2 7"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <a
+                  href="mailto:info@inquietadulzura.com"
+                  className="text-white/70 no-underline transition-all hover:text-white"
+                >
+                  info@inquietadulzura.com
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="border-t border-white/10 py-6 text-center">

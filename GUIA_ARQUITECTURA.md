@@ -1,6 +1,6 @@
 # Guía de Arquitectura — Inquieta Dulzura
 
-> **Disclaimer:** Este documento fue generado el 2026-07-06 (última actualización: 2026-07-19) como guía de referencia del sistema.
+> **Disclaimer:** Este documento fue generado el 2026-07-06 (última actualización: 2026-07-28) como guía de referencia del sistema.
 > No es una especificación vinculante; la fuente de verdad es el código fuente y el schema de la base de datos.
 > Si encontrás una discrepancia entre esta guía y el código, **el código tiene la razón**.
 > Esta guía puede quedar obsoleta si el sistema evoluciona sin actualizarla.
@@ -124,12 +124,17 @@ inquieta-dulzura/
 │   │   ├── services/                # Lógica de negocio + queries SQL
 │   │   │   ├── InstagramService.ts         # Cliente Graph API: token, media, métricas, comentarios
 │   │   │   ├── ContenidoDigitalService.ts  # CRUD + etiquetas en contenido_digital (MySQL)
-│   │   │   ├── PagosService.ts             # Integración Mercado Pago (preferencia, webhook)
-│   │   │   └── VentasService.ts            # Lógica de ventas + stock
+│   │   │   ├── PagosService.ts             # CRUD de pagos vinculados a ventas
+│   │   │   ├── VentasService.ts            # Lógica de ventas + stock (reserva FOR UPDATE, decremento condicional)
+│   │   │   ├── MercadoPagoService.ts       # Integración MP: preferencia, webhook, verificación firma
+│   │   │   ├── DashboardService.ts         # Estadísticas del dashboard (14 queries paralelas, partial failure tolerance)
+│   │   │   └── ConfiguracionService.ts     # Configuración clave-valor (tabla configuracion)
 │   │   ├── routes/                  # Definición de rutas Express
 │   │   │   ├── instagram.ts         # 9 rutas Instagram (montaje condicional)
 │   │   │   ├── ventas.ts            # Rutas de ventas
-│   │   │   └── mercado-pago.ts      # Rutas Mercado Pago (preferencia, webhook)
+│   │   │   ├── mercado-pago.ts      # Rutas MP (preferencia, webhook con rate limiter)
+│   │   │   └── dashboard.ts         # Una ruta: GET /stats (requireAdmin)
+│   │   ├── config/
 │   │   ├── types/
 │   │   │   └── instagram.ts         # Interfaces InstagramToken, InstagramMetrics, InstagramComment
 │   │   ├── bot/                     # Bot de Telegram
@@ -207,6 +212,20 @@ if (!isTestEnv) {
 
 Cuando `VITEST=true` (entorno de tests), el servidor **no arranca** — solo se exportan los módulos para que Vitest pueda importarlos sin levantar un proceso HTTP real. Esto evita conflictos de puerto en los tests.
 
+### Raw Body para Webhooks
+
+El middleware `express.json()` captura el **buffer crudo** del body antes de parsearlo mediante la opción `verify`:
+
+```typescript
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    (req as unknown as Record<string, unknown>).rawBody = buf;
+  },
+}));
+```
+
+Esto es necesario para la **verificación de firmas HMAC-SHA256** en el webhook de Mercado Pago, que necesita el body exacto (bytes) para calcular el hash.
+
 ### Middleware de autenticación
 
 | Middleware | Uso |
@@ -250,20 +269,55 @@ El `ContenidoDigitalService` implementa:
 | `PATCH` | `/api/ventas/:id/status` | Admin | Actualizar estado de venta manualmente |
 
 **Flujo de pago MP:**
-1. Frontend crea preferencia → redirige a `init_point` (checkout MP)
-2. Usuario paga → MP envía webhook IPN a `/api/mercado-pago/webhook`
-3. Webhook verifica firma HMAC-SHA256, actualiza pago y venta
-4. Si `approved`: venta → `completada`, stock se decrementa
-5. Si `rejected`: venta → `cancelada`, stock se preserva
-6. Si `pending`: venta se mantiene en `pendiente`
+1. Frontend crea preferencia → recibe `init_point` (checkout producción)
+2. Frontend abre `window.open(init_point, '_blank')` en nueva pestaña (no redirect)
+3. Usuario paga en la nueva pestaña de MP
+4. Al volver a la pestaña del sistema, un listener `visibilitychange` refresca automáticamente la lista de ventas
+5. Los `back_urls` usan query params: `?pago=exito`, `?pago=fallo`, `?pago=pendiente`
+6. MP envía webhook IPN a `/api/mercado-pago/webhook`
+7. Webhook verifica firma HMAC-SHA256, actualiza pago y venta
+8. Si `approved`: venta → `completada`, stock se decrementa
+9. Si `rejected`: venta → `cancelada`, stock se preserva
+10. Si `pending`: venta se mantiene en `pendiente`
 
-**Rate limiting:** El endpoint webhook tiene rate limiter in-memory (30 req/min por IP).
+**Firma del webhook (x-signature):**
+- Se verifica solo en producción (`NODE_ENV=production`)
+- En desarrollo se skipea la verificación automáticamente
+- Algoritmo: HMAC-SHA256 con `MP_WEBHOOK_SECRET`
+- Canonical string: `id:<data.id>;request-id:<x-request-id>;ts:<ts>;`
+- Comparación timing-safe con `timingSafeEqual`
 
-**Idempotency:** El webhook verifica `referencia_externa` antes de procesar — duplicados se ignoran.
+**Rate limiting:**
+- El endpoint webhook tiene rate limiter **en memoria** (Map por IP)
+- 30 req/min por IP
+- La IP se extrae de `x-forwarded-for` o `req.ip`
+- Si se excede, responde 429
 
-**Stock:** El trigger `after_venta_detalle_insert` fue eliminado (migración 003). El stock ahora se maneja en el service:
-- MP: stock se reserva al crear venta (SELECT FOR UPDATE), se decrementa solo al aprobar webhook
-- Otros métodos: stock se decrementa inmediatamente al crear venta
+**Idempotency:**
+- El webhook verifica `referencia_externa` en la tabla `pagos` antes de procesar
+- Si el pago ya tiene `referencia_externa`, se ignora (duplicado)
+- Esto asegura que MP retry no procese el mismo pago dos veces
+
+**Reserva de stock con SELECT FOR UPDATE:**
+- Al crear una venta, se valida stock con `SELECT cantidad_disponible FROM stock WHERE producto_id = ? FOR UPDATE`
+- Esto bloquea la fila hasta que se complete la transacción
+- Para MP: stock se **reserva** (no se descuenta) hasta que el webhook confirma
+- Para no-MP: stock se descuenta inmediatamente
+
+**Variables de entorno:**
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `MERCADO_PAGO_ACCESS_TOKEN` | Sí | Access token de MP (producción) |
+| `MERCADO_PAGO_PUBLIC_KEY` | Sí | Public key de MP |
+| `MERCADO_PAGO_NOTIFICATION_URL` | No | URL pública del webhook (ngrok en desarrollo) |
+| `MP_WEBHOOK_SECRET` | No | Clave secreta para verificar firma del webhook |
+| `CLIENT_URL` | Sí | URL del frontend (para back_urls) |
+
+**Configuración de webhook:**
+- Se monta condicionalmente si `MERCADO_PAGO_ACCESS_TOKEN` y `MERCADO_PAGO_PUBLIC_KEY` están presentes
+- Para desarrollo local se recomienda **ngrok** para exponer el webhook
+- La URL del webhook se configura en el panel de MP (Dashboard → Webhooks → Configurar)
+- El webhook soporta dos formatos: IPN v1 (`resource`/`topic`) y Webhook v2 (`data.id`/`type`)
 
 ---
 
@@ -357,6 +411,31 @@ Cliente Axios con:
   - Si el refresh falla, borra tokens y redirige a `/login`
 - Normaliza errores del server: si la respuesta tiene `{ success: false, error: string }`, agrega `message` para los handlers del componente
 
+### Ventas — Auto-refresh post MP
+
+El componente `Ventas.tsx` implementa un patrón de **auto-refresh** para la integración con Mercado Pago:
+- Al pagar con MP, abre el checkout en **nueva pestaña** (`window.open(url, '_blank')`)
+- Escucha `visibilitychange`: cuando el usuario vuelve a la pestaña del sistema, refresca automáticamente la lista de ventas
+- Procesa los query params de retorno (`?pago=exito|fallo|pendiente`) para mostrar notificaciones toast
+- La URL de retorno se define en `back_urls` de la preferencia MP
+
+### Dashboard — Componentes
+
+El `Dashboard.tsx` consume el endpoint `/api/dashboard/stats` y muestra:
+
+| Card/Cuadrícula | Descripción |
+|---|---|
+| **Summary cards** | Ventas hoy/semana/mes, ingresos, clientes, productos activos, etc. |
+| **Sales Trend** | Área chart (Recharts) con ventas de los últimos 30 días |
+| **Payment Methods** | Donut chart (Recharts) si hay múltiples métodos; tarjeta centrada con ícono + total si hay solo uno |
+| **Top 5 Products** | Tabla con productos más vendidos en 30 días |
+| **Stock Alerts** | Lista de productos con `cantidad_disponible ≤ stock_bajo_threshold` |
+| **Quick Actions** | Grid de accesos rápidos (links a secciones) |
+
+El dashboard usa **partial failure tolerance**: todas las queries se ejecutan en paralelo con `Promise.allSettled`.
+Si alguna falla, se devuelve `[]` o `0` según el tipo y se reporta en `partial_failures[]`.
+Esto evita que un error en una query (ej: la tabla `stock` no tiene `unidad_medida`) rompa todo el dashboard.
+
 ### UI Components (shadcn/ui)
 
 Componentes base en `client/src/components/ui/`:
@@ -427,17 +506,28 @@ refresh_tokens (JWT refresh)
 | `usuarios` | Usuarios del sistema | `activo` |
 | `refresh_tokens` | Tokens JWT refresh | No |
 | `pagos` | Pagos asociados a ventas | No |
+| `configuracion` | Configuración clave-valor (threshold stock bajo, etc.) | No |
 
 ### Triggers
 
-1. ~~**`after_venta_detalle_insert`**: al insertar un detalle de venta, descuenta automáticamente del stock~~ → **ELIMINADO** (migración 003). El stock ahora se maneja en `VentasService`.
+1. ~~**`after_venta_detalle_insert`**: al insertar un detalle de venta, descuenta automáticamente del stock~~ → **ELIMINADO** (migración 003). El stock ahora se maneja en `VentasService` con `SELECT FOR UPDATE` y decremento condicional (inmediato para no-MP, diferido para MP).
 2. **`before_foto_delete`**: antes de borrar una foto, registra en `fotos_eliminadas_log`
 
 ### Vistas
 
-1. **`v_productos_stock_bajo`**: productos con cantidad_disponible ≤ cantidad_minima
+1. **`v_productos_stock_bajo`**: productos con `cantidad_disponible ≤ cantidad_minima`
 2. **`v_ventas_completas`**: ventas con detalle, producto, cliente
 3. **`v_estadisticas_fotos`**: estadísticas de almacenamiento de fotos
+
+### Tablas de Configuración
+
+La tabla `configuracion` (clave-valor) almacena parámetros del sistema:
+
+| Clave | Default | Descripción |
+|---|---|---|
+| `stock_bajo_threshold` | `10` | Umbral de stock bajo para el dashboard |
+
+Se inicializa automáticamente al arrancar el servidor mediante `init-config.ts` si la tabla está vacía.
 
 ### Datos de ejemplo
 
@@ -707,9 +797,15 @@ Para activar la integración se necesita:
 
 ### Stock
 - 1:1 con producto (UNIQUE en `producto_id`).
-- Trigger: al insertar una venta, descuenta automáticamente.
-- Alerta de stock bajo: `cantidad_disponible <= cantidad_minima`.
-- Vista `v_productos_stock_bajo` para reportes.
+- Se crea automáticamente al crear un producto **si** se provee `cantidad_disponible` o `cantidad_minima`.
+  - Si no se proveen, el producto no tiene registro en `stock` (el LEFT JOIN en queries lo trata como NULL → 0).
+- Columnas: `cantidad_disponible`, `cantidad_minima`, `unidad_medida` (enum: `unidades`, `kg`, `litros`, `docenas`).
+- **Trigger eliminado**: el manejo de stock ahora es transaccional en `VentasService`:
+  - `SELECT ... FOR UPDATE` para reservar stock al crear venta
+  - Decremento inmediato para pagos no-MP
+  - Decremento diferido para MP (se descuenta solo cuando el webhook confirma `approved`)
+- Alerta de stock bajo en dashboard: `cantidad_disponible <= stock_bajo_threshold` (configurable, default 10).
+- La query del dashboard usa `LEFT JOIN` + `COALESCE` para incluir productos sin registro en `stock` (tratados como stock = 0).
 
 ### Ventas
 - Cabecera (`ventas`) + detalle (`venta_detalle`).
@@ -720,8 +816,10 @@ Para activar la integración se necesita:
 - Subtotal se calcula como suma de subtotales de productos.
 - Total = subtotal - descuento.
 - MP inicia en estado `pendiente`, se completa/cancela vía webhook.
-- Stock se decrementa condicionalmente: inmediato para no-MP, al aprobar para MP.
-- El endpoint `PATCH /api/ventas/:id/status` permite actualización manual del estado (solo admin).
+- Stock se decrementa condicionalmente: inmediato para no-MP, al aprobar webhook para MP.
+- Reserva de stock: usa `SELECT ... FOR UPDATE` para evitar race conditions.
+- El endpoint `PATCH /api/ventas/:id/status` permite actualización manual del estado (solo admin, útil para forzar completado si el webhook falla).
+- URL params de retorno MP: `Ventas.tsx` procesa `?pago=exito|fallo|pendiente` vía URLSearchParams para mostrar notificaciones toast.
 
 ### Mercado Pago
 - Preferencia creation valida que la venta exista y tenga-items.
@@ -843,9 +941,11 @@ Enviar una foto con el ID del producto como caption.
 - `META_APP_ID`, `META_APP_SECRET` — credenciales de la app en Meta for Developers.
 - `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_BUSINESS_ID` — token de acceso e ID de Instagram Business.
 - Si las 4 variables de Instagram están presentes, el servidor monta automáticamente las rutas de la API de Instagram.
-- `MP_ACCESS_TOKEN` — Token de acceso de Mercado Pago.
-- `MP_PUBLIC_KEY` — Public key de Mercado Pago.
-- `CLIENT_URL` — URL del frontend (para return URL de MP).
+- `MERCADO_PAGO_ACCESS_TOKEN` — Access token de Mercado Pago (producción).
+- `MERCADO_PAGO_PUBLIC_KEY` — Public key de Mercado Pago.
+- `MERCADO_PAGO_NOTIFICATION_URL` — URL pública del webhook de MP (ngrok en desarrollo).
+- `MP_WEBHOOK_SECRET` — Clave secreta para verificar firma HMAC del webhook MP.
+- `CLIENT_URL` — URL del frontend (para return URLs de MP y CORS).
 
 ---
 

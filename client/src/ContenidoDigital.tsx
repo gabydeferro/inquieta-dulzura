@@ -89,12 +89,7 @@ export const ContenidoDigital: React.FC = () => {
         <p>Gestión de fotos y videos de productos</p>
       </motion.header>
 
-      <motion.div
-        className="filtros"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
+      <motion.div className="filtros" variants={fadeUp} initial="hidden" animate="visible">
         <input
           type="text"
           placeholder="Filtrar por etiqueta..."

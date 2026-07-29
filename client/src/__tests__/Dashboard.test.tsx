@@ -23,7 +23,7 @@ const mockDashboardStats = {
     { metodo: 'efectivo', cantidad: 60, total: 18000 },
     { metodo: 'tarjeta', cantidad: 40, total: 12000 },
   ],
-    topProductos: [
+  topProductos: [
     { producto_id: 1, nombre: 'Torta Chocolate', cantidad: 45, total: 12500 },
     { producto_id: 2, nombre: 'Galletas', cantidad: 25, total: 4500 },
   ],

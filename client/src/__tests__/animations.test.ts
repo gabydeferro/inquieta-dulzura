@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fadeUp, fadeIn, fadeInFromLeft, staggerContainer, useReducedMotion } from '../lib/animations';
+import {
+  fadeUp,
+  fadeIn,
+  fadeInFromLeft,
+  staggerContainer,
+  useReducedMotion,
+} from '../lib/animations';
 import { renderHook } from '@testing-library/react';
 
 // ── Variant object shape tests ─────────────────────────────────────
 
 describe('fadeUp variant', () => {
   it('has hidden state with opacity 0 and y 8', () => {
-    expect(fadeUp.hidden).toEqual(
-      expect.objectContaining({ opacity: 0, y: 8 })
-    );
+    expect(fadeUp.hidden).toEqual(expect.objectContaining({ opacity: 0, y: 8 }));
   });
 
   it('has visible state that animates to opacity 1 and y 0', () => {
@@ -20,9 +24,7 @@ describe('fadeUp variant', () => {
 
 describe('fadeIn variant', () => {
   it('has hidden state with opacity 0', () => {
-    expect(fadeIn.hidden).toEqual(
-      expect.objectContaining({ opacity: 0 })
-    );
+    expect(fadeIn.hidden).toEqual(expect.objectContaining({ opacity: 0 }));
   });
 
   it('has visible state with opacity 1', () => {
@@ -39,9 +41,7 @@ describe('fadeIn variant', () => {
 
 describe('fadeInFromLeft variant', () => {
   it('has hidden state with opacity 0 and x -12', () => {
-    expect(fadeInFromLeft.hidden).toEqual(
-      expect.objectContaining({ opacity: 0, x: -12 })
-    );
+    expect(fadeInFromLeft.hidden).toEqual(expect.objectContaining({ opacity: 0, x: -12 }));
   });
 
   it('has visible state that animates to opacity 1 and x 0', () => {
@@ -53,9 +53,7 @@ describe('fadeInFromLeft variant', () => {
 
 describe('staggerContainer variant', () => {
   it('has hidden state with opacity 0', () => {
-    expect(staggerContainer.hidden).toEqual(
-      expect.objectContaining({ opacity: 0 })
-    );
+    expect(staggerContainer.hidden).toEqual(expect.objectContaining({ opacity: 0 }));
   });
 
   it('has visible state with staggerChildren in transition', () => {

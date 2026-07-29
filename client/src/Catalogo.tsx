@@ -5,7 +5,8 @@ import { useReducedMotion } from './lib/animations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Cake, PackageOpen } from 'lucide-react';
+import { ArrowLeft, Cake, PackageOpen, Sparkles } from 'lucide-react';
+import { WhatsAppIcon } from './components/SocialIcons';
 import apiService from './services/api';
 
 // Interfaces que coinciden con los DTOs del backend
@@ -159,11 +160,7 @@ const Catalogo = (): ReactNode => {
                 animate="visible"
               >
                 {productos.map((producto) => (
-                  <motion.div
-                    key={producto.id}
-                    variants={fadeUp}
-                    layout
-                  >
+                  <motion.div key={producto.id} variants={fadeUp} layout>
                     <Card className="overflow-hidden transition-transform duration-500 hover:-translate-y-3 hover:shadow-xl">
                       <div className="flex h-48 items-center justify-center bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30">
                         <Cake className="size-16 text-foreground/20" />
@@ -220,27 +217,21 @@ const Catalogo = (): ReactNode => {
         viewport={{ once: true }}
       >
         <div className="mx-auto max-w-7xl">
-          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
-            ¿Quieres gestionar tu propia pastelería?
-          </h2>
+          <Sparkles className="mx-auto mb-6 size-12 text-white/60" />
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">¿Tenés un evento especial?</h2>
           <p className="mb-8 text-lg text-white/90">
-            Únete a nuestra plataforma y administra tu negocio de forma profesional
+            Contanos tus ideas y preparamos algo único para vos
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/register">
+            <a href="mailto:info@inquietadulzura.com">
               <Button size="lg" className="bg-white text-brand-violet hover:bg-white/90">
-                Registrarse Gratis
+                Pedir presupuesto
               </Button>
-            </Link>
-            <Link to="/login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-brand-violet"
-              >
-                Iniciar Sesión
-              </Button>
-            </Link>
+            </a>
+            <Button size="lg" className="bg-white text-brand-violet hover:bg-white/90">
+              <WhatsAppIcon size={18} className="mr-2" />
+              Contactanos por WhatsApp
+            </Button>
           </div>
         </div>
       </motion.section>

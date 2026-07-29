@@ -150,10 +150,7 @@ describe('Categorias Component', () => {
         nombre: 'Panadería',
         descripcion: '',
       });
-      expect(mockShowNotification).toHaveBeenCalledWith(
-        'Categoría creada con éxito!',
-        'success',
-      );
+      expect(mockShowNotification).toHaveBeenCalledWith('Categoría creada con éxito!', 'success');
     });
   });
 });

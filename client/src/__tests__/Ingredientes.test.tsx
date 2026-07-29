@@ -123,7 +123,13 @@ describe('Ingredientes Component', () => {
     await user.type(costoUnitarioInput, '1.5');
 
     vi.mocked(api.createIngrediente).mockResolvedValueOnce({
-      data: { id: 3, nombre: 'Leche', unidad_medida: 'unidades', costo_unitario: 1.5, activo: true },
+      data: {
+        id: 3,
+        nombre: 'Leche',
+        unidad_medida: 'unidades',
+        costo_unitario: 1.5,
+        activo: true,
+      },
     } as never);
     vi.mocked(api.getIngredientes).mockResolvedValueOnce({
       data: [

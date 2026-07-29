@@ -7,6 +7,7 @@ import { useNotification } from './contexts/NotificationContext';
 import { useReducedMotion } from './lib/animations';
 import {
   Table,
+  TableBody,
   TableHead,
   TableHeader,
   TableCell,
@@ -51,7 +52,7 @@ const emptyFilters: Filters = {
 
 const HistorialVentas: React.FC = () => {
   const { showNotification } = useNotification();
-  const { fadeUp, fadeIn, staggerContainer } = useReducedMotion();
+  const { fadeUp, fadeIn } = useReducedMotion();
 
   const [data, setData] = useState<PaginatedResponse<VentaHistorial> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,12 +127,7 @@ const HistorialVentas: React.FC = () => {
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <motion.header
-        className="mb-6"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
+      <motion.header className="mb-6" variants={fadeUp} initial="hidden" animate="visible">
         <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
           <History className="size-7 sm:size-8 lg:size-9 text-brand-violet" />
           Historial de Ventas
@@ -277,9 +273,9 @@ const HistorialVentas: React.FC = () => {
                 <TableHead className="hidden sm:table-cell">Metodo Pago</TableHead>
               </TableRow>
             </TableHeader>
-            <motion.tbody variants={staggerContainer} initial="hidden" animate="visible">
+            <TableBody>
               {data.data.map((venta) => (
-                <motion.tr key={venta.id} variants={fadeUp}>
+                <TableRow key={venta.id}>
                   <TableCell className="font-medium whitespace-nowrap">
                     {formatDate(venta.fecha_venta)}
                   </TableCell>
@@ -295,9 +291,9 @@ const HistorialVentas: React.FC = () => {
                   <TableCell className="hidden sm:table-cell capitalize">
                     {venta.metodo_pago.replace('_', ' ')}
                   </TableCell>
-                </motion.tr>
+                </TableRow>
               ))}
-            </motion.tbody>
+            </TableBody>
           </Table>
         </div>
       )}

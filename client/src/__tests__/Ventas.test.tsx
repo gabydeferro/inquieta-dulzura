@@ -229,7 +229,13 @@ describe('Ventas Component (POS)', () => {
         estado: 'pendiente',
         total: 5000,
         productos: [
-          { producto_id: 1, cantidad: 1, precio_unitario: 5000, subtotal: 5000, producto_nombre: 'Torta Red Velvet' },
+          {
+            producto_id: 1,
+            cantidad: 1,
+            precio_unitario: 5000,
+            subtotal: 5000,
+            producto_nombre: 'Torta Red Velvet',
+          },
         ],
         fecha_venta: new Date().toISOString(),
         subtotal: 5000,
@@ -280,7 +286,10 @@ describe('Ventas Component (POS)', () => {
 
     // Should open MP checkout in new tab
     await waitFor(() => {
-      expect(windowOpenSpy).toHaveBeenCalledWith('https://mercadopago.com/checkout?pref_id=123', '_blank');
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://mercadopago.com/checkout?pref_id=123',
+        '_blank',
+      );
     });
   });
 
@@ -293,7 +302,9 @@ describe('Ventas Component (POS)', () => {
         search: '?pago=exito',
         pathname: '/ventas',
         set href(_val: string) {},
-        get href() { return '/ventas?pago=exito'; },
+        get href() {
+          return '/ventas?pago=exito';
+        },
       },
       writable: true,
     });

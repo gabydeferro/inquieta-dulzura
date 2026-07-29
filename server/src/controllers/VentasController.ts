@@ -99,7 +99,9 @@ export const updateVentaStatus = async (req: Request, res: Response) => {
 
     const validEstados = ['completada', 'cancelada', 'pendiente'];
     if (!validEstados.includes(estado)) {
-      res.status(400).json({ success: false, error: `estado must be one of: ${validEstados.join(', ')}` });
+      res
+        .status(400)
+        .json({ success: false, error: `estado must be one of: ${validEstados.join(', ')}` });
       return;
     }
 

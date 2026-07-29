@@ -95,7 +95,10 @@ describe('API search and pago methods', () => {
   describe('createMPPreference', () => {
     it('calls POST /mercado-pago/preferencia with ventaId and items', async () => {
       const mockResult = {
-        data: { success: true, data: { url: 'https://mp.com/checkout', preference_id: 'pref-123' } },
+        data: {
+          success: true,
+          data: { url: 'https://mp.com/checkout', preference_id: 'pref-123' },
+        },
       };
       mockPost.mockResolvedValueOnce(mockResult);
 

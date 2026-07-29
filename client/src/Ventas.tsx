@@ -145,7 +145,10 @@ const Ventas = (): ReactNode => {
             return;
           }
         } catch {
-          showNotification('Error al crear preferencia de pago. La venta quedó pendiente.', 'error');
+          showNotification(
+            'Error al crear preferencia de pago. La venta quedó pendiente.',
+            'error',
+          );
           cargarVentas();
           return;
         }
@@ -249,7 +252,9 @@ const Ventas = (): ReactNode => {
                 <p className="text-2xl font-bold text-foreground">
                   $
                   {ventas.length > 0
-                    ? (Number(ventas.reduce((sum, v) => sum + Number(v.total), 0)) / ventas.length).toFixed(2)
+                    ? (
+                        Number(ventas.reduce((sum, v) => sum + Number(v.total), 0)) / ventas.length
+                      ).toFixed(2)
                     : '0.00'}
                 </p>
               </div>

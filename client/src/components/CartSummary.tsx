@@ -19,13 +19,7 @@ interface CartSummaryProps {
   onRemove: (producto_id: number) => void;
 }
 
-const CartSummary = ({
-  items,
-  total,
-  itemCount,
-  onUpdateQuantity,
-  onRemove,
-}: CartSummaryProps) => {
+const CartSummary = ({ items, total, itemCount, onUpdateQuantity, onRemove }: CartSummaryProps) => {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
@@ -89,7 +83,9 @@ const CartSummary = ({
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-sm">${Number(item.precio).toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-sm">
+                    ${Number(item.precio).toFixed(2)}
+                  </TableCell>
                   <TableCell className="text-right text-sm font-semibold">
                     ${(Number(item.precio) * item.cantidad).toFixed(2)}
                   </TableCell>

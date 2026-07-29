@@ -10,7 +10,7 @@ import AdminRoute from './components/AdminRoute';
 import Navbar from './components/Navbar';
 import { Notification } from './components/Notification';
 import ConfirmModal from './components/ConfirmModal';
-import {PageTransition} from './components/PageTransition';
+import { PageTransition } from './components/PageTransition';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';

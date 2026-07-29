@@ -6,12 +6,10 @@ export const Notification = () => {
       position="top-center"
       richColors
       closeButton={false}
-      duration={5000}
+      duration={2500}
       toastOptions={{
         className: 'font-sans text-sm',
       }}
     />
   );
-}
-
-
+};

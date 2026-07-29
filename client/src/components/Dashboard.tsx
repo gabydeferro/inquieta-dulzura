@@ -176,22 +176,17 @@ export const Dashboard = (): ReactNode => {
       desc: 'Gestionar fotos de productos',
       icon: Image,
     },
-    { 
+    {
       to: '/categorias',
-      label: 'Categorías', 
-      desc: 'Organizar tipos de productos', 
-      icon: Tags 
-    }
+      label: 'Categorías',
+      desc: 'Organizar tipos de productos',
+      icon: Tags,
+    },
   ];
 
   return (
     <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
-      <motion.header
-        className="mb-8 sm:mb-12"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
+      <motion.header className="mb-8 sm:mb-12" variants={fadeUp} initial="hidden" animate="visible">
         <h1 className="mb-2 text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl">
           Bienvenido, {user?.nombre}!
         </h1>
@@ -240,7 +235,12 @@ export const Dashboard = (): ReactNode => {
       {/* Charts Row */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Sales Trend Chart */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Tendencia de Ventas (30 días)</CardTitle>
@@ -303,7 +303,12 @@ export const Dashboard = (): ReactNode => {
         </motion.div>
 
         {/* Payment Methods Chart */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Métodos de Pago</CardTitle>
@@ -330,39 +335,36 @@ export const Dashboard = (): ReactNode => {
                     </p>
                   </div>
                 ) : (
-                <ResponsiveContainer width="100%" height={320}>
-                  <PieChart>
-                    <Pie
-                      data={stats.metodosPago}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={110}
-                      paddingAngle={4}
-                      labelLine
-                      label={({ metodo, percent }) =>
-                        `${metodo} (${(percent * 100).toFixed(0)}%)`
-                      }
-                      dataKey="total"
-                      nameKey="metodo"
-                    >
-                      {stats.metodosPago.map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total']}
-                    />
-                    <Legend
-                      formatter={(value) => (
-                        <span className="text-sm text-foreground">{value}</span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <PieChart>
+                      <Pie
+                        data={stats.metodosPago}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={110}
+                        paddingAngle={4}
+                        labelLine
+                        label={({ metodo, percent }) =>
+                          `${metodo} (${(percent * 100).toFixed(0)}%)`
+                        }
+                        dataKey="total"
+                        nameKey="metodo"
+                      >
+                        {stats.metodosPago.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total']}
+                      />
+                      <Legend
+                        formatter={(value) => (
+                          <span className="text-sm text-foreground">{value}</span>
+                        )}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 )
               ) : (
                 <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-muted-foreground">
@@ -378,7 +380,12 @@ export const Dashboard = (): ReactNode => {
       {/* Bottom Row */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Top Products Table */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Top 5 Productos (30 días)</CardTitle>
@@ -416,7 +423,12 @@ export const Dashboard = (): ReactNode => {
         </motion.div>
 
         {/* Stock Alerts */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Alertas de Stock Bajo</CardTitle>
@@ -431,9 +443,7 @@ export const Dashboard = (): ReactNode => {
                     >
                       <div>
                         <p className="text-sm font-medium">{producto.nombre}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {producto.unidad_medida}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{producto.unidad_medida}</p>
                       </div>
                       <span className="text-sm font-bold text-amber-600">
                         {producto.cantidad_disponible}

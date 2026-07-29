@@ -109,18 +109,18 @@ describe('Catalogo Component', () => {
     });
   });
 
-  it('renders bottom CTA section with title', async () => {
+  it('renders bottom event CTA section with title', async () => {
     renderCatalogo();
     await waitFor(() => {
-      expect(screen.getByText('¿Quieres gestionar tu propia pastelería?')).toBeInTheDocument();
+      expect(screen.getByText('¿Tenés un evento especial?')).toBeInTheDocument();
     });
   });
 
   it('renders bottom CTA buttons', async () => {
     renderCatalogo();
     await waitFor(() => {
-      expect(screen.getByText('Registrarse Gratis')).toBeInTheDocument();
-      expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument();
+      expect(screen.getByText('Pedir presupuesto')).toBeInTheDocument();
+      expect(screen.getByText('Contactanos por WhatsApp')).toBeInTheDocument();
     });
   });
 

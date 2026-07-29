@@ -23,9 +23,7 @@ export class ConfiguracionService {
   }
 
   async getAll(): Promise<ConfiguracionRow[]> {
-    const [rows] = await pool.query<ConfiguracionRow[]>(
-      'SELECT clave, valor FROM configuracion',
-    );
+    const [rows] = await pool.query<ConfiguracionRow[]>('SELECT clave, valor FROM configuracion');
     return rows;
   }
 }

@@ -31,14 +31,26 @@ router.get('/:id', authenticateToken, getIngredienteById);
  * @desc    Crear un nuevo ingrediente
  * @access  Private (admin)
  */
-router.post('/', authenticateToken, requireAdmin, validate(ingredienteSchema, 'body'), createIngrediente);
+router.post(
+  '/',
+  authenticateToken,
+  requireAdmin,
+  validate(ingredienteSchema, 'body'),
+  createIngrediente,
+);
 
 /**
  * @route   PUT /api/ingredientes/:id
  * @desc    Actualizar un ingrediente por ID
  * @access  Private (admin)
  */
-router.put('/:id', authenticateToken, requireAdmin, validate(ingredienteUpdateSchema, 'body'), updateIngrediente);
+router.put(
+  '/:id',
+  authenticateToken,
+  requireAdmin,
+  validate(ingredienteUpdateSchema, 'body'),
+  updateIngrediente,
+);
 
 /**
  * @route   DELETE /api/ingredientes/:id

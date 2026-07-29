@@ -6,13 +6,7 @@ import { useNotification } from './contexts/NotificationContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { useReducedMotion } from './lib/animations';
 import { clienteCreateSchema, clienteUpdateSchema } from './schemas/cliente.schema';
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableCell,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableHead, TableHeader, TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,17 +46,20 @@ const Clientes: React.FC = () => {
   const [formData, setFormData] = useState<ClienteForm>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const fetchClientes = useCallback(async (currentPage: number, query: string) => {
-    setLoading(true);
-    try {
-      const response = await api.getClientes(query || undefined, currentPage, PAGE_SIZE);
-      setData(response.data);
-    } catch {
-      showNotification('Error al cargar clientes', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [showNotification]);
+  const fetchClientes = useCallback(
+    async (currentPage: number, query: string) => {
+      setLoading(true);
+      try {
+        const response = await api.getClientes(query || undefined, currentPage, PAGE_SIZE);
+        setData(response.data);
+      } catch {
+        showNotification('Error al cargar clientes', 'error');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [showNotification],
+  );
 
   useEffect(() => {
     void fetchClientes(page, search);
@@ -245,7 +242,9 @@ const Clientes: React.FC = () => {
           animate="visible"
         >
           <Users className="size-12 opacity-30" />
-          <p>{search ? 'No se encontraron clientes con esa busqueda' : 'No hay clientes registrados'}</p>
+          <p>
+            {search ? 'No se encontraron clientes con esa busqueda' : 'No hay clientes registrados'}
+          </p>
         </motion.div>
       ) : (
         <div className="rounded-lg border border-border/50">

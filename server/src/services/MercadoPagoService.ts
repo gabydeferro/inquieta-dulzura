@@ -97,10 +97,7 @@ export class MercadoPagoService {
    * Canonical string: id:<data.id>;request-id:<x-request-id>;ts:<ts>;
    * Signed with the webhook secret key from the MP dashboard.
    */
-  verifySignature(
-    headers: Record<string, string | undefined>,
-    body: string,
-  ): boolean {
+  verifySignature(headers: Record<string, string | undefined>, body: string): boolean {
     // Skip signature verification in development — verify only in production
     if (process.env.NODE_ENV !== 'production') {
       console.log('[MP Webhook] Dev mode — skipping signature verification');

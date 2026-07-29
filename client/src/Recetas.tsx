@@ -356,91 +356,89 @@ const Recetas: React.FC = () => {
         >
           {recetas.map((receta) => (
             <motion.div key={receta.id} variants={fadeUp} layout>
-              <Card
-                className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              >
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {receta.tiempo_preparacion && (
-                    <Badge variant="secondary" className="gap-1">
-                      <Clock className="size-3" />
-                      {receta.tiempo_preparacion} min
-                    </Badge>
-                  )}
-                  {receta.porciones && (
-                    <Badge variant="secondary" className="gap-1">
-                      <Cake className="size-3" />
-                      {receta.porciones} porciones
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <p className="mb-3 text-sm text-muted-foreground">{receta.descripcion}</p>
-
-                <div className="mb-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
-                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                    <ChefHat className="mr-1 inline size-3" />
-                    Ingredientes ({receta.ingredientes?.length || 0})
-                  </h4>
-                  <ul className="space-y-1">
-                    {receta.ingredientes?.slice(0, 3).map((ing) => (
-                      <li
-                        key={ing.ingrediente_id}
-                        className="text-xs text-amber-900 dark:text-amber-200"
-                      >
-                        {getIngredientName(ing)} — {ing.cantidad} {ing.unidad_medida}
-                      </li>
-                    ))}
-                    {(receta.ingredientes?.length || 0) > 3 && (
-                      <li className="text-xs italic text-amber-700 dark:text-amber-400">
-                        + {(receta.ingredientes?.length || 0) - 3} más...
-                      </li>
+              <Card className="border-t-[10px] border-t-brand-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base uppercase sm:text-lg">{receta.nombre}</CardTitle>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {receta.tiempo_preparacion && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Clock className="size-3" />
+                        {receta.tiempo_preparacion} min
+                      </Badge>
                     )}
-                  </ul>
-                </div>
+                    {receta.porciones && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Cake className="size-3" />
+                        {receta.porciones} porciones
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
 
-                <div className="flex items-center justify-between gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleViewDetail(receta)}
-                  >
-                    <Eye className="size-3.5" />
-                    Ver Detalle
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleEdit(receta)}
-                    title="Editar"
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handlePrint(receta)}
-                    title="Imprimir"
-                  >
-                    <Printer className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleEliminarReceta(receta.id)}
-                    title="Eliminar"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-            </CardContent>
-          </Card>
-          </motion.div>
+                <CardContent>
+                  <p className="mb-3 text-sm text-muted-foreground">{receta.descripcion}</p>
+
+                  <div className="mb-3 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
+                    <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                      <ChefHat className="mr-1 inline size-3" />
+                      Ingredientes ({receta.ingredientes?.length || 0})
+                    </h4>
+                    <ul className="space-y-1">
+                      {receta.ingredientes?.slice(0, 3).map((ing) => (
+                        <li
+                          key={ing.ingrediente_id}
+                          className="text-xs text-amber-900 dark:text-amber-200"
+                        >
+                          {getIngredientName(ing)} — {ing.cantidad} {ing.unidad_medida}
+                        </li>
+                      ))}
+                      {(receta.ingredientes?.length || 0) > 3 && (
+                        <li className="text-xs italic text-amber-700 dark:text-amber-400">
+                          + {(receta.ingredientes?.length || 0) - 3} más...
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleViewDetail(receta)}
+                    >
+                      <Eye className="size-3.5" />
+                      Ver Detalle
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEdit(receta)}
+                      title="Editar"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handlePrint(receta)}
+                      title="Imprimir"
+                    >
+                      <Printer className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEliminarReceta(receta.id)}
+                      title="Eliminar"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </motion.div>
       )}
@@ -599,7 +597,10 @@ const Recetas: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <motion.div className="max-h-[65vh] overflow-y-auto space-y-4 px-1 py-4" variants={fadeIn}>
+          <motion.div
+            className="max-h-[65vh] overflow-y-auto space-y-4 px-1 py-4"
+            variants={fadeIn}
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="nombre">Nombre *</Label>
@@ -689,7 +690,12 @@ const Recetas: React.FC = () => {
                   className="w-full sm:w-28"
                   min="1"
                 />
-                <Button type="button" variant="secondary" onClick={handleAgregarIngrediente} className="w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleAgregarIngrediente}
+                  className="w-full sm:w-auto"
+                >
                   <Plus className="size-4" />
                   Agregar
                 </Button>
