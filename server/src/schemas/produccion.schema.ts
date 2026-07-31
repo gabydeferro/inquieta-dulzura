@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
 export const produccionBodySchema = z.object({
-  receta_id: z.number({ required_error: 'receta_id es requerido' }).int('receta_id debe ser entero').positive('receta_id debe ser positivo'),
-  cantidad_producir: z
-    .number({ required_error: 'cantidad_producir es requerido' })
-    .positive('cantidad_producir debe ser positivo'),
+  receta_id: z.number().int('receta_id debe ser entero').positive('receta_id debe ser positivo'),
+  cantidad_producir: z.number().positive('cantidad_producir debe ser positivo'),
 });
 
 export const produccionQuerySchema = z.object({

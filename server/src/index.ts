@@ -21,6 +21,7 @@ import mercadoPagoRoutes from './routes/mercado-pago';
 import { initConfig } from './config/init-config';
 import dashboardRoutes from './routes/dashboard';
 import clientesRoutes from './routes/clientes';
+import produccionRoutes from './routes/produccion';
 import { requireAdmin } from './middleware/auth';
 
 // Inicializar Express
@@ -84,6 +85,7 @@ app.use('/api/ventas', pagosRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/dashboard', authenticateToken, requireAdmin, dashboardRoutes);
 app.use('/api/fotos', authenticateToken, fotosRoutes);
+app.use('/api/produccion', produccionRoutes);
 
 // ============================================
 // TELEGRAM BOT WEBHOOK
