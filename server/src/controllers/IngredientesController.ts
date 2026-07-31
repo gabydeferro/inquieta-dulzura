@@ -63,7 +63,8 @@ export const updateIngrediente = async (req: Request, res: Response) => {
 export const updateStock = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const cantidad_disponible = (req.body as { cantidad_disponible?: number }).cantidad_disponible ?? 0;
+    const cantidad_disponible =
+      (req.body as { cantidad_disponible?: number }).cantidad_disponible ?? 0;
     const updatedIngrediente = await ingredienteService.updateStock(id, cantidad_disponible);
     if (updatedIngrediente) {
       res.json(updatedIngrediente);

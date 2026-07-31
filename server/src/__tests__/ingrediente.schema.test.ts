@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { ingredienteSchema, ingredienteUpdateSchema, ingredienteStockSchema } from '../schemas/ingrediente.schema';
+import {
+  ingredienteSchema,
+  ingredienteUpdateSchema,
+  ingredienteStockSchema,
+} from '../schemas/ingrediente.schema';
 
 describe('ingredienteSchema', () => {
   it('should accept valid ingredient data', () => {

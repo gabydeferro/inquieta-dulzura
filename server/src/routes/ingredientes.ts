@@ -9,7 +9,11 @@ import {
 } from '../controllers/IngredientesController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validate';
-import { ingredienteSchema, ingredienteStockSchema, ingredienteUpdateSchema } from '../schemas/ingrediente.schema';
+import {
+  ingredienteSchema,
+  ingredienteStockSchema,
+  ingredienteUpdateSchema,
+} from '../schemas/ingrediente.schema';
 
 const router = Router();
 

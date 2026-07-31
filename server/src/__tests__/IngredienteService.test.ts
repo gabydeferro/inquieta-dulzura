@@ -159,7 +159,10 @@ describe('IngredienteService', () => {
     it('should update cantidad_disponible and return the updated ingredient', async () => {
       const ingredienteId = 1;
       const newStock = 50;
-      const updatedIngrediente = { ...createMockIngrediente(ingredienteId), cantidad_disponible: newStock };
+      const updatedIngrediente = {
+        ...createMockIngrediente(ingredienteId),
+        cantidad_disponible: newStock,
+      };
 
       // UPDATE query mock
       mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
@@ -202,7 +205,10 @@ describe('IngredienteService', () => {
     it('should allow setting stock to 0 (boundary of >= 0)', async () => {
       const ingredienteId = 2;
       const newStock = 0;
-      const updatedIngrediente = { ...createMockIngrediente(ingredienteId), cantidad_disponible: newStock };
+      const updatedIngrediente = {
+        ...createMockIngrediente(ingredienteId),
+        cantidad_disponible: newStock,
+      };
 
       mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
       mockQuery.mockResolvedValueOnce([[updatedIngrediente]]);

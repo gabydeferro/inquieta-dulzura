@@ -11,14 +11,16 @@ import {
 import { IngredienteService } from '../services/IngredienteService';
 
 // Mock helpers using vi.hoisted (vitest >= 2.x)
-const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockDelete, mockUpdateStock } = vi.hoisted(() => ({
-  mockGetAll: vi.fn(),
-  mockGetById: vi.fn(),
-  mockCreate: vi.fn(),
-  mockUpdate: vi.fn(),
-  mockDelete: vi.fn(),
-  mockUpdateStock: vi.fn(),
-}));
+const { mockGetAll, mockGetById, mockCreate, mockUpdate, mockDelete, mockUpdateStock } = vi.hoisted(
+  () => ({
+    mockGetAll: vi.fn(),
+    mockGetById: vi.fn(),
+    mockCreate: vi.fn(),
+    mockUpdate: vi.fn(),
+    mockDelete: vi.fn(),
+    mockUpdateStock: vi.fn(),
+  }),
+);
 
 vi.mock('../services/IngredienteService', () => ({
   IngredienteService: class MockIngredienteService {
