@@ -6,5 +6,6 @@ export interface IngredienteDTO {
   descripcion?: string;
   unidad_medida: UnidadMedidaIngrediente;
   costo_unitario?: number;
+  cantidad_disponible?: number;
   activo?: boolean;
 }

@@ -31,6 +31,10 @@ jobs:
         run: npm ci
         working-directory: client
 
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
+
       - name: Format check
         run: npm run format:check
 

@@ -5,10 +5,15 @@ import {
   createIngrediente,
   updateIngrediente,
   deleteIngrediente,
+  updateStock,
 } from '../controllers/IngredientesController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validate';
-import { ingredienteSchema, ingredienteUpdateSchema } from '../schemas/ingrediente.schema';
+import {
+  ingredienteSchema,
+  ingredienteStockSchema,
+  ingredienteUpdateSchema,
+} from '../schemas/ingrediente.schema';
 
 const router = Router();
 
@@ -58,5 +63,18 @@ router.put(
  * @access  Private (admin)
  */
 router.delete('/:id', authenticateToken, requireAdmin, deleteIngrediente);
+
+/**
+ * @route   PATCH /api/ingredientes/:id/stock
+ * @desc    Actualizar stock de un ingrediente
+ * @access  Private (admin)
+ */
+router.patch(
+  '/:id/stock',
+  authenticateToken,
+  requireAdmin,
+  validate(ingredienteStockSchema, 'body'),
+  updateStock,
+);
 
 export default router;

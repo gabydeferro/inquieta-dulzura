@@ -60,6 +60,23 @@ export const updateIngrediente = async (req: Request, res: Response) => {
   }
 };
 
+export const updateStock = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const cantidad_disponible =
+      (req.body as { cantidad_disponible?: number }).cantidad_disponible ?? 0;
+    const updatedIngrediente = await ingredienteService.updateStock(id, cantidad_disponible);
+    if (updatedIngrediente) {
+      res.json(updatedIngrediente);
+    } else {
+      res.status(404).json({ success: false, error: 'Ingrediente no encontrado' });
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error actualizando stock';
+    res.status(500).json({ success: false, error: message });
+  }
+};
+
 export const deleteIngrediente = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
