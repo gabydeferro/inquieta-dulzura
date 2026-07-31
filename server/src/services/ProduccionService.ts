@@ -38,10 +38,9 @@ export class ProduccionService {
     const { receta_id, cantidad_producir } = data;
 
     // 1. Buscar receta (pre-check — no transaction needed)
-    const [recetaRows] = await pool.query<RecetaRow[]>(
-      'SELECT * FROM recetas WHERE id = ?',
-      [receta_id],
-    );
+    const [recetaRows] = await pool.query<RecetaRow[]>('SELECT * FROM recetas WHERE id = ?', [
+      receta_id,
+    ]);
 
     if (recetaRows.length === 0) {
       throw new Error('Receta no encontrada');
@@ -78,16 +77,14 @@ export class ProduccionService {
       await connection.beginTransaction();
 
       // FOR UPDATE on ingredients
-      await connection.execute(
-        'SELECT * FROM receta_ingrediente WHERE receta_id = ? FOR UPDATE',
-        [receta_id],
-      );
+      await connection.execute('SELECT * FROM receta_ingrediente WHERE receta_id = ? FOR UPDATE', [
+        receta_id,
+      ]);
 
       // FOR UPDATE on stock
-      await connection.execute(
-        'SELECT * FROM stock WHERE producto_id = ? FOR UPDATE',
-        [producto_id],
-      );
+      await connection.execute('SELECT * FROM stock WHERE producto_id = ? FOR UPDATE', [
+        producto_id,
+      ]);
 
       // Calcular cantidades necesarias y validar compatibilidad de unidades
       const needed = ingredienteRows.map((ri) => {
