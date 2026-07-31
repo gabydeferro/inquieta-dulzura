@@ -155,6 +155,75 @@ describe('IngredienteService', () => {
     });
   });
 
+  describe('updateStock', () => {
+    it('should update cantidad_disponible and return the updated ingredient', async () => {
+      const ingredienteId = 1;
+      const newStock = 50;
+      const updatedIngrediente = {
+        ...createMockIngrediente(ingredienteId),
+        cantidad_disponible: newStock,
+      };
+
+      // UPDATE query mock
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      // getById after update mock
+      mockQuery.mockResolvedValueOnce([[updatedIngrediente]]);
+
+      const result = await ingredienteService.updateStock(ingredienteId, newStock);
+
+      expect(result).toEqual(updatedIngrediente);
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        1,
+        'UPDATE ingredientes SET cantidad_disponible = ? WHERE id = ?',
+        [newStock, ingredienteId],
+      );
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        2,
+        'SELECT * FROM ingredientes WHERE id = ? AND activo = TRUE',
+        [ingredienteId],
+      );
+    });
+
+    it('should reject when cantidad_disponible is negative', async () => {
+      await expect(ingredienteService.updateStock(1, -5)).rejects.toThrow(
+        'cantidad_disponible no puede ser negativo',
+      );
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('should return null if ingredient to update stock is not found', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 0 }]);
+
+      const result = await ingredienteService.updateStock(99, 10);
+      expect(result).toBeNull();
+      expect(mockQuery).toHaveBeenCalledWith(
+        'UPDATE ingredientes SET cantidad_disponible = ? WHERE id = ?',
+        [10, 99],
+      );
+    });
+
+    it('should allow setting stock to 0 (boundary of >= 0)', async () => {
+      const ingredienteId = 2;
+      const newStock = 0;
+      const updatedIngrediente = {
+        ...createMockIngrediente(ingredienteId),
+        cantidad_disponible: newStock,
+      };
+
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
+      mockQuery.mockResolvedValueOnce([[updatedIngrediente]]);
+
+      const result = await ingredienteService.updateStock(ingredienteId, newStock);
+
+      expect(result).toEqual(updatedIngrediente);
+      expect(mockQuery).toHaveBeenNthCalledWith(
+        1,
+        'UPDATE ingredientes SET cantidad_disponible = ? WHERE id = ?',
+        [newStock, ingredienteId],
+      );
+    });
+  });
+
   describe('delete', () => {
     it('should soft delete an ingredient by setting activo to FALSE', async () => {
       mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }]);
