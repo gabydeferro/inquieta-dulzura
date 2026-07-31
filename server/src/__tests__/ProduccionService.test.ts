@@ -119,11 +119,7 @@ describe('ProduccionService', () => {
       const result = await service.producir(defaultDTO, 1);
 
       // Verify pre-transaction queries
-      expect(mockPoolQuery).toHaveBeenNthCalledWith(
-        1,
-        'SELECT * FROM recetas WHERE id = ?',
-        [1],
-      );
+      expect(mockPoolQuery).toHaveBeenNthCalledWith(1, 'SELECT * FROM recetas WHERE id = ?', [1]);
       expect(mockPoolQuery).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('SELECT ri.*, i.nombre, i.cantidad_disponible, i.unidad_medida'),
@@ -184,9 +180,7 @@ describe('ProduccionService', () => {
     it('should throw 404-like error when recipe not found', async () => {
       mockPoolQuery.mockResolvedValueOnce([[]]);
 
-      await expect(service.producir(defaultDTO, 1)).rejects.toThrow(
-        'Receta no encontrada',
-      );
+      await expect(service.producir(defaultDTO, 1)).rejects.toThrow('Receta no encontrada');
       expect(mockGetConnection).not.toHaveBeenCalled();
     });
 
@@ -282,9 +276,7 @@ describe('ProduccionService', () => {
         .mockResolvedValueOnce([incompatibleIngredientes, []])
         .mockResolvedValueOnce([[stockRow], []]);
 
-      await expect(service.producir(defaultDTO, 1)).rejects.toThrow(
-        'Unidades incompatibles',
-      );
+      await expect(service.producir(defaultDTO, 1)).rejects.toThrow('Unidades incompatibles');
 
       expect(conn.rollback).toHaveBeenCalled();
     });

@@ -51,9 +51,7 @@ describe('produccion routes — integration', () => {
     producto_id: 5,
     cantidad_producida: 2,
     tandas_ejecutadas: 2,
-    ingredientes_consumidos: [
-      { ingrediente_id: 1, nombre: 'Harina', cantidad_consumida: 1000 },
-    ],
+    ingredientes_consumidos: [{ ingrediente_id: 1, nombre: 'Harina', cantidad_consumida: 1000 }],
     created_by: 1,
     created_at: new Date('2026-07-29').toISOString(),
   };
@@ -131,9 +129,7 @@ describe('produccion routes — integration', () => {
     });
 
     it('should return 409 for multiple linked products', async () => {
-      mockProducir.mockRejectedValue(
-        new Error('La receta está vinculada a múltiples productos'),
-      );
+      mockProducir.mockRejectedValue(new Error('La receta está vinculada a múltiples productos'));
 
       const app = buildApp('/api/produccion', router);
       const res = await request(app)

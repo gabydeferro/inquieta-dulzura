@@ -2,10 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { InsufficientIngredientStockError } from '../errors/InsufficientIngredientStockError';
 import { IncompatibleUnitsError } from '../errors/IncompatibleUnitsError';
-import {
-  producir,
-  listar,
-} from '../controllers/ProduccionController';
+import { producir, listar } from '../controllers/ProduccionController';
 
 // Mock helpers using vi.hoisted
 const { mockProducir, mockListar } = vi.hoisted(() => ({
@@ -51,9 +48,7 @@ describe('ProduccionController', () => {
     producto_id: 5,
     cantidad_producida: 2,
     tandas_ejecutadas: 2,
-    ingredientes_consumidos: [
-      { ingrediente_id: 1, nombre: 'Harina', cantidad_consumida: 1000 },
-    ],
+    ingredientes_consumidos: [{ ingrediente_id: 1, nombre: 'Harina', cantidad_consumida: 1000 }],
     created_by: 1,
     created_at: new Date('2026-07-29'),
   };
@@ -66,10 +61,7 @@ describe('ProduccionController', () => {
 
       await producir(mockRequest as Request, mockResponse as Response);
 
-      expect(mockProducir).toHaveBeenCalledWith(
-        { receta_id: 1, cantidad_producir: 2 },
-        1,
-      );
+      expect(mockProducir).toHaveBeenCalledWith({ receta_id: 1, cantidad_producir: 2 }, 1);
       expect(mockStatus).toHaveBeenCalledWith(201);
       expect(mockJson).toHaveBeenCalledWith(mockProduccionResponse);
     });
@@ -138,9 +130,7 @@ describe('ProduccionController', () => {
     it('should return 409 when recipe has multiple linked products', async () => {
       mockRequest.body = { receta_id: 1, cantidad_producir: 2 };
       mockRequest.user = { userId: 1, email: 'admin@test.com', rol: 'admin' };
-      mockProducir.mockRejectedValue(
-        new Error('La receta está vinculada a múltiples productos'),
-      );
+      mockProducir.mockRejectedValue(new Error('La receta está vinculada a múltiples productos'));
 
       await producir(mockRequest as Request, mockResponse as Response);
 
